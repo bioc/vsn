@@ -74,7 +74,8 @@ Poustka, Martin Vingron; Bioinformatics (2002) 18 Suppl.1 S96-S104.}
 data(lymphoma)
 
 ## the data in the log-log-plot
-x11(width=9, height=4.5)
+if (interactive())
+  x11(width=9, height=4.5)
 par(mfrow=c(1,2))
 
 y = exprs(lymphoma)[, 3:4]
@@ -86,7 +87,8 @@ ny <- vsn(y)
 show(ny)
 plot(ny@h, pch=".", main="h-h")
 
-x11()
+if (interactive())
+  x11()
 plot(ny)
 plot(ny, what="offsets")
 plot(ny, what="factors")
