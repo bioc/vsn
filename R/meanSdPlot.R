@@ -15,7 +15,7 @@ meanSdPlot = function(x, ranks=TRUE,
       stop("The element \"vsnTrimSelection\" of the preprocessing slot of the description slot of \"x\" is corrupted.")
     if(!is.null(col))
       stop("Parameter \"col\" must not be specified.")
-    col = ifelse(sel, "red", "black")
+    col = ifelse(sel, "blue", "black")
   } else {
     sel = TRUE
     if(is.null(col))
@@ -41,7 +41,7 @@ meanSdPlot = function(x, ranks=TRUE,
     pxl = quantile(px, probs=midpoints, na.rm=TRUE)
   }
   plot(px, py, pch=pch, xlab=xlab, ylab=ylab, col=col, ...)
-  lines(pxl, rq.sds, col="blue", type="b", pch=19)
+  lines(pxl, rq.sds, col="red", type="b", pch=19)
 }
 
   

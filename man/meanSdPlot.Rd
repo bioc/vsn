@@ -27,9 +27,9 @@ meanSdPlot(x,
   matrix \code{exprs(x)}. The scatterplot of these versus each other
   allows to visually verify whether there is
   a dependence of the standard deviation (or variance) on the mean.
-  The blue dots depict the running median estimator (window-width 10\%).
+  The red dots depict the running median estimator (window-width 10\%).
   If there is no variance-mean dependence, then the line formed by the
-  blue dots should be approximately horizontal.
+  red dots should be approximately horizontal.
 
   If the \code{preprocessing} slot of the \code{description} slot of
   \code{x} is a \code{\link{list}} and contains an element named
