@@ -10,3 +10,5 @@ Description: The package implements a robust variant of the maximum-likelihood e
 Reference: [1] Variance stabilization applied to microarray data calibration and to the quantification of differential expression, Wolfgang Huber, Anja von Heydebreck, Holger S&uuml;ultmann, Annemarie Poustka, Martin Vingron; Bioinformatics (2002) 18 Suppl1 S96-S104. [2] Parameter estimation for the calibration and variance stabilization of microarray data, Wolfgang Huber, Anja von Heydebreck, Holger S&uuml;ltmann, Annemarie Poustka, and Martin Vingron; Statistical Applications in Genetics and Molecular Biology (2003) Vol. 2 No. 1, Article 3; http://www.bepress.com/sagmb/vol2/iss1/art3.
 License: LGPL
 URL: http://www.r-project.org, http://www.dkfz.de/abt0840/whuber
+ReleaseLevel: devel
+
