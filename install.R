@@ -1,6 +1,8 @@
 require(Biobase)
 
 ## register vsn as a normalization method with the affy package, if that is loaded:
-if(exists("normalize.AffyBatch.methods"))
-  if(!"vsn" %in% normalize.AffyBatch.methods)
-    normalize.AffyBatch.methods <- c(normalize.AffyBatch.methods, "vsn")
+if ("package:affy" %in% search())
+  if(!"vsn" %in% get("normalize.AffyBatch.methods", "package:affy"))
+    assign("normalize.AffyBatch.methods",
+           c(get("normalize.AffyBatch.methods", pos="package:affy"), "vsn"),
+           pos="package:affy")
