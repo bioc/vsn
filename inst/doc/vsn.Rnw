@@ -51,39 +51,61 @@ on.exit( {options(oldopt)} )
 \Rpackage{vsn} is a method to preprocess DNA microarray intensity data.
 Calling \Rpackage{vsn} can be as simple as
 
-<<dummyex,eval=FALSE>>=
+<<dummyex1,eval=FALSE>>=
 e2 <- vsn(e1)
 @
 
 where \Rexpression{e1} is an \Rexpression{exprSet} with raw data and
-\Rexpression{e2} one with normalized and transformed data.  \Rexpression{e1}
-can also be a matrix, a data frame with numeric columns only, or an object of
-class \Rclass{marrayRaw}.
+\Rexpression{e2} one with calibrated and \textit{glog}-transformed data.
+\Rexpression{e1} can also be a matrix, a data frame with numeric columns only,
+or an object of class \Rclass{marrayRaw}. It contains the raw intensity
+measurements from the DNA probes on a series of microarrays (with rows
+corresponding to probes, columns to arrays and/or dyes).
 
-\Rexpression{e1} contains the raw intensity measurements from the DNA probes
-on a series of microarrays (with rows corresponding to probes, columns to
-arrays and/or dyes).  Each column is calibrated by an affine
-transformation\footnote{It is possible to stratify the transformations within
-columns; this is discussed in Section~\ref{sec.strata}}, then the whole data
-are transformed by a variance-stabilizing transformation.
-After this, systematic array- or dye-biases should be removed, and the
-variance should be approximately independent of the mean intensity.  Many
-statistical methods such as hypothesis tests, ANOVA modeling, clustering, or
-classification work better or are easier to use if the variance of the data
-is roughly the same for all observations\footnote{Note that \Rpackage{vsn}
-only addresses the dependence of the variance on the mean intensity. There may
-be other factors influencing the variance, such as gene-inherent properties,
-or changes of the tightness of transcriptional control in different
-conditions.  If necessary, these need to be addressed by other methods.}.
+The so-called \textit{glog} (short for 
+\textit{\textbf{generalized logarithm}}) is a function that is like the
+natural logarithm for large values (compared against the background noise),
+but is less steep for smaller values.  Differences between the transformed
+values are the \textit{\textbf{generalized log-ratios}}. For example,
 
-Differences between the transformed values are the so-called
-\textit{\textbf{generalized log-ratios}}.  If both numerator and denominator
-are well above background, generalized log-ratios coincide with the usual
-log-ratios: $h(x_i)-h(x_j)\approx\log(x_i)-\log(x_j)=\log(x_i/x_j)$ if $x_i,
-x_j\gg0$ . In contrast to log-ratios, they remain well-defined and
-statistically meaningful if $x_i$ or $x_j$ are close to zero.  Please consult
-the paper in the references for more on the mathematical-methodical background
+<<dummyex2,eval=FALSE>>=
+M <- exprs(e2)[,i] - exprs(e2)[,j]
+@
+
+produces the vector of generalized log-ratios between samples $i$ and
+$j$. Notes that these are to base \textit{e}. If you want to convert them to
+base 2, divide them by log(2). If you want to know the estimated the fold
+change, exponentiate:
+
+<<dummyex3,eval=FALSE>>=
+M.base2 <- M/log(2)
+fold.change <- exp(M)
+@
+
+Generalized log-ratios can be viewed as a \textit{shrinkage estimator}: they
+are always smaller than or equal to the naive log-ratios; equality is
+asymptotically reached if the probe intensities are large both for samples $i$
+and $j$. Their advantage is that they do not suffer from the variance
+divergence of the naive log-ratios at small intensities: they remain
+well-defined and statistically meaningful when the data come close to zero or
+even become negative.  Please consult the references for more on the
+mathematical-methodical background
 ~\cite{HuberISMB2002,HSG2002,HuberSAGMB2003}.
+
+
+In short, each column is calibrated by an affine transformation\footnote{It is
+possible to stratify the transformations within columns; this is discussed in
+Section~\ref{sec.strata}}, then the whole data are transformed by a
+variance-stabilizing transformation.  After this, systematic array- or
+dye-biases should be removed, and the variance should be approximately
+independent of the mean intensity.  Many statistical methods such as
+hypothesis tests, ANOVA modeling, clustering, or classification work better or
+are easier to use if the variance of the data is roughly the same for all
+observations\footnote{Note that \Rpackage{vsn} only addresses the dependence
+of the variance on the mean intensity. There may be other factors influencing
+the variance, such as gene-inherent properties, or changes of the tightness of
+transcriptional control in different conditions.  If necessary, these need to
+be addressed by other methods.}.
 
 %------------------------------------------------------------
 \section{Running vsn on data from a single two-color array} 
@@ -577,6 +599,13 @@ W. Huber, A. von Heydebreck, H. {S\"ultmann}, A. Poustka, and M. Vingron.
   quantification of differential expression.
 \newblock \textit{Bioinformatics}, 18:S96--S104, 2002.
 
+\bibitem{HSG2002}
+W. Huber, A. von Heydebreck, and M. Vingron.
+\newblock Analysis of microarray gene expression data.
+\newblock To appear in the \textit{Handbook of Statistical Genetics}, 2003.
+Eds.: D. J. Balding, M. Bishop, C. Cannings. 
+John Wiley \& Sons, Inc., 
+
 \bibitem{HuberSAGMB2003}
 W. Huber, A. von Heydebreck, H. {S\"ultmann}, A. Poustka, and M. Vingron.
 \newblock Parameter estimation for the calibration and variance stabilization 
@@ -584,13 +613,6 @@ of microarray data.
 \newblock \textit{Statistical Applications in Genetics and Molecular Biology}, 
 Vol. 2: No. 1, Article 3, 2003. 
 http://www.bepress.com/sagmb/vol2/iss1/art3
-
-\bibitem{HSG2002}
-W. Huber, A. von Heydebreck, and M. Vingron.
-\newblock Analysis of microarray gene expression data.
-\newblock To appear in the \textit{Handbook of Statistical Genetics}, 2003.
-Eds.: D. J. Balding, M. Bishop, C. Cannings. 
-John Wiley \& Sons, Inc., 
 
 \bibitem{RockeDurbin2001}
 David~M. Rocke and Blythe Durbin.
