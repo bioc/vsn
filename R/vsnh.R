@@ -1,21 +1,37 @@
 ##---------------------------------------------------------------------
 ## The "arsinh" transformation
-## note: the constant -log(2*facs[1]) is added to the transformed data
+##
+## Note: the constant -log(2*facs[1]) is added to the transformed data
 ## in order to achieve h_1(y) \approx log(y) for y\to\infty, that is,
 ## better comparability to the log transformation.
 ## It has no effect on the generalized log-ratios.
-##---------------------------------------------------------------------
-vsnh = function(y, p) {
+##--------------------------------------------------------------------
+vsnh <- function(y, p, strata) {
   if (!is.matrix(y) || !is.numeric(y))
-    stop("vsnh: argument y must be a numeric matrix.\n")
-  if (!is.vector(p) || !is.numeric(p) || any(is.na(p)))
-    stop("vsnh: argument p must be a numeric vector with no NAs.\n")
-  if (2*ncol(y) != length(p))
-    stop("vsnh: argument p must be a vector of length 2*ncol(y).\n")
+    stop("vsnh: 'y' must be a numeric matrix.\n")
+  
+  if (!is.array(p) || !is.numeric(p) || any(is.na(p)))
+    stop("'p' must be an array with no NAs.\n")
 
-  offs = matrix(p[         1  :  ncol(y) ], nrow=nrow(y), ncol=ncol(y), byrow=TRUE)
-  facs = matrix(p[(ncol(y)+1):(2*ncol(y))], nrow=nrow(y), ncol=ncol(y), byrow=TRUE)
-  hy   = asinh(offs + facs * y) - log(2*facs[1])
+  if(missing(strata)) {
+    strata <- rep(as.integer(1), nrow(y))
+  } else {
+    if(!is.integer(strata) || !is.vector(strata) || 
+       length(strata)!=nrow(y) || any(is.na(strata)))
+      stop("'strata' must be an integer vector of length nrow(y) with no NAs.")
+  }
+  nrstrata <- max(strata)
+  
+  if(nrstrata==1 && length(dim(p))==2)
+    dim(p) <- c(1, dim(p))
+  
+  if(length(dim(p))!=3 || dim(p)[1]<nrstrata || dim(p)[2]!=ncol(y) || dim(p)[3]!=2)
+    stop("'p' has wrong dimensions.")
+  if (any(p[,,2]<=0))
+    stop("'p' contains invalid values: factors must be non-negative.")
+
+  hy   = asinh(p[strata,,1] + p[strata,,2] * y) - log(2*p[strata[1],1,2])   
   dimnames(hy) = dimnames(y)
   return(hy)
 }
+

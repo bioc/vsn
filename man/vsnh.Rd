@@ -2,39 +2,52 @@
 \alias{vsnh}
 \title{A function that transforms a matrix of microarray intensities}
 \description{A function that transforms a matrix of microarray intensities}
-\usage{vsnh(y, p)}
+\usage{vsnh(y, p, strata)}
 \arguments{
   \item{y}{A numeric matrix containing intensity values from an array experiment. 
     It may contain NA values.}
-  \item{p}{A numeric vector with the transformation parameters, of length 2*ncol(y). 
-    NA values are not allowed. See Details.}
+  \item{p}{An array with the transformation parameters. If \code{strata} is
+    specified, it must be a 3d array, dim(p)[1] must be greater than or
+    equal to the maximum of \code{strata}, dim(p)[2] must be ncol(y),
+    and dim(p)[3] must be 2. If \code{strata} is missing, then the first
+    dimension may be omitted. NA values are not allowed. See Details.}
+  \item{strata}{Integer vector of length nrow(y). See 
+    \code{\link{vsn}} for details.}
 }
 
 \value{
   A numeric matrix of the same size as y, with the transformed data.
 }
 \details{
-  The transformation is defined as:
+  The transformation is:
   
-  vsnh(y,p)[k,i] = asinh( p[i] + p[i+d] * y[k,i] )
+  vsnh(y, p, s)[k, i] = asinh( p[s[k], i, 1] + p[s[k], i, 2] * y[k, i] )
   
-  where d=ncol(y) is the number of samples, 
-  i=1:d counts over the samples,
-  p[1:d] are the additive calibration offsets,
-  p[(d+1):(2*d)] are the calibration factors,
-  and k=1:nrow(y) counts over the probes.
-  
+  where k=1:nrow(y) counts over the probes, 
+  i=1:ncol(y) counts over the samples,
+  p[s[k], i, 1] is the calibration offset for stratum s[k] in sample i,
+  p[s[k], i, 2] is the calibration factor for stratum s[k] in sample i,
+  and s[k] is the stratum of the the k-th probe.
 }
 \references{Variance stabilization applied to microarray data
 calibration and to the quantification of differential expression,
 Wolfgang Huber, Anja von Heydebreck, Holger Sueltmann, Annemarie
-Poustka, Martin Vingron; Bioinformatics (2002) 18 Suppl.1 S96-S104.}
+Poustka, Martin Vingron; Bioinformatics (2002) 18 Suppl.1 S96-S104.
 
-\author{Wolfgang Huber \url{http://www.dkfz.de/mga/whuber}}
+Parameter estimation for the calibration and variance stabilization 
+of microarray data, 
+Wolfgang Huber, Anja von Heydebreck, Holger Sueltmann, 
+Annemarie Poustka, and Martin Vingron;  
+Statistical Applications in Genetics and Molecular Biology (2003)
+Vol. 2 No. 1, Article 3.
+http://www.bepress.com/sagmb/vol2/iss1/art3.}
+
+\author{Wolfgang Huber \url{http://www.dkfz.de/abt0840/whuber}}
 \seealso{ \code{\link{vsn}} }
 
 \examples{
-##see vsn
+data(kidney)
+p <- array(c(-0.2, 0.2, 0.0028, 0.0032), dim=c(1,2,2))
+res <- vsnh(exprs(kidney), p)
 }
-
-\keyword{print}
+\keyword{}

@@ -16,7 +16,7 @@ log.na(x, ...)
 \value{A vector of the same length as `x' containing the transformed
   values.  For x<=0, NA is returned without warning.}
 
-\author{Wolfgang Huber \url{http://www.dkfz.de/mga/whuber}}
+\author{Wolfgang Huber \url{http://www.dkfz.de/abt0840/whuber}}
 \seealso{\code{\link{log}}}
 
 \examples{

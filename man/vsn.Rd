@@ -10,8 +10,9 @@ vsn(intensities,
     verbose      = TRUE,
     niter        = 10,
     cvg.check    = NULL,
-    pstart       = NULL,
-    describe.preprocessing = TRUE)
+    describe.preprocessing = TRUE,
+    pstart,
+    strata)
 }
 \arguments{
 \item{intensities}{An object that contains intensity values from
@@ -19,7 +20,7 @@ vsn(intensities,
   \code{\link[vsn:getIntensityMatrix]{getIntensityMatrix}} for details.
   The intensities are assumed to be the raw
   scanner data, summarized over the spots by an image analysis program,
-  and possibly "background" subtracted.
+  and possibly "background subtracted".
   The intensities must not be logarithmically or otherwise transformed,
   and not thresholded or "floored". NAs are not accepted.
   See details.}
@@ -27,37 +28,50 @@ vsn(intensities,
   least trimmed sum of squares regression. Allowed values are between
   0.5 and 1. A value of 1 corresponds to ordinary least sum of squares
   regression.}
+\item{verbose}{Logical. If TRUE, some messages are printed.}
 \item{niter}{Integer. The number of iterations to be used in the least
   trimmed sum of squares regression.}
-\item{verbose}{Logical. If TRUE, some messages are printed.}
-\item{pstart}{Numeric vector. Starting values for the model parameters
-  in the iterative parameter estimation algorithm. If NULL, the function
-  tries to determine reasonable starting values from the distribution of
-  \code{intensities}.}
+\item{cvg.check}{List. If non-NULL, this allows finer control of the
+  iterative least trimmed sum of squares regression. See details.}
+\item{pstart}{Array. If not missing, user can specify start values
+  for the iterative parameter estimation algorithm. See 
+  \code{\link{vsnh}} for details.}
 \item{describe.preprocessing}{Logical. If TRUE, calibration and
   transformation parameters, plus some other information are stored in
   the \code{preprocessing} slot of the returned object. See details.}
-\item{cvg.check}{List. If non-NULL, this allows finer control of the
-  iterative least trimmed sum of squares regression. See details.}
+\item{strata}{Integer vector. Its length must be the same as nrow(intensities).
+  This parameter allows for the calibration and error model parameters
+  to be stratified within each array, e.g to take into account probe 
+  sequence properties, print-tip or plate effects.  
+  If \code{strata} is not specified, one pair of parameters is fitted
+  for every sample (i.e. for every column of \code{intensities}). If
+  \code{strata} is specified, a pair of parameters is fitted for every 
+  stratum within every sample. The strata are coded for by the different
+  integer values. The integer vector \code{strata} can be obtained
+  from a factor \code{fac} through \code{as.integer(fac)}, from
+  a character vector \code{str} through \code{as.integer(factor(fac))}.}
 }
-\details{The function calibrates for sample-to-sample variations through
+\details{\bold{Overview:} 
+  The function calibrates for sample-to-sample variations through
   shifting and scaling, and transforms the intensities to a scale where
   the variance is approximately independent of the mean intensity.
   The variance stabilizing transformation is equivalent to the
   natural logarithm in the high-intensity range, and to a
   linear transformation in the low-intensity range. In an intermediate
   range, the \emph{arsinh} function interpolates smoothly between the
-  two. The calibration consists of estimating an offset \code{offs[i]}
-  and a scale factor \code{fac[i]} for each column \code{i} of the matrix
-  \code{intensities}. Thus, the calibration is:
-  
-  \code{intensities[k,i] <- intensities[k,i] * fac[i] + offs[i]}
-
-  The parameters \code{offs[i]} and \code{fac[i]} are estimated through
-  a robust variant of maximum likelihood. The model assumes that for
+  two. For details on the transformation, please see the help page for
+  \code{\link{vsnh}}. The parameters are estimated through
+  a robust variant of maximum likelihood. This assumes that for
   the majority of genes the expression levels are not much different
   across the samples, i.e., that only a minority of genes (less than
   a fraction \code{1-lts.quantile}) is differentially expressed.
+
+  Even if most genes on an array are differentially expressed, it may still
+  be possible to use the estimator: if a set of non-differentially expressed
+  genes is known, e.g. because they are external controls or reliable
+  'house-keeping genes', the transformation parameters can be fitted with
+  \code{vsn} from the data of these genes, then the transformation can be
+  applied to all data with \code{\link{vsnh}}.
 
   \bold{Format:} The format of the matrix of intensities is as follows:
   for the \bold{two-color printed array technology}, each row
@@ -83,40 +97,43 @@ vsn(intensities,
   you can inspect by typing \code{normalize.AffyBatch.vsn} on the R
   command line.
 
-  \bold{Calibration and transformation parameters:} The parameters
-  are stored in the \code{preprocessing} slot of the \code{description}
-  slot of the \code{\link[Biobase:exprSet-class]{exprSet}} object that
-  is returned, in the form of a \code{\link{list}} with three elements
-  \itemize{
-    \item \code{vsnParams}: a length(2*d) numeric vector of parameters 
-    \item \code{vsnParamsIter}: an (2*d) x niter numeric matrix that
-    contains the parameter trajectory during the
-    iterative fit process (see \code{\link{vsnPlotPar}}).
-    \item \code{vsnTrimSelection}: a length(n) logical vector that for
-    each row of the intensities matrix reports whether it was below
-    (TRUE) or above (FALSE) the trimming threshold.
-    }
-
-  If \code{intensities} has class
-  \code{\link[Biobase:exprSet-class]{exprSet}}, and its \code{description} 
-  slot has class \code{\link[Biobase:MIAME-class]{MIAME}}, then this
-  list is appended to any existing entries in the \code{preprocessing}
-  slot. Otherwise, the \code{description} object and its
-  \code{preprocessing} slot are created.
-
+  \bold{Iteration control:} 
   By default, if \code{cvg.check} is \code{NULL}, the function will run
   the fixed number \code{niter} of iterations in the least trimmed sum
   of squares regression. More fine-grained control can be obtained by
   passing a list with elements \code{eps} and \code{n}. If the maximum
   change between transformed data values is smaller than \code{eps} for
   \code{n} subsequent iterations, then the iteration terminates.
+
+  \bold{Estimated transformation parameters:} 
+  If \code{describe.preprocessing} is \code{TRUE}, the transformation
+  parameters are returned in the \code{preprocessing} slot of the
+  \code{description} slot of the resulting 
+  \code{\link[Biobase:exprSet-class]{exprSet}} object, in the form 
+  of a \code{\link{list}} with three elements
+  \itemize{
+  \item \code{vsnParams}: the parameter array (see \code{\link{vsnh}} 
+    for details) 
+  \item \code{vsnParamsIter}: an array with dimensions 
+    \code{c(dim(vsnParams, niter))} that contains the parameter 
+    trajectory during the iterative fit process (see also 
+    \code{\link{vsnPlotPar}}).
+  \item \code{vsnTrimSelection}: a logical vector that for
+    each row of the intensities matrix reports whether it was below
+    (TRUE) or above (FALSE) the trimming threshold.
+  }
+  If \code{intensities} has class \code{\link[Biobase:exprSet-class]{exprSet}},
+  and its \code{description} slot has class
+  \code{\link[Biobase:MIAME-class]{MIAME}}, then this list is appended to any
+  existing entries in the \code{preprocessing} slot. Otherwise, the
+  \code{description} object and its \code{preprocessing} slot are created.  
 }
 
 \value{An object of class \code{\link[Biobase:exprSet-class]{exprSet}}.
-  Differences
-  between the columns of the transformed intensities may be interpreted
-  as "regularized" or "shrunken" log-ratios. For the calibration and
-  transformation parameters, see the \emph{Details} section.
+ Differences between the columns of the transformed intensities may be
+ interpreted as "generalized log-ratios". For the transformation parameters,
+ please see details.
+
 }
 
 \references{Variance stabilization applied to microarray data
@@ -132,9 +149,11 @@ Statistical Applications in Genetics and Molecular Biology (2003)
 Vol. 2 No. 1, Article 3.
 http://www.bepress.com/sagmb/vol2/iss1/art3.}
 
-\author{Wolfgang Huber \url{http://www.dkfz.de/mga/whuber}}
+\author{Wolfgang Huber \url{http://www.dkfz.de/abt0840/whuber}}
 
-\seealso{\code{\link{exprSet-class}}, \code{\link{MIAME-class}},
+\seealso{\code{\link{vsnh}}, \code{\link{vsnPlotPar}}, 
+  \code{\link[Biobase:exprSet-class]{exprSet-class}}, 
+  \code{\link[Biobase:MIAME-class]{MIAME-class}},
   \code{\link{normalize.AffyBatch.vsn}}}
 
 \examples{

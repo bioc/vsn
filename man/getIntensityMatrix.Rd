@@ -18,7 +18,7 @@
   A numeric matrix.
 }
 
-\author{Wolfgang Huber \url{http://www.dkfz.de/mga/whuber}}
+\author{Wolfgang Huber \url{http://www.dkfz.de/abt0840/whuber}}
 \seealso{\code{\link[vsn:vsn]{vsn}}}
 \examples{
   ## see the vignette

@@ -1,18 +1,19 @@
-%\VignetteIndexEntry{vsn}
+%\VignetteIndexEntry{vsn - introduction}
 %\VignetteDepends{Biobase,vsn,affy,marrayNorm,multtest}
 %\VignetteKeywords{Expression Analysis}
 %\VignettePackage{vsn}
 
 \documentclass[11pt]{article}
-\usepackage[margin=2.5cm,noheadfoot]{geometry}
+\usepackage{geometry}
 
 %------------------------------------------------------------
 % newcommand
 %------------------------------------------------------------
+\newcommand{\arsinh}{\mathop{\mathgroup\symoperators arsinh}\nolimits}
 \newcommand{\Rfunction}[1]{\texttt{#1}}
-\newcommand{\Robject}[1]{\texttt{#1}}
+\newcommand{\Rexpression}[1]{\texttt{#1}}
+
 \newcommand{\Rpackage}[1]{\textit{#1}}
-\newcommand{\Rfunarg}[1]{\textit{#1}}
 \newcommand{\Rclass}[1]{\textit{#1}}
 
 \newcommand{\myincfig}[3]{%
@@ -40,34 +41,31 @@ library(marrayNorm)
 library(multtest)
 oldopt <- options(digits=3)
 on.exit( {options(oldopt)} )
-@
+@ 
 
 %------------------------------------------------------------
 \section*{Introduction}
-%------------------------------------------------------------
+%------------------------------------------------------------ 
 \Rpackage{vsn} is a method to preprocess DNA microarray intensity data. As
-input, the function \Rpackage{vsn} takes the raw intensity measurements
-from the DNA probes on a series of microarrays. The intensities from
-each array are calibrated by a suitable affine transformation, then
-the whole data are transformed by a variance-stabilizing transformation.  
-After this, systematic array- or dye-biases should be removed, and the 
-variance should be approximately independent of the mean intensity.  
-This is useful for subsequent analyses such as hypothesis tests, ANOVA
-modeling, clustering, or classification that assume that the variance
-is the same for all observations\footnote{% 
-  Note that \Rpackage{vsn} only addresses the dependence of the variance
-  on the mean intensity. There may be other factors influencing the
-  variance, such as gene-inherent properties, or changes of the
-  tightness of transcriptional control in different conditions.  If
-  necessary, these need to be addressed by other methods.}.  
-Differences between the transformed values are the
-so-called "generalized log-ratios".  If both numerator and denominator
-are well above background, generalized log-ratios coincide with the
-usual log-ratios:
+input, the function \Rpackage{vsn} takes the raw intensity measurements from
+the DNA probes on a series of microarrays. The data are calibrated by a
+suitable set of affine transformations, then the whole data are transformed by
+a variance-stabilizing transformation.  After this, systematic array- or
+dye-biases should be removed, and the variance should be approximately
+independent of the mean intensity.  Many statistical methods such as
+hypothesis tests, ANOVA modeling, clustering, or classification work better,
+or are easier to use, if the variance of the data is (roughly) the same for
+all observations\footnote{Note that \Rpackage{vsn} only addresses the
+dependence of the variance on the mean intensity. There may be other factors
+influencing the variance, such as gene-inherent properties, or changes of the
+tightness of transcriptional control in different conditions.  If necessary,
+these need to be addressed by other methods.}.  Differences between the
+transformed values are the so-called "generalized log-ratios".  If both
+numerator and denominator are well above background, generalized log-ratios
+coincide with the usual log-ratios:
 $h(x_i)-h(x_j)\approx\log(x_i)-\log(x_j)=\log(x_i/x_j)$ if $x_i,
-x_j\gg0$~\cite{HuberISMB2002,HSG2002}. In contrast to log-ratios,
-they remain well-defined and statistically meaningful if $x_i$ or
-$x_j$ are close to zero.
+x_j\gg0$~\cite{HuberISMB2002,HSG2002}. In contrast to log-ratios, they remain
+well-defined and statistically meaningful if $x_i$ or $x_j$ are close to zero.
 
 %------------------------------------------------------------
 \section{The data}
@@ -88,13 +86,13 @@ package \Rpackage{affy}.
 \section{Running vsn on the data from a single cDNA array} 
 %------------------------------------------------------------
 The package includes example data from a cDNA array on which two
-biologically highly similar samples, one labeled in green (Cy3), one
+biologically very similar samples, one labeled in green (Cy3), one
 in red (Cy5), were hybridized.
 <<lib,results=hide>>= 
 library(vsn) 
 data(kidney) 
 @ 
-The two columns of the matrix \Robject{exprs(kidney)} contain the
+The two columns of the matrix \Rexpression{exprs(kidney)} contain the
 green and red intensities, respectively. Let's try out \Rfunction{vsn} on
 these example data. In Fig.~\ref{vsn-nkid-scp} you can see the
 scatterplot of the calibrated and transformed data. For comparison,
@@ -110,7 +108,7 @@ plot(log.na(exprs(kidney)), main = "raw", pch = ".")
 \myincfig{vsn-nkid-scp}{\textwidth}{Scatterplots of the kidney example
 data}
 \Rfunction{vsn} returns the transformed intensities in an object of
-class \Rclass{exprSet}. Its slot \Robject{exprs} is a matrix of the
+class \Rclass{exprSet}. Its slot \Rexpression{exprs} is a matrix of the
 same size as the input data.  The plot in Fig.~\ref{vsn-nkid-scp}
 shows the complete set of $n=9216$ red and green intensities, without
 any thresholding or masking of data points.  To verify the variance
@@ -141,10 +139,9 @@ fluctuations, but should not show an overall trend.  If this is not
 the case, that usually indicates a data quality problem, or is a
 consequence of inadequate prior data preprocessing (see
 Section~\ref{sec.qc}). The rank ordering distributes the data evenly
-along the $x$-axis, which is in many cases useful for the
-visualization.  A plot in which the $x$-axis shows the average
+along the $x$-axis. A plot in which the $x$-axis shows the average
 intensities themselves is obtained by calling the \Rfunction{plot}
-command with the argument \Rfunarg{ranks=FALSE}.
+command with the argument \Rexpression{ranks=FALSE}.
 
 The parameter estimation in \Rfunction{vsn} works in an iterative
 manner.  To verify that the iterations have converged, you can call
@@ -154,14 +151,13 @@ par(mfrow=c(1,2))
 vsnPlotPar(nkid, "offsets")
 vsnPlotPar(nkid, "factors")
 @
-\myincfig{vsn-nkid-iter}{\textwidth}{Iteration trajectory of the
-calibration and transformation parameters}
-The plots in Fig.~\ref{vsn-nkid-iter} show the values of the estimated
-calibration and variance stabilization parameters on the $y$-axis as a
-function of the iteration index. All curves should reach a plateau
-well before the last iteration. If this is not the case, the number of
-iterations may be increased through the parameter \Rfunarg{iter}.
-It could also indicate a data quality problem, see Section~\ref{sec.qc}.
+\myincfig{vsn-nkid-iter}{\textwidth}{Iteration trajectory of the calibration
+and transformation parameters} The plots in Fig.~\ref{vsn-nkid-iter} show the
+values of the estimated calibration and variance stabilization parameters on
+the $y$-axis as a function of the iteration index. All curves should reach a
+plateau before the last iteration. If this is not the case, the number of
+iterations may be increased through the parameter \Rexpression{iter}.  It
+could also indicate a data quality problem, see Section~\ref{sec.qc}.
 
 The "generalized log-ratios"~\cite{HuberISMB2002} for this experiment
 may be obtained for further processing through
@@ -176,28 +172,68 @@ The histogram is shown in Fig.~\ref{vsn-nkid-iter}.
 %---------------------------------------------------------------------
 \section{Calibration} 
 %---------------------------------------------------------------------
-We can access the transformation and calibration parameters through
+If $y_{ki}$ is the matrix of uncalibrated data, with $k$ indexing the
+rows and $i$ the columns, then the calibrated data $y_{ki}'$ is
+obtained through scaling by $\lambda_{si}$ and shifting by $o_{si}$:
+\begin{equation}\label{eq.cal}
+y_{ki}' = \frac {y_{ki}-o_{si}}{\lambda_{si}},
+\end{equation}
+where $s\equiv s(k)$ is the so-called \textit{stratum} for probe $k$. In the
+simplest case, there is only one stratum, i.\,e.\ the index $s$ is always
+equal to 1, or may be omitted altogether. This amounts to assuming that 
+that the data of all probes on an array were subject to the same 
+systematic effects, such that an array-wide calibration is sufficient.
+
+Sometimes, it is better to consider \textit{stratified calibration}. For
+spotted arrays, the stratification of the probes may be according to, for
+example, print-tip~\cite{Dudoit578} or PCR-plate~\cite{HSG2002}. For
+oligonucleotide arrays, it may be useful to stratify the probes by
+physico-chemical properties, e.\,g.\, to assume that probes of different
+sequence composition attract systematically different levels of unspecific
+background signal.
+
+The transformation to a scale where the variance of the data is approximately
+independent of the mean is 
+\begin{equation}\label{eq.vs}
+h_{ki} = \arsinh(a_0+b_0y_{ki}') 
+  = \log\left(a_0+b_0y_{ki}'+\sqrt{\left(a_0+b_0y_{ki}'\right)^2+1}\right).
+\end{equation}
+Eqns.~(\ref{eq.cal}) and (\ref{eq.vs}) can be combined, so that the whole 
+transformation is given by 
+\begin{equation}\label{eq.transf}
+h_{ki} = \arsinh(a_{si} + b_{si} y_{ki}). 
+\end{equation}
+Here, $a_{si}=a_0-b_0o_{si}/\lambda_{si}$ and $b_{si}=b_0/\lambda_{si}$ 
+are the combined calibation and transformation parameters for probes from
+stratum $s$ and sample $i$.
+
+We can access the calibration and transformation parameters through
 <<nkid-calib1>>=
 prep <- preproc(description(nkid))
 names(prep)
 prep$vsnParams
 @
 % $ for ESS
-The \Robject{description} slot of an \Rclass{exprSet} is an object of
-class \Rclass{MIAME}, and may contain annotation (or ``metadata'')
-pertinent to the experiment represented by the object. For an exprSet
-with $d$ columns, \Robject{prep\$vsnParams} is a numeric vector of
-length $2d$. Its elements $1,\ldots,d$ contain the additive
-calibration and transformation parameters $a_i$, its elements
-$d+1,\ldots,2d$ the multiplicative ones. Compare the above numbers
-with the final values in Fig.~\ref{vsn-nkid-iter}.
+The \Rexpression{description} slot of an \Rclass{exprSet} is an object of
+class \Rclass{MIAME}, and may contain annotation data pertinent to the
+experiment represented by the object. For an exprSet with $d$ sample 
+and $n_s$ probe strata (see Section~\ref{sec.strata}),
+\Rexpression{prep\$vsnParams} is a numeric array with dimensions $(n_s, d, 2)$. 
+\Rexpression{prep\$vsnParams[s, i, 1]} is what was called $a_{si}$ in
+Eqn.~(\ref{eq.transf}), and
+\Rexpression{prep\$vsnParams[s, i, 2]} is $b_{si}$. Compare the 
+numbers printed above with the final values in Fig.~\ref{vsn-nkid-iter}.
 
-If $y_{ki}$ is the matrix of uncalibrated data, with $k$ indexing the
-rows and $i$ the columns, then the calibrated data $y_{ki}'$ is
-obtained through scaling by $b_i$ and shifting by $a_i$:
-\begin{equation}\nonumber
-y_{ki}' = a_i+b_i y_{ki}
-\end{equation}
+%---------------------------------------------------------------------
+\subsection{Calibration with strata}
+\label{sec.strata}
+%---------------------------------------------------------------------
+\textit{to be written} ... see help page of vsn and vsnh for more
+details.
+
+%---------------------------------------------------------------------
+\subsection{More on calibration} 
+%---------------------------------------------------------------------
 Now suppose the kidney example data were not that well measured, and 
 the red channel had a baseline that was shifted by 500 and a scale 
 that differed by a factor of $0.25$:
@@ -215,7 +251,7 @@ nbkid <- vsn(bkid)
 par(mfrow=c(1,2))
 plot(exprs(bkid),  main = "raw", pch = ".", log="xy")
 plot(exprs(nbkid), main = "vsn", pch = ".")
-preproc(description(nbkid))$vsnParams
+preproc(description(nbkid))$vsnParams[1,,]
 @
 % $ for ESS
 \myincfig{vsn-nkid-calib4}{\textwidth}{Scatterplots for badly biased 
@@ -239,7 +275,7 @@ data(lymphoma)
 dim(exprs(lymphoma))
 pData(lymphoma)
 @
-The 16 columns of the \Robject{lymphoma} object contain the red and
+The 16 columns of the \Rexpression{lymphoma} object contain the red and
 green intensities, respectively, from the 8 slides, as shown in the
 table. Thus, the CH1 intensities are in columns $1, 3, \ldots, 15$,
 the CH2 intensities in columns $2, 4, \ldots, 16$.  We can call
@@ -334,16 +370,15 @@ mn <- maNorm(mr, norm="median", echo=T)
 @
 <<comp,results=hide,fig=TRUE,width=8,height=4,include=FALSE>>=
 par(mfrow=c(1,2))
-plot(M[,1], mn@maM[,1], xlab="M (vsn)", ylab="M (global median)", main="slide 1", pch=".")
 library(multtest)
+plot(M[,1], mn@maM[,1], xlab="M (vsn)", ylab="M (global median)", main="slide 1", pch=".")
+abline(a=0,b=1,col="blue")
 classlabel <- regexpr("CLL",colnames(M)) > 0
 t1 <- mt.teststat(M, classlabel)
 t2 <- mt.teststat(mn@maM, classlabel)
-t2[abs(t2)>1e30] <- NA
 qqplot(t1, t2, xlab="t (vsn)", ylab="t (global median)", main="QQ plot", pch=".")
-abline(a=0,b=1,col="red")
+abline(a=0,b=1,col="blue")
 @
-The line \Rexpression{t2[abs(t2)>1e30] <- NA} is there to avoid a bug in \Rpackage{multtest}.
 
 %---------------------------------------------------------
 \section{Running vsn on Affymetrix data} \label{affy}
@@ -408,59 +443,6 @@ plot(rank(rowSums(x2)), diff(t(x2)), ylim=ylim, main="rank(mean) vs differences"
 abline(h=0, col="red")
 @
 \myincfig{vsn-affy}{\textwidth}{\Rfunction{normalize.AffyBatch.vsn} example}
-
-%------------------------------------------------------------------------
-\section{Verifying and assessing the performance of vsn with 
-   simulated data} \label{sagmb}
-%------------------------------------------------------------------------
-There are two functions \Rfunction{sagmbSimulateData} and
-\Rfunction{sagmbAssess} that can be used to generate simulated data and
-assess the difference between the 'true' and 'estimated' data
-calibration and transformation by vsn. An example is shown in the code
-chunk below. Reference~\cite{HuberSAGMB2003} describes in more detail
-(i) the simulation model, (ii) the assessment strategy, and (iii) a
-comprehensive suite of assessments with respect to the number of
-probes $n$, the number of arrays $d$, the fraction of differentially
-expressed genes $de$, and the fraction of up-regulated genes $up$.
-<<sagmb-calc,results=hide>>=
-n     <- c(500, 1000, 2000, 4000, 8000)
-d     <- 2
-de    <- c(0, 0.2)
-up    <- 0.5
-nrrep <- 8
-if(FALSE) {
-res <- array(NA, dim=c(length(n), nrrep, length(de)))
-for (i in seq(along=de)) {
-  for (k in seq(along=n)) {
-    for (r in 1:nrrep) {
-      sim          <- sagmbSimulateData(n[k], d, de=de[i], up=0.5)
-      ny           <- vsn(sim$y)  
-      res[k, r, i] <- sagmbAssess(exprs(ny), sim)
-    }
-  }
-}
-} else {
-  res <- array(1, dim=c(length(n), nrrep, length(de)))
-}
-@
-% $ for ESS
-<<sagmb-show,include=FALSE,fig=TRUE,width=7,height=4>>=
-par(mfrow=c(1,2))
-for (i in seq(along=de)) {
-  matplot(n, res[,,i], pch=20, log="xy", col="#909090", main=paste("de=", de[i]))
-  lines(n, rowMeans(res[,,i]), col="blue")
-}
-@
-{\bf Note:} The code has been deactivated since it takes a long time
-to run.  In a later version of the vignette (soon!), this section will
-be branched out into a separate Sweave file, where CPU runtime is not
-so much of a concern.
-
-\myincfig{vsn-sagmb-show}{\textwidth}{Estimation error for the
-transformation: the root mean squared difference between true and
-estimated transformed data, as a function of the number of genes
-$n$. If \Rfunction{vsn} works correctly, the estimation error should
-decrease roughly as $n^{-1/2}$.}
 
 %---------------------------------------------------------
 \section{Quality control}\label{sec.qc}
@@ -530,13 +512,12 @@ proportionality factor (called the \textit{coefficient of variation})
 that is the same for all genes~\cite{RockeDurbin2001}.
 
 \paragraph{Most genes unchanged assumption.} 
-\Rfunction{vsn} assumes that only a minority (less than half) of genes
-on the arrays is detectably differentially transcribed across the
-experiments. If it is safe to assume that a smaller fraction of genes
-is non-negligibly differentially transcribed, the efficiency of the
-estimation can be improved by increasing the parameter
-\Rfunarg{lts.quantile} from its default value of 0.5 to a value between
-0.5 and 1.
+\Rfunction{vsn} assumes that only a minority (less than half) of genes on the
+arrays is detectably differentially transcribed across the experiments. If it
+is safe to assume that a smaller fraction of genes is non-negligibly
+differentially transcribed, the efficiency of the estimation can be improved
+by increasing the parameter \Rexpression{lts.quantile} from its default value
+of 0.5 to a value between 0.5 and 1.
 
 \paragraph{Processing biases.} 
 Image analysis software for cDNA arrays typically estimates a

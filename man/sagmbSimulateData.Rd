@@ -5,14 +5,16 @@
 \description{Functions to validate and assess the performance of vsn
   through simulation of data.}
 \usage{
-sagmbSimulateData(n=2304, d=2, de=0, up=0.5)
+sagmbSimulateData(n=8064, d=2, de=0, up=0.5, nrstrata=1)
 sagmbAssess(h1, sim)
 }
 \arguments{
   \item{n}{Numeric. Number of probes (rows).}
   \item{d}{Numeric. Number of arrays (columns).}
   \item{de}{Numeric. Fraction of differentially expressed genes.}
-  \item{up}{Numeric. Fraction of up-regulated genes among the differentially expressed genes.}
+  \item{up}{Numeric. Fraction of up-regulated genes among the
+    differentially expressed genes.}
+  \item{nrstrata}{Numeric. Number of probe strata.}
   \item{h1}{Matrix. Calibrated and transformed data, according, e.g., to
     vsn}
   \item{sim}{List. The output of a previous call to
@@ -20,7 +22,7 @@ sagmbAssess(h1, sim)
 }
 
 \value{
-  For \code{sagmbSimulateData}, a list with three components:
+  For \code{sagmbSimulateData}, a list with four components:
   \code{hy}, an \code{n x d} matrix with the true (=simulated)
   calibrated, transformed data;
   \code{y}, an \code{n x d} matrix with the simulated
@@ -28,10 +30,12 @@ sagmbAssess(h1, sim)
   \code{\link[vsn:vsn]{vsn}};
   \code{is.de}, a logical vector of length \code{n}, specifying
   which probes are simulated to be differentially expressed.
+  \code{strata}, a factor of length \code{n}.
 
   For \code{sagmbSimulateData}, a number: the root mean squared
   difference between true and estimated transformed data.
 }
+
 \details{Please see the vignette.}
 
 \references{Wolfgang Huber, Anja von Heydebreck, Holger Sueltmann,
@@ -42,12 +46,12 @@ sagmbAssess(h1, sim)
   Vol. 2: No. 1, Article 3.
   http://www.bepress.com/sagmb/vol2/iss1/art3}
 
-\author{Wolfgang Huber \url{http://www.dkfz.de/mga/whuber}}
+\author{Wolfgang Huber \url{http://www.dkfz.de/abt0840/whuber}}
 \seealso{ \code{\link{vsn}} }
 
 \examples{
-  sim <- sagmbSimulateData()
-  ny  <- vsn(sim$y)
+  sim <- sagmbSimulateData(nrstrata=4)
+  ny  <- vsn(sim$y, strata=sim$strata)
   res <- sagmbAssess(exprs(ny), sim)
   res
 }

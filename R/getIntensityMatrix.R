@@ -41,6 +41,10 @@ getIntensityMatrix = function(intensities, verbose) {
     stop(paste("'intensities' must be a matrix with at least two columns.\n",
                "Please read the documentation and the paper\n",
                "(Huber et al., Bioinformatics 18 (2002) S96-S104).\n"))
+
+  if(is.integer(y))
+    y <- matrix(as.double(y), nrow=nrow(y), ncol=ncol(y))
+
   return(y)
 }
      
