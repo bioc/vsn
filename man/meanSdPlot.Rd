@@ -10,7 +10,7 @@ meanSdPlot(x,
            pch   = ".",
            col   = NULL, ...)} 
 \arguments{
-  \item{x}{An object of class \code{\link[Biobase:exprSet-class]{expr-Set}}}
+  \item{x}{An object of class \code{\link[Biobase:exprSet-class]{exprSet}}}
   \item{ranks}{Logical, indicating whether the x-axis (means) should be plotted
     on the original scale (FALSE) or on the rank scale (TRUE). The latter
     distributes the data more evenly along the x-axis and allows a
