@@ -39,6 +39,8 @@ vsn = function(intensities,
   }
 
   ## Bureaucracy step 2: extract the intensity matrix from the argument "intensities"
+  ## Probably this should, and will (in a future version) be done via S3- or S4
+  ## method dispatching.
   y = switch(class(intensities),
      matrix     = {  if (!is.numeric(intensities)) {
                        badarg = "intensities"
@@ -83,6 +85,12 @@ vsn = function(intensities,
              "are defined, and then use vsnh on the full set of data.\n")
   }
 
+  if (ncol(y)<=1) {
+    badarg = "intensities"
+    mess   = paste("It must be a matrix with at least two columns. Please read the documentation\n",
+            "and the paper (Huber et al., Bioinformatics 18 (2002) S96-S104).\n")
+  }
+     
   ## Error handling
   if(!is.null(mess)) {
     if(badarg=="intensities") {
@@ -129,8 +137,6 @@ vsn = function(intensities,
   ## 2. the intermediate results of "ll" can be used by "grll" (see functions
   ## vsnll, vsngrll)
   ws = new.env(hash=TRUE)
-  assign("timell",   numeric(0), envir=ws)
-  assign("timegrll", numeric(0), envir=ws)
 
   ##----------------------------------------------------------------------------
   ## In the following, we define two functions: ll, grll. Doing this inside the 
