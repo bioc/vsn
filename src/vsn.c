@@ -12,10 +12,9 @@
 *******************************************************************/
 #include <R.h>
 #include <Rdefines.h>
-#include <math.h>
 
 /* #define VSN_DEBUG */
-#undef VSN_DEBUG 
+#undef VSN_DEBUG
 
 /* Global variables */
 int *strat;          /* strat[j] is index of first element of j-th stratum  */
@@ -174,7 +173,7 @@ SEXP vsnc(SEXP e_y, SEXP e_par, SEXP e_strat, SEXP e_doopt)
   /* check input arguments */
   PROTECT(dimy = getAttrib(e_y, R_DimSymbol));
  
-  if(!isReal(e_y) | isNull(dimy) | LENGTH(dimy)!=2)
+  if((!isReal(e_y)) | isNull(dimy) | (LENGTH(dimy)!=2))
     error("Invalid argument 'e_y', must be a real matrix."); 
   if(!isReal(e_par))
     error("Invalid argument 'e_par', must be a real vector.");
