@@ -2,10 +2,10 @@
 \alias{normalize.AffyBatch.vsn}
 \title{Wrapper for vsn to be used as a normalization method in the package affy}
 \description{Wrapper for vsn to be used as a normalization method in the package affy}
-\usage{normalize.AffyBatch.vsn(abatch, param)}
+\usage{normalize.AffyBatch.vsn(abatch, ...)}
 \arguments{
   \item{abatch}{An \code{AffyBatch} (see documentation of package \code{affy}). }
-  \item{param}{A list with parameters for \code{\link{vsn}} (see example).}
+  \item{...}{Parameters for \code{\link{vsn}} (see example).}
 }
 
 \details{
