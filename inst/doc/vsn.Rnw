@@ -428,8 +428,8 @@ d     <- 2
 de    <- c(0, 0.2)
 up    <- 0.5
 nrrep <- 8
-res <- array(NA, dim=c(length(n), nrrep, length(de)))
 if(FALSE) {
+res <- array(NA, dim=c(length(n), nrrep, length(de)))
 for (i in seq(along=de)) {
   for (k in seq(along=n)) {
     for (r in 1:nrrep) {
@@ -438,6 +438,9 @@ for (i in seq(along=de)) {
       res[k, r, i] <- sagmbAssess(exprs(ny), sim)
     }
   }
+}
+} else {
+  res <- array(0, dim=c(length(n), nrrep, length(de)))
 }
 @
 <<sagmb-show,include=FALSE,fig=TRUE,width=7,height=4>>=
