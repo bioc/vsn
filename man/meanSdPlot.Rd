@@ -49,13 +49,15 @@ meanSdPlot(x,
 \author{Wolfgang Huber \url{http://www.dkfz.de/abt0840/whuber}}
 \seealso{\code{\link{vsn}}}
 \examples{
-  if(interactive())
-    x11()
+  ## to avoid warnings
+  log.na = function(x) log(ifelse(x>0, x, NA))
 
-  data(lymphoma)
-  exprs(lymphoma) = log(exprs(lymphoma))
+  data(kidney)
+  exprs(kidney) = log.na(exprs(kidney))
 
-  meanSdPlot(lymphoma)
+  meanSdPlot(kidney)
+
+  ## ...try this out with non-logged data, the lymphoma data, your data...
 }
 
 \keyword{hplot}

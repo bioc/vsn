@@ -104,7 +104,8 @@ vsn(intensities,
 
 \value{An object of class \code{\link{exprSet-class}}. Differences
   between the columns of the transformed intensities may be interpreted
-  as "regularized" or "shrunken" log-ratios.
+  as "regularized" or "shrunken" log-ratios. For the calibration and
+  transformation parameters, see the \emph{Details} section.
 }
 
 \references{Variance stabilization applied to microarray data
@@ -126,31 +127,30 @@ http://www.bepress.com/sagmb/vol2/iss1/art3.}
   \code{\link{normalize.AffyBatch.vsn}}}
 
 \examples{
-data(lymphoma)
+data(kidney)
 
 if(interactive()) {
   x11(width=9, height=4.5)
   par(mfrow=c(1,2))
 }
 
-ry = lymphoma[, 3:4]  ## raw intensities of 1st slide
-ny = vsn(exprs(ry))   ## transformed and calibrated
+vsnkid = vsn(kidney)   ## transform and calibrate
 
-plot(exprs(ry)+5, pch=".", main="log-log", log="xy")
-plot(exprs(ny),   pch=".", main="h-h")
+plot(exprs(kidney), pch=".", main="log-log", log="xy")
+plot(exprs(vsnkid), pch=".", main="h-h")
 
 if (interactive()) {
   x11(width=9, height=4)
   par(mfrow=c(1,3))
 }
 
-meanSdPlot(ny)
-vsnPlotPar(ny, "factors")
-vsnPlotPar(ny, "offsets")
+meanSdPlot(vsnkid)
+vsnPlotPar(vsnkid, "factors")
+vsnPlotPar(vsnkid, "offsets")
 
 ## this should always hold true
-params = preproc(description(ny))$vsnParams
-stopifnot(all(vsnh(exprs(ry), params) == exprs(ny))) 
+params = preproc(description(vsnkid))$vsnParams
+stopifnot(all(vsnh(exprs(kidney), params) == exprs(vsnkid))) 
 }
 
 \keyword{robust}

@@ -33,6 +33,12 @@
 \author{Wolfgang Huber}
 \maketitle
 
+<<loadotherpackages,echo=FALSE,results=hide>>=
+library(affy)
+library(marrayNorm)
+library(multtest)
+@
+
 %------------------------------------------------------------
 \section*{Introduction}
 %------------------------------------------------------------
@@ -61,8 +67,166 @@ they remain well-defined and statistically meaningful if $x_i$ or
 $x_j$ are close to zero.
 
 %------------------------------------------------------------
-\section{Example data} 
+\section{The data} 
 %------------------------------------------------------------
+The prefered input type for \code{vsn} are objects of class
+\code{exprSet}. It is also possible to pass matrices, data frames with
+numeric columns only, and objects of class \code{marrayRaw}.
+Furthermore, \code{vsn} can be used as a normalization methods in the
+function \code{expresso} in the package \code{affy}
+(cf.~Section~\ref{affy}).
+
+To load intensity data from your own experiments, you can use the
+function \code{read.table}, the \code{read}-functions from the package
+\code{marrayInput}, or \code{ReadAffy} from the package \code{affy}.
+
+%------------------------------------------------------------
+\section{Running vsn on the data from a single cDNA array} 
+%------------------------------------------------------------
+The package includes example data from a cDNA array on which two
+biologically identical samples, one labeled in green (Cy3), one in red
+(Cy5), were hybridized.
+% begin code ----------------------------------------
+<<loadpackage,results=hide>>= 
+library(vsn) 
+data(kidney) 
+@ 
+% end code -----------------------------------------
+The 2 columns of the matrix \code{exprs(kidney)} object contain the
+green and red intensities, respectively. Let's try out \code{vsn} on
+this example data. In Fig.~\ref{vsn-nkid-scp} you can see the
+scatterplot of the calibrated and transformed data. For comparison,
+the scatterplot of the raw intensities with double-logarithmic axes
+scaling is also shown.
+% begin code ------------------------------------------------------
+<<nkid-scp,echo=FALSE,results=hide,include=FALSE,fig=TRUE,width=8,height=4>>=
+par(mfrow=c(1,2))
+if(!exists("nkid")) 
+  nkid = vsn(kidney)
+plot(exprs(nkid),   main = "vsn", pch = ".")
+plot(exprs(kidney), main = "raw", pch = ".", log="xy")
+@
+<<nkid-scp-show,eval=FALSE>>=
+nkid = vsn(kidney)
+plot(exprs(nkid),   main = "vsn", pch = ".")
+plot(exprs(kidney), main = "raw", pch = ".", log="xy")
+@
+\myincfig{vsn-nkid-scp}{85mm}
+% end code ------------------------------------------------------------
+The function returns the transformed intensities in an object of class
+\code{exprSet}. Its slot \code{exprs} is a matrix of the same size as
+the input data.  The plot in Fig.~\ref{vsn-nkid-scp} shows the complete
+set of $n=9216$ red and green intensities, without any thresholding or
+masking of data points.  To verify the variance stabilization, there
+is the function \code{meanSdPlot}. For each probe $k=1,\ldots,n$
+it shows the estimated standard deviation $\hat{\sigma}_k$ on the
+$y$-axis versus the rank of the average $\hat{\mu}_k$ on the $x$-axis,
+\begin{equation}
+\hat{\mu}_k   =\frac{1}{d}  \sum_{i=1}^d h_{ki}\quad\quad
+\hat{\sigma}_k=\frac{1}{d-1}\sum_{i=1}^d (h_{ki}-\hat{\mu}_k)^2.
+\end{equation}
+% begin code ------------------------------------------------------------
+<<nkid-sdmean,include=FALSE,fig=TRUE,width=8,height=4,results=hide>>=
+par(mfrow=c(1,2))
+meanSdPlot(nkid, ranks=TRUE)
+meanSdPlot(nkid, ranks=FALSE)
+@
+\myincfig{vsn-nkid-sdmean}{\textwidth}
+% end code ------------------------------------------------------------
+Such a plot is shown in Fig.~\ref{vsn-nkid-sdmean}.
+The blue dots, connected by lines, show the running median of the standard 
+deviation\footnote{Window width: 10\%, window midpoints 5\%, 10\%, 15\%, \ldots.}.
+Within each window, the median may be considered a pooled estimator of the standard 
+deviation, and the curve given by the blue lines is an estimate
+of the systematic dependence of the standard deviation on the mean. After 
+variance stabilization, this should be approximately a horizontal line.
+It may have some random fluctuations, but should not show an overall trend. 
+If this is not the case, that probably indicates a data quality 
+problem, see Section~\ref{sec.qc}. The rank ordering distributes the data 
+evenly along the $x$-axis, which is in many cases useful for the visualization. 
+A plot in which the $x$-axis shows the average intensities themselves is 
+obtained by calling the \code{plot} command with the argument \code{ranks=FALSE}.
+
+The parameter estimation in \code{vsn} works in an iterative manner.
+To verify that the iterations have converged, you can call the
+function \code{vsnPlotPar}.
+% begin code -------------------------------------------------------
+<<nkid-iter,include=FALSE,fig=TRUE,width=8,height=4,results=hide>>=
+par(mfrow=c(1,2))
+vsnPlotPar(nkid, "offsets")
+vsnPlotPar(nkid, "factors")
+@
+\myincfig{vsn-nkid-iter}{0.75\textwidth}
+% end code ---------------------------------------------------------
+The plots in Fig.~\ref{vsn-nkid-iter} show the values of the estimated
+calibration and variance stabilization parameters on the $y$-axis as a
+function of the iteration index. All curves should reach a plateau
+well before the last iteration. If this is not the case, the number of
+iterations may be increased through the parameter \code{iter}, and/or
+\code{lts.quantile} may be decreased, but more likely, it indicates a
+data quality problem, see Section~\ref{sec.qc}.
+
+The "generalized log-ratios"~\cite{HuberISMB2002} for this experiment
+may be obtained for further processing through
+% begin code -------------------------------------------------------
+<<nkid-histM,include=FALSE,fig=TRUE,results=hide>>=
+M <- exprs(nkid)[,2] - exprs(nkid)[,1] 
+hist(M, breaks=50)
+@
+\myincfig{vsn-nkid-histM}{0.5\textwidth}
+% end code -----------------------------------------------------------
+
+
+%---------------------------------------------------------------------
+\section{Calibration} 
+%---------------------------------------------------------------------
+We can access the transformation and calibration parameters through
+% begin code ---------------------------------------------------------
+<<nkid-calib1>>=
+prep = preproc(description(nkid))
+names(prep)
+prep$vsnParams
+@
+% end code -----------------------------------------------------------
+The \code{description} slot of an \code{exprSet} is an object of class
+\code{MIAME}, and may contain annotation (or ``metadata'') pertinent
+to the experiment represented by the object. For an exprSet with $d$
+columns, \code{prep$vsnParams} is a numeric vector of length $2d$. Its
+elements $1,\ldots,d$ contain the additive calibration and
+transformation parameters $a_i$, its elements $d+1,\ldots,2d$ the
+multiplicative ones. Compare the above numbers with the final values
+in Fig.~\ref{vsn-nkid-iter}.
+
+\code{vsn} is able to correct for a shift in the position and a
+different scaling shift of the data. Suppose the example data were not
+so well measured, and the red channel had a baseline that was shifted by 50 and
+a scale that differed by a factor of $1/2$:
+<<nkid-calib2>>=
+bkid = kidney
+exprs(bkid)[,"red"] = 0.5 * (50+exprs(bkid)[,"red"])
+@
+We can again call \code{vsn} on this data
+<<nkid-calib3,echo=FALSE,results=hide>>=
+if(!exists("nbkid")) 
+  nbkid = vsn(bkid)
+@
+<<nkid-calib3-show,eval=FALSE>>=
+nbkid = vsn(bkid)
+@
+<<nkid-calib4,fig=TRUE,width=8,height=4>>=
+preproc(description(nbkid))$vsnParams
+par(mfrow=c(1,2))
+plot(exprs(nbkid), main = "vsn", pch = ".")
+plot(exprs(bkid),  main = "raw", pch = ".", log="xy")
+@
+\myincfig{vsn-nkid-calib4}{0.75\textwidth}
+
+%------------------------------------------------------------
+\section{Running vsn on the data from multiple cDNA arrays} 
+%------------------------------------------------------------
+--->TO DO:::
+SOME BLA ON THE EXAMPLE DATA:
+
 The package includes example data from a series of 8 cDNA arrays 
 on which different lymphoma were hybridized together with a reference 
 cDNA~\cite{Alizadeh}.
@@ -83,103 +247,7 @@ The 16 colums of the \code{lymphoma} object contain the red
 and green intensities, respectively, from the 8 slides, as shown 
 in the table. 
 
-To load intensity data from your own experiments,
-you can use the function \code{read.table}, the 
-\code{read}-functions from the package \code{marrayInput},
-or \code{ReadAffy} from the package \code{affy}. 
-
-The prefered input type for \code{vsn} are objects of class
-\code{exprSet}. It is also possible to pass matrices, data frames
-with numeric columns only, and objects of class \code{marrayRaw}.
-Furthermore, \code{vsn} can be used as a normalization methods 
-in the function \code{expresso} in the package 
-\code{affy} (cf.~Section~\ref{affy}).
-
-%------------------------------------------------------------
-\section{Running vsn on cDNA data} 
-%------------------------------------------------------------
-Let's try out \code{vsn} on this example data.
-To save time, we run it on the intensities from one slide only, 
-say lc7b048:
-%------------------------------------------------------------
-<<a-scp,echo=FALSE,results=hide,include=FALSE,fig=TRUE>>=
-if(!exists("a")) 
-  a = vsn(lymphoma[, 3:4])
-plot(exprs(a), pch = ".")
-@
-<<a-scp-show,eval=FALSE>>=
-a = vsn(lymphoma[, 3:4])
-plot(exprs(a), pch = ".")
-@
-\myincfig{vsn-a-scp}{85mm}
-%------------------------------------------------------------
-The function returns the transformed intensities in an object of class
-\code{exprSet}. Its slot \code{exprs} is a matrix of the same size as
-the input data.  The plot in Fig.~\ref{vsn-a-scp} shows the complete
-set of $n=9216$ red and green intensities, without any thresholding or
-masking of data points.  To verify the variance stabilization, there
-is the function \code{meanSdPlot}. For each probe $k=1,\ldots,n$
-it shows the estimated standard deviation $\hat{\sigma}_k$ on the
-$y$-axis versus the rank of the average $\hat{\mu}_k$ on the $x$-axis,
-\begin{equation}
-\hat{\mu}_k   =\frac{1}{d}  \sum_{i=1}^d h_{ki}\quad\quad
-\hat{\sigma}_k=\frac{1}{d-1}\sum_{i=1}^d (h_{ki}-\hat{\mu}_k)^2.
-\end{equation}
-%------------------------------------------------------------
-<<a-sdmean,include=FALSE,fig=TRUE,width=8,height=4,results=hide>>=
-par(mfrow=c(1,2))
-meanSdPlot(a, ranks=TRUE)
-meanSdPlot(a, ranks=FALSE)
-@
-\myincfig{vsn-a-sdmean}{\textwidth}
-%------------------------------------------------------------
-Such a plot is shown in Fig.~\ref{vsn-a-sdmean}.
-The blue dots, connected by lines, show the running median of the standard 
-deviation\footnote{Window width: 10\%, window midpoints 5\%, 10\%, 15\%, \ldots.}.
-Within each window, the median may be considered a pooled estimator of the standard 
-deviation, and the curve given by the blue lines is an estimate
-of the systematic dependence of the standard deviation on the mean. After 
-variance stabilization, this should be approximately a horizontal line.
-It may have some random fluctuations, but should not show an overall trend. 
-If this is not the case, that probably indicates a data quality 
-problem, see Section~\ref{sec.qc}. The rank ordering distributes the data 
-evenly along the $x$-axis, which is in many cases useful for the visualization. 
-A plot in which the $x$-axis shows the average intensities themselves is 
-obtained by calling the \code{plot} command with the argument \code{ranks=FALSE}.
-
-The parameter estimation in \code{vsn} works in an iterative manner.
-To verify that the iterations have converged, you can call the
-function \code{vsnPlotPar}.
-%------------------------------------------------------------
-<<a-iter,include=FALSE,fig=TRUE,width=8,height=4,results=hide>>=
-par(mfrow=c(1,2))
-vsnPlotPar(a, "offsets")
-vsnPlotPar(a, "factors")
-@
-\myincfig{vsn-a-iter}{0.75\textwidth}
-%------------------------------------------------------------
-The plots in Fig.~\ref{vsn-a-iter} show the values of the estimated
-calibration and variance stabilization parameters on the $y$-axis as a
-function of the iteration index. All curves should reach a plateau
-well before the last iteration. If this is not the case, the number of
-iterations may be increased through the parameter \code{iter}, and/or
-\code{lts.quantile} may be decreased, but more likely, it indicates a
-data quality problem, see Section~\ref{sec.qc}.
-
-The "generalized log-ratios"~\cite{HuberISMB2002} for this experiment
-may be obtained for further processing through
-%------------------------------------------------------------
-<<a-histM,include=FALSE,fig=TRUE,results=hide>>=
-M <- exprs(a)[,2] - exprs(a)[,1] 
-hist(M, breaks=50)
-@
-\begin{figure}[htbp]\begin{center}
-  \includegraphics[width=0.45\textwidth]{vsn-a-histM}
-  \includegraphics[width=0.45\textwidth]{vsn-b-sdmean}
-  \caption{\label{vsn-histandsdmean}}
-\end{center}\end{figure}
-%------------------------------------------------------------
-The histogram is shown in the left panel of Fig.~\ref{vsn-a}.
+<----TO DO:::
 
 To process multiple slides, \code{vsn} can be called for each slide in turn,
 as described above. If there is reason to believe that the slides are 
@@ -193,6 +261,7 @@ meanSdPlot(b)
 <<b-sdmean-show,eval=FALSE>>=
 b = vsn(lymphoma, verbose=FALSE)
 meanSdPlot(b)
+\myincfig{vsn-b-sdmean}{0.5\textwidth}
 @
 %------------------------------------------------------------
 This calculation may take a while. Again, the \code{plot} 

@@ -27,18 +27,18 @@ meanSdPlot = function(x, ranks=TRUE,
   py   = rowSds(  exprs(x), na.rm=TRUE)
   rpx  = rank(px, na.last=FALSE)
   
-  ltsq = length(which(sel))/length(sel)
   ## running median with centers at dm, 2*dm, 3*dm, ... and width 2*dm
   dm        = 0.05
   midpoints = seq(dm, 1-dm, by=dm)
   within    = function(x, x1, x2) { x>=x1 & x<=x2 }
-  rq.sds    = lapply(midpoints, function(mp) median(py[within(rpx/n, mp-dm, mp+dm)]))
+  mediwind  = function(mp) median(py[within(rpx/n, mp-dm, mp+dm)], na.rm=TRUE)
+  rq.sds    = sapply(midpoints, mediwind)
 
   if(ranks) {
     px  = rpx
     pxl = midpoints*n
   } else {
-    pxl = quantile(px, probs=midpoints)
+    pxl = quantile(px, probs=midpoints, na.rm=TRUE)
   }
   plot(px, py, pch=pch, xlab=xlab, ylab=ylab, col=col, ...)
   lines(pxl, rq.sds, col="blue", type="b", pch=19)
