@@ -158,6 +158,7 @@ http://www.bepress.com/sagmb/vol2/iss1/art3.}
 
 \examples{
 data(kidney)
+log.na = function(x) log(ifelse(x>0, x, NA))
 
 if(interactive()) {
   x11(width=9, height=4.5)

@@ -51,8 +51,9 @@ meanSdPlot(x,
 \seealso{\code{\link{vsn}}}
 \examples{
   data(kidney)
-  exprs(kidney) = log.na(exprs(kidney))
+  log.na = function(x) log(ifelse(x>0, x, NA))
 
+  exprs(kidney) = log.na(exprs(kidney))
   meanSdPlot(kidney)
 
   ## ...try this out with non-logged data, the lymphoma data, your data...

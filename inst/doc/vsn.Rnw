@@ -127,6 +127,7 @@ nkid <- vsn(kidney)
 @
 <<nkid-scp,include=FALSE,fig=TRUE,width=8,height=4>>=
 par(mfrow=c(1,2))
+log.na = function(x) log(ifelse(x>0, x, NA))
 plot(exprs(nkid), main = "vsn", pch = ".")
 plot(log.na(exprs(kidney)), main = "raw", pch = ".")
 @
@@ -361,13 +362,13 @@ equal to 1, or may be omitted altogether. This amounts to assuming that
 that the data of all probes on an array were subject to the same 
 systematic effects, such that an array-wide calibration is sufficient.
 
-Sometimes, it is better to consider \textit{stratified calibration}. For
-spotted arrays, the stratification of the probes may be according to, for
-example, print-tip~\cite{Dudoit578} or PCR-plate~\cite{HSG2002}. For
+A model with multiple strata per array may be useful for spotted
+arrays. For these, stratification may be according to
+print-tip~\cite{Dudoit578} or PCR-plate~\cite{HSG2002}. For
 oligonucleotide arrays, it may be useful to stratify the probes by
-physico-chemical properties, e.\,g.\, to assume that probes of different
-sequence composition attract systematically different levels of unspecific
-background signal.
+physico-chemical properties, e.\,g.\, to assume that probes of
+different sequence composition attract systematically different levels
+of unspecific background signal.
 
 The transformation to a scale where the variance of the data is approximately
 independent of the mean is 
@@ -400,13 +401,6 @@ and $n_s$ probe strata (see Section~\ref{sec.strata}),
 Eqn.~(\ref{eq.transf}), and
 \Robject{prep\$vsnParams[s, i, 2]} is $b_{si}$. Compare the 
 numbers printed above with the final values in Fig.~\ref{vsn-nkid-iter}.
-
-%---------------------------------------------------------------------
-\subsection{Calibration with strata}
-\label{sec.strata}
-%---------------------------------------------------------------------
-\textit{to be written} ... see help page of vsn and vsnh for more
-details.
 
 %---------------------------------------------------------------------
 \subsection{More on calibration} 
