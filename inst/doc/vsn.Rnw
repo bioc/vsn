@@ -206,9 +206,9 @@ by $a_i$:
 \begin{equation}\nonumber
 y_{ki}' = a_i+b_i y_{ki}
 \end{equation}
-Now suppose the kidney example data were not
-that well measured, and the red channel had a baseline that was shifted 
-by 500 and a scale that differed by a factor of $0.25$:
+Now suppose the kidney example data were not that well measured, and 
+the red channel had a baseline that was shifted by 500 and a scale 
+that differed by a factor of $0.25$:
 <<nkid-calib2>>=
 bkid <- kidney
 exprs(bkid)[,"red"] <- 0.25 * (500+exprs(bkid)[,"red"])
@@ -217,8 +217,9 @@ We can again call \code{vsn} on this data
 <<nkid-calib-warn1,echo=FALSE,results=hide>>=
 options(warn=-1)
 @
-<<nkid-calib3,results=hide,fig=TRUE,include=FALSE,width=8,height=4>>=
+<<nkid-calib3,results=hide>>=
 nbkid <- vsn(bkid)
+<<nkid-calib4,fig=TRUE,include=FALSE,width=8,height=4>>=
 par(mfrow=c(1,2))
 plot(exprs(nbkid), main = "vsn", pch = ".")
 plot(exprs(bkid),  main = "raw", pch = ".", log="xy")
@@ -250,8 +251,10 @@ There are now two modes of operation for \code{vsn}: First,
 if there is reason to believe that the slides are 
 of similar quality, it can also be called on all of them at once:
 %------------------------------------------------------------
-<<lym-sdmean,results=hide,include=FALSE,fig=TRUE>>=
+<<lym-sdmean1,results=hide>>=
 lym <- vsn(lymphoma, verbose=FALSE)
+@
+<<lym-sdmean2,include=FALSE,fig=TRUE>>=
 meanSdPlot(lym)
 @
 \myincfig{vsn-lym-sdmean}{0.5\textwidth}{Standard deviation 
