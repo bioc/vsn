@@ -1,6 +1,6 @@
 ##-----------------------------------------------------------------
 ## Robust calibration and variance stabilization
-## (C) Wolfgang Huber 2002
+## (C) Wolfgang Huber 2002-2003
 ## w.huber@dkfz.de
 ##-----------------------------------------------------------------
 require(Biobase) || stop("can't load without package \"Biobase\"")
@@ -403,19 +403,24 @@ vsn <-  function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=N
 ## a wrapper for vsn to be used as a normalization method in
 ## the package affy
 ##------------------------------------------------------------
-normalize.Plob.vsn <- function(aplob, ...) {
-  vsnres <- vsn(aplob@pm, niter=6)
-  pm(aplob) = vsnh(aplob@pm, params(vsnres))
-  mm(aplob) = vsnh(aplob@mm, params(vsnres))
-  return(aplob)
-}
-
-## one could also use "both" instead of "pm"
-normalize.AffyBatch.vsn <- function(abatch, ...) {
+normalize.AffyBatch.vsn <- function(abatch, subsample=20000, ...) {
    if(!exists("indexProbes"))
      stop("Package affy must be loaded before calling normalize.AffyBatch.vsn")
-   ind    <- unlist(indexProbes(abatch,"pm"))
+
+   ## ind = the perfect match probes. If more than subsample, then only use
+   ## a random sample of size subsample from these
+   ind <- unlist(indexProbes(abatch,"pm"))
+   if (!is.na(subsample)) {
+     if(!is.numeric(subsample))
+       stop("Argument \"subsample\" must be numeric.")
+     if (length(ind)>subsample) 
+       ind <- sample(ind, subsample)
+   }
+ 
+   ## call parameter estimation
    vsnres <- vsn(intensity(abatch)[ind,], ...)
+
+   ## perform the transformation
    intensity(abatch) <- vsnh(intensity(abatch), params(vsnres))
    return(abatch)
 }
