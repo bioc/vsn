@@ -65,7 +65,6 @@ vsn <- function(intensities,
   reord     <- order(ordstrata)
   y         <- y[ordstrata,]
   strata    <- strata[ordstrata]
-  optim.niter <- 10
 
   ## Print welcome message
   if (verbose)
@@ -73,14 +72,79 @@ vsn <- function(intensities,
         ifelse(nrstrata==1, "um", "a"), "). Please wait for ",
         niter, " dots: ", sep="")
 
+
+  ##---------------------------
+  succeed <- FALSE
+  ltsq <- seq(lts.quantile, 1, length=3)
+  for(i in seq(along=ltsq)) {
+    tryCatch({
+      v <- .dovsn(y=y, lts.quantile=ltsq[i], verbose=verbose,
+                  niter=niter, cvg.check=cvg.check, pstart=pstart, strata=strata)
+      succeed <- TRUE
+      break
+    }, error= function(e) {
+      if(verbose) {
+        cat(c("First", "Second", "Third")[i], "attempt at likelihood",
+            "optimization did not converge.\n")
+      if(i<length(ltsq))
+        cat("Restarting with lts.quantile=", signif(ltsq[i+1],2), "\n")
+      }}
+    ) ## tryCatch
+  } ## for
+             
+  if(!succeed)
+    stop(paste("\nThe likelihood optimization did not converge. A likely",
+               "reason is that the normalization parameters are not uniquely identifiable",
+               "from the provided data.\nPossibly, the columns of the data matrix",
+               "are exactly co-linear or affine dependent - please verify the data",
+               "to make sure there were no mix-ups."))
+  
+  ##---------------------------
+
+  ## Prepare the return result: an exprSet
+  ## The transformed data goes into slot exprs.
+  ## If input was allready an exprSet, keep the values of all the other slots.
+  ## To the slot description@preprocessing, append the parameters and the
+  ##    trimming selection.
+
+  res <- descr <- NULL
+  if (is(intensities, "exprSet")) {
+    res <- intensities
+    if (is(description(intensities), "MIAME")) {
+      descr <- description(intensities)
+    }
+  }
+  if(is.null(descr))   descr <- new("MIAME")
+  if(is.null(res))     res   <- new("exprSet", description=descr)
+
+  exprs(res) = v$hy[reord, ]
+  if (describe.preprocessing) {
+    vsnPreprocessing =  list(vsnParams      = v$par,
+                           vsnParamsIter    = v$params,
+                           vsnTrimSelection = v$sel[reord])
+    class(vsnPreprocessing) = c("vsnPreprocessing", class(vsnPreprocessing))
+    res@description@preprocessing = append(res@description@preprocessing, vsnPreprocessing)
+  }
+  return(res)
+}
+
+
+##--------------------------------------------------
+## This is the actual "workhorse" function 
+##--------------------------------------------------
+.dovsn = function(y, lts.quantile, verbose, niter, cvg.check, pstart, strata) {
+
+  nrstrata <- dim(pstart)[1]
+  d        <- dim(pstart)[2]
+  
   ## a place to save the trajectory of estimated parameters along the iterations:
   params <- array(NA, dim=c(dim(pstart), niter))
 
-  ##--------------------------------------------------
   ## begin of the outer LL iteration loop
-  ##--------------------------------------------------
+  optim.niter <- 10
   oldhy   <- Inf  ## for calculating a convergence criterion: earlier result
-  cvgcCnt <- 0    ## counts the number of iterations that have already met the convergence criterion
+  cvgcCnt <- 0    ## counts the number of iterations that have already met
+                  ## the convergence criterion
   sel     <- rep(TRUE, nrow(y))
   for(lts.iter in 1:niter) {
     ysel   <- y[sel,]
@@ -104,7 +168,6 @@ vsn <- function(intensities,
 
     p0 = pstart
     for (optim.iter in 1:optim.niter) {
-      ## cat(lts.iter, ":", optim.iter, "\t", paste(signif(p0, 4), collapse=" "), "\n", sep="")
       optres <- .Call("vsnc", ysel, as.vector(p0), istrat, TRUE, PACKAGE="vsn")
       stopifnot(length(optres)==2*nrstrata*d+1)
       conv <- round(optres[length(optres)])
@@ -174,29 +237,5 @@ vsn <- function(intensities,
   if(verbose)
     cat("\n")
 
-  ## Prepare the return result: an exprSet
-  ## The transformed data goes into slot exprs.
-  ## If input was allready an exprSet, keep the values of all the other slots.
-  ## To the slot description@preprocessing, append the parameters and the
-  ##    trimming selection.
-
-  res <- descr <- NULL
-  if (is(intensities, "exprSet")) {
-    res <- intensities
-    if (is(description(intensities), "MIAME")) {
-      descr <- description(intensities)
-    }
-  }
-  if(is.null(descr))   descr <- new("MIAME")
-  if(is.null(res))     res   <- new("exprSet", description=descr)
-
-  exprs(res) = hy[reord, ]
-  if (describe.preprocessing) {
-    vsnPreprocessing =  list(vsnParams        = par,
-                           vsnParamsIter    = params,
-                           vsnTrimSelection = sel[reord])
-    class(vsnPreprocessing) = c("vsnPreprocessing", class(vsnPreprocessing))
-    res@description@preprocessing = append(res@description@preprocessing, vsnPreprocessing)
-  }
-  return(res)
+  return(list(hy=hy, par=par, params=params, sel=sel))
 }
