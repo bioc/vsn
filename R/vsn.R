@@ -8,7 +8,7 @@ require(Biobase) || stop("can't load without package \"Biobase\"")
 ##------------------------------------------------------------
 ## vsn: the main function of this library
 ##------------------------------------------------------------
-vsn <-  function(intensities, lts.quantile=0.5, niter=8, verbose=TRUE, pstart=NULL) {
+vsn <-  function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=NULL) {
   ## check lts.quantile for plausibility
   if (!is.numeric(lts.quantile) || (length(lts.quantile)!=1) || (lts.quantile<0.5) || lts.quantile>1)
     stop(paste("invalid argument lts.quantile, expecting scalar between 0.5 and 1, but found", lts.quantile))
@@ -158,7 +158,11 @@ vsn <-  function(intensities, lts.quantile=0.5, niter=8, verbose=TRUE, pstart=NU
   ## if(verbose) 
   ##   cat("pscale:", pscale, "\npstart:", pstart, "\nplower:", plower, "\n", sep="\t")
   
-  control     <- list(trace=0, maxit=4000, parscale=pscale)
+  ## factr controls the convergence of the "L-BFGS-B" method. Convergence 
+  ## occurs when the reduction in the objective is within this factor of 
+  ## the machine tolerance. Default is 1e7, that is a tolerance of about 
+  ## 1e-8. Here we use 5e8 to save time.
+  control     <- list(trace=0, maxit=4000, parscale=pscale, factr=5e8)
   optim.niter <- 10
 
   ## a place to save the trajectory of estimated parameters along the iterations:

@@ -4,7 +4,7 @@
     the main function of this package; see also the vignette vsn.pdf.}
 \description{Robust estimation of variance-stabilizing and calibrating 
     transformations for microarray data}
-\usage{vsn(intensities, lts.quantile=0.5, niter=8, verbose=TRUE, pstart=NULL)}
+\usage{vsn(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=NULL)}
 \arguments{
   \item{intensities}{Intensity values from a microarray experiment. 
     This may be a matrix, a data frame with all numeric columns, 
