@@ -30,7 +30,7 @@ vsn = function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=NUL
     badarg = "verbose"
     mess   = "Please specify a logical value"
   }
-  
+
   ## Bureaucracy step 2: extract the intensity matrix from the argument "intensities"
   y = switch(class(intensities),
      matrix     = {  if (!is.numeric(intensities)) {
@@ -66,7 +66,7 @@ vsn = function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=NUL
                       ". Permitted are: matrix, data.frame, exprSet, marrayRaw", sep="")
     }
     )  ## end of switch statement
-  
+
   if (any(is.na(y))) {
     badarg = "intensities"
     mess   = paste("It must not contain NA values.\n",
@@ -87,7 +87,7 @@ vsn = function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=NUL
     stop(mess)
   }
 
-  ## Print welcome message  
+  ## Print welcome message
   if (verbose)
     cat("vsn is working on ", nrow(y), " x ", ncol(y), " matrix, with lts.quantile=", signif(lts.quantile, 2),
         "; please wait for ", niter+1, " dots:\n.", sep="")
@@ -109,15 +109,15 @@ vsn = function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=NUL
   ## Variables stored in environment "ws":
   ## sy     the matrix of the y_ki
   ## ly     the matrix of the a_i + b_i * y_ki
-  ## asly   the matrix of the asinh(a_i + b_i * y_ki) 
+  ## asly   the matrix of the asinh(a_i + b_i * y_ki)
   ## res    the matrix of the residuals epsilon_ki
   ## nrs    number of rows of the above matrices
   ## ncs    number of columns of the above matrices
   ## ssq    sum of squared residuals sum(res^2)
-  ## p      a place where ll() stores its call arguments. From this, when grll() 
-  ##        is called it can double-check whether it is indeed also called 
+  ## p      a place where ll() stores its call arguments. From this, when grll()
+  ##        is called it can double-check whether it is indeed also called
   ##        with the same arguments (see below for details)
-  ## 
+  ##
   ## Return value:
   ## Profile Log-Likelihood
   ##----------------------------------------------------------
@@ -131,7 +131,7 @@ vsn = function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=NUL
       ## the cycling goes column-wise, hence transpose!
       ly   = offs + facs * t(sy)
       asly = t(asinh(ly))
-    
+
       ## residuals
       res = asly - rowMeans(asly)
       ssq = sum(res*res)
@@ -173,13 +173,13 @@ vsn = function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=NUL
   }
   ## lower boundary for 'factors': a small positive value
   ## no boundary for 'offsets'
-  plower <- c(rep(-Inf,ncol(y)), pscale[(ncol(y)+1):(2*ncol(y))]/1e8) 
+  plower <- c(rep(-Inf,ncol(y)), pscale[(ncol(y)+1):(2*ncol(y))]/1e8)
   if (is.null(pstart))
     pstart <- c(rep(0,ncol(y)), pscale[(ncol(y)+1):(2*ncol(y))])
-  
-  ## factr controls the convergence of the "L-BFGS-B" method. Convergence 
-  ## occurs when the reduction in the objective is within this factor of 
-  ## the machine tolerance. Default is 1e7, that is a tolerance of about 
+
+  ## factr controls the convergence of the "L-BFGS-B" method. Convergence
+  ## occurs when the reduction in the objective is within this factor of
+  ## the machine tolerance. Default is 1e7, that is a tolerance of about
   ## 1e-8. Here we use 5e8 to save a little time.
   control     <- list(trace=0, maxit=4000, parscale=pscale, factr=5e8)
   optim.niter <- 10
@@ -192,7 +192,7 @@ vsn = function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=NUL
   ws = new.env(hash=TRUE)
   assign("timell",   numeric(0), envir=ws)
   assign("timegrll", numeric(0), envir=ws)
-  
+
   sel <- rep(TRUE, nrow(y))
   for(lts.iter in 1:niter) {
     assign("sy",  y[sel,],            envir=ws)
@@ -211,7 +211,7 @@ vsn = function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=NUL
         ## probably because the start point p0 was already right at the optimum. Hence, try
         ## again from a slightly different start point
         ## cat("lts.iter=", lts.iter, "optim.iter=", optim.iter, "pstart was", p0, "now trying ")
-        p0 <- p0 + runif(length(pstart), min=0, max=0.01) * pscale 
+        p0 <- p0 + runif(length(pstart), min=0, max=0.01) * pscale
         ## cat(p0, "\n")
       } else if(o$convergence==1) {
         ## This seems to indicate that the max. number of iterations has been exceeded. Try again
@@ -231,35 +231,35 @@ vsn = function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=NUL
       mess = paste("Likelihood optimization did not converge even after", optim.niter, "calls to optim().",
                    "\nPlease make sure your data is good. If the problem persists,",
                    "\nplease contact the package maintainer.\n")
-    
+
     if (any(o$par[(ncol(y)+1):(2*ncol(y))]<0))
       mess = paste("Likelihood optimization produced negative parameter estimates in spite of constraints.",
                    "\nPlease contact the package maintainer.\n")
 
     if(!is.null(mess))
       stop(mess)
-    
+
     if(verbose)
       cat(".")
-    
+
     # ----------------------------------------
     # selection of points in a LTS fashion
     # 1. calculate residuals; cf. ll()
     # ----------------------------------------
     offs <- matrix(o$par[    1      :   ncol(y) ], nrow=nrow(y), ncol=ncol(y), byrow=TRUE)
     facs <- matrix(o$par[(ncol(y)+1):(2*ncol(y))], nrow=nrow(y), ncol=ncol(y), byrow=TRUE)
-    asly <- asinh(offs + facs * y)         
+    asly <- asinh(offs + facs * y)
     res  <- asly - rowMeans(asly)
     rsqres <- rowSums(res*res)
     hmean  <- rowSums(asly)
-  
+
     # 2. select those data points within lts.quantile; do this separately for
     # each of nrslice slices along hmean
     nrslice  <- 5
     group    <- ceiling(rank(hmean)/length(hmean)*nrslice)
     grmed    <- tapply(rsqres, group, quantile, probs=lts.quantile)
     sel      <- rsqres <= grmed[group]
-    
+
     params[,lts.iter] <- pstart <- o$par
   }
   if(verbose)
@@ -286,7 +286,7 @@ vsn = function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=NUL
            representation(              ## its slots
                           h       = "matrix",
                           params  = "matrix",
-                          sel     = "vector"), 
+                          sel     = "vector"),
            prototype = list(            ## and default values
              h       = matrix(nrow=0, ncol=0),
              params  = matrix(nrow=0, ncol=0),
@@ -299,22 +299,20 @@ vsn = function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=NUL
   ##------------------------------------------------------------------
   if (!isGeneric("params"))
      setGeneric("params", function(object) standardGeneric("params"), where=where)
-    
+
   setMethod("params", "vsn.result",
              function(object) object@params[,ncol(object@params)],
              where=where)
-  
+
   ##------------------------------------------------------------
   ## plot method for vsn.result objects
   ##------------------------------------------------------------
-  if (!isGeneric("plot"))
-     setGeneric("plot", where=where, def=function(x, y, ...) standardGeneric("plot"))
-  
+
   setMethod("plot", signature=c("vsn.result", "missing"), where=where,
      definition=function(x, ...) {
        if (ncol(x@h)<2 || ncol(x@h)*2 != nrow(x@params))
          stop("argument x is inconsistent")
-       
+
        dots <- list(...)
        ind <- match("what", names(dots))
        if(!is.na(ind)) {
@@ -335,7 +333,7 @@ vsn = function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=NUL
        if(!is.na(ind)) {
          xlab <- dots$xlab
          dots <- dots[-ind]
-       } 
+       }
        ind <- match("ylab", names(dots))
        if(!is.na(ind)) {
          ylab = dots$ylab
@@ -346,7 +344,7 @@ vsn = function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=NUL
          main = dots$main
          dots <- dots[-ind]
        }
-       
+
        switch(what,
         sdmean = {
           cols <- c("black", "red")[as.numeric(x@sel)+1]
@@ -371,19 +369,19 @@ vsn = function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=NUL
             if(xlab=="") xlab <- "average intensity"
           }
           if(ylab=="") ylab <- "standard deviation"
-          
+
           args <- list(x=px1, y=sds, pch=".", col=cols, xlab=xlab, ylab=ylab)
           do.call("plot.default", append(args, dots))
           lines(px2, rq.sds, col="blue", type="b", pch=19)
         },
-       ## 
+       ##
        offsets = {
          d <- ncol(x@h)
          if(main=="") main <- what
          args <- list(x    = x@params[1,],
                       ylim = range(x@params[1:d,], na.rm=TRUE),
                       type = "b", pch=19, main=main, xlab=xlab, ylab=ylab)
-         do.call("plot.default", append(args, dots)) 
+         do.call("plot.default", append(args, dots))
          for (j in 2:d)
            lines(x@params[j,], type="b")
        },
@@ -393,7 +391,7 @@ vsn = function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=NUL
          args <- list(x    = x@params[d+1,],
                       ylim = range(x@params[d+(1:d),], na.rm=TRUE),
                       type = "b", pch=19, main=main, xlab=xlab, ylab=ylab)
-         do.call("plot.default", append(args, dots)) 
+         do.call("plot.default", append(args, dots))
          for (j in 2:d)
            lines(x@params[d+j,], type="b")
        },
@@ -402,13 +400,11 @@ vsn = function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=NUL
      ) ## end switch
    } ## end of function definition for "plot"
   )  ## end of setMethod("plot",...)
-  
+
   ##------------------------------------------------------------
   ## print method for vsn.result objects
   ##------------------------------------------------------------
-  if (!isGeneric("print"))
-    setGeneric("print", where=where, def=function(x) standardGeneric("print"))
-  
+
   setMethod("print", signature=c("vsn.result"), where=where,
      definition=function(x) {
        cat("vsn.result object\n",
@@ -416,23 +412,21 @@ vsn = function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=NUL
          sprintf("%d-vector of transformation parameters\n", as.integer(nrow(x@params))))
      }
   )  ## end of setMethod("print")
-  
+
   ##------------------------------------------------------------
   ## show method for vsn.result objects
   ##------------------------------------------------------------
-  if (!isGeneric("show"))
-    setGeneric("show", where=where, def=function(x) standardGeneric("show"))
-  
+
   setMethod("show", signature=c("vsn.result"), where=where,
      definition=function(object) print(object) )
-  
+
 } ## end of .initvsn
 
 
 ##------------------------------------------------------------
 ## Some useful functions
 ## sqr   : square (ca. 10 times faster than ^2 !)
-## rowSds: row standard deviations, cf. rowMeans  
+## rowSds: row standard deviations, cf. rowMeans
 ## within: is x in interval [x1,x2] ?
 ##------------------------------------------------------------
    sqr <- function(x) { x*x }
@@ -443,16 +437,16 @@ within <- function(x, x1, x2) { x>=x1 & x<=x2 }
 ## Enumerate all the subsets of size k of the integers 1:n.
 ## The result is returned in a matrix with k rows and
 ## (n choose k) columns
-## This function is not needed for VSN, but it is nice to 
-## have it for the examples / the vignette and I haven't 
-## yet found it anywhere else. 
+## This function is not needed for VSN, but it is nice to
+## have it for the examples / the vignette and I haven't
+## yet found it anywhere else.
 ##---------------------------------------------------------
 nchoosek <- function(n, k) {
   if (!is.numeric(n)||!is.numeric(k)||is.na(n)||is.na(k)||length(n)!=1||length(k)!=1)
     stop("arguments must be non-NA numeric scalars.")
   if (k>n||k<0)
     stop("Arguments must satisfy 0 <= k <= n.")
-  
+
   nck <- choose(n, k)
   res <- matrix(NA, nrow=k, ncol = nck)
   res[, 1] <- 1:k
@@ -481,7 +475,7 @@ nchoosek <- function(n, k) {
 ##---------------------------------------------------------------------
 ## the "arsinh" transformation
 ## Note: an overall additive constant has no effect on the Delta-h, i.e.
-## on the differences between transformed intensities. We choose the 
+## on the differences between transformed intensities. We choose the
 ## additive constant such that h_1(y) \approx log(y) for y\to\infty.
 ##---------------------------------------------------------------------
 vsnh <- function(y, p) {
