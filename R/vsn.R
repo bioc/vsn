@@ -382,48 +382,6 @@ vsn <-  function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=N
   
 } ## end of .initvsn
 
-##-----------------------------------------------------------------
-## .First.lib: this function is called when the package is loaded
-##-----------------------------------------------------------------
-.First.lib <- function(lib, pkgname, where) {
-  
-  if(missing(where)) {
-    where <- match(paste("package:", pkgname, sep=""), search())
-    if(is.na(where)) {
-      warning(paste("Not a package name: ",pkgname))
-      return()
-    }
-    where <- pos.to.env(where)
-  }
-  .initvsn(where)
-}
-
-
-##------------------------------------------------------------
-## a wrapper for vsn to be used as a normalization method in
-## the package affy
-##------------------------------------------------------------
-normalize.AffyBatch.vsn <- function(abatch, subsample=20000, ...) {
-   if(!exists("indexProbes"))
-     stop("Package affy must be loaded before calling normalize.AffyBatch.vsn")
-
-   ## ind = the perfect match probes. If more than subsample, then only use
-   ## a random sample of size subsample from these
-   ind <- unlist(indexProbes(abatch,"pm"))
-   if (!is.na(subsample)) {
-     if(!is.numeric(subsample))
-       stop("Argument \"subsample\" must be numeric.")
-     if (length(ind)>subsample) 
-       ind <- sample(ind, subsample)
-   }
- 
-   ## call parameter estimation
-   vsnres <- vsn(intensity(abatch)[ind,], ...)
-
-   ## perform the transformation
-   intensity(abatch) <- vsnh(intensity(abatch), params(vsnres))
-   return(abatch)
-}
 
 ##------------------------------------------------------------
 ## Some useful functions
@@ -494,38 +452,3 @@ vsnh <- function(y, p) {
   dimnames(hy) = dimnames(y)
   return(hy)
 }
-
-#----------------------------------------------------------------------------------------
-# debug: compare the analytical derivative with the numerical
-#----------------------------------------------------------------------------------------
-if (FALSE){
-  cat('Checking  vsn.\n')
-  if(!exists("vsnsample")) load("../data/vsnsample.RData") 
-
-  tau <- vsnsample.cDNA
-  z   <- vsn(tau, niter=0, verbose=TRUE)
-  
-  pscale <- c(rep(1, ncol(tau)), rep(1e-3, ncol(tau)))
-  dp     <- pscale*0.0001
-  nri    <- 10
-  grs    <- array(NA, dim=c(2*ncol(tau), 2, nri))
-  for (i in 1:nri) {
-    p1   <- runif(4) * pscale
-    amid      <- z$llat(p1)
-    grs[,1,i] <- z$grllat(p1)
-    for (j in 1:length(pscale)) {
-      p2     <- p1
-      p2[j]  <- p1[j]+dp[j]
-      aright <- z$llat(p2)
-      grs[j,2,i] <- (aright - amid)/dp[j]
-    }
-  }
-  x11(width=6, height=6)
-  par(mfrow=c(2,2))
-  for (j in 1:4) {
-    plot(grs[j,1,], grs[j,2,], cex=2, pch="x", main=paste(j),
-         xlab="analytical", ylab="numerical")
-    lines(1e10*c(-1,1), 1e10*c(-1,1), col="red")
-  }
-}
-
