@@ -4,7 +4,7 @@ Date: 14 Oct 2002
 Title: Variance stabilization and calibration for microarray data
 Author: Wolfgang Huber <w.huber@dkfz.de>, A. von Heydebreck <heydebre@molgen.mpg.de>.
 Maintainer: Wolfgang Huber <w.huber@dkfz.de>
-Depends: R (>= 1.6.0)
+Depends: R (>= 1.6.0), Biobase
 Description: The package implements a robust variant of the maximum-likelihood estimator for the stochastic model of microarray data described in [1]. The model incorporates data calibration (aka normalization), a model for the dependence of the variance on the mean intensity, and a variance stabilizing data transformation. Differences between transformed intensities are analogous to "normalized log-ratios". However, in contrast to the latter, their variance is independent of the mean, and they are usually more sensitive and specific in detecting differential transcription. 
 Reference: [1] Variance stabilization applied to microarray data calibration and to the quantification of differential expression, Wolfgang Huber, Anja von Heydebreck, Holger S&uuml;ultmann, Annemarie Poustka, Martin Vingron; Bioinformatics (2002) 18 Suppl1 S96-S104.
 License: This is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2, or (at your option) any later version. This software is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. A copy of the GNU General Public License is available via WWW at http://www.gnu.org/copyleft/gpl.html.
