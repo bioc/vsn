@@ -56,8 +56,12 @@ $h(x_i)-h(x_j)\approx\log(x_i)-\log(x_j)=\log(x_i/x_j)$~\cite{HuberISMB2002,HSG2
 The package includes example data from a series of 8 cDNA arrays 
 on which different lymphoma were hybridized together with a reference 
 cDNA~\cite{Alizadeh}.
-
-<<loadpackage-do,results=hide>>=
+<<loadotherpackages,echo=FALSE,results=hide>>=
+library(affy)
+library(marrayNorm)
+library(multtest)
+@
+<<loadpackage,results=hide>>=
 library(vsn)
 data(lymphoma)
 lymphoma
@@ -255,7 +259,7 @@ plot(Ms[,1,], xlab="vsn", ylab="global median", main="M (array 1)", pch=".")
 \includegraphics[width=80mm]{vsn-Ms-plot}
 \end{center}
 
-The following function \code{calc.fdr} provides a simple-minded 
+The function \code{calc.fdr} provides a simple-minded 
 implementation of the estimation of the false discovery rate from the permutation
 distribution of the sorted test statistics:
 <<fdr,fig=TRUE,include=FALSE>>==
@@ -338,7 +342,7 @@ $b_i$ reflect the different initial amounts of sample mRNA, or different
 overall reverse transcription, hybridization and detection efficiencies. 
 The probe affinity $b_k$ contains factors that affect
 all measurements with probe $k$ in the same manner, such as
-the amount of probe DNA on the array, or the sequence-specific labelling 
+sequence-specific labelling 
 efficiency. The $b_k$ are assumed to be the same across all arrays.
 There can be a non-zero overall offset $a_i$ for each color channel.
 For a two-color cDNA array, $i=1,2$, and the $b_i$ take into account
