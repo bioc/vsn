@@ -91,9 +91,11 @@ double optfn(int n, double *par, void *ex)
   /* the negative profile log likelihood */
   res = nr*nc*log(px->ssq)/2. - jac;
 
-  #ifdef VSN_DEBUG
-  Rprintf("optfn %g", res); for(j=0; j < px->npar; j++) Rprintf(" %g", par[j]); Rprintf("\n"); 
-  #endif
+#ifdef VSN_DEBUG
+  Rprintf("optfn %g", res); 
+  for(j=0; j < px->npar; j++) Rprintf(" %g", par[j]); 
+  Rprintf("\n"); 
+#endif
 
   return(res);
 }
@@ -138,9 +140,11 @@ void optgr(int n, double *par, double *gr, void *ex)
     gr[px->nrstrat+j] = (nr*nc/px->ssq * s2 + s4) * exp(facs[j]); /* chain rule */
   }
 
-  #ifdef VSN_DEBUG
-  Rprintf("optgr"); for(j=0; j < px->npar; j++) Rprintf(" %g", gr[j]); Rprintf("\n"); 
-  #endif 
+#ifdef VSN_DEBUG
+  Rprintf("optgr"); 
+  for(j=0; j < px->npar; j++) Rprintf(" %g", gr[j]); 
+  Rprintf("\n"); 
+#endif 
   return;
 }
 
