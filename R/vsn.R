@@ -425,14 +425,15 @@ normalize.Plob.vsn <- function(aplob, ...) {
 }
 
 ## could also write "both" instead of "pm" if so desired
-normalize.AffyBatch.vsn <- function(abatch, ...) {
+normalize.AffyBatch.vsn <- function(abatch, param) {
    if(!exists("indexProbes"))
      stop("Package affy must be loaded before calling normalize.AffyBatch.vsn")
    ind    <- unlist(indexProbes(abatch,"pm"))
-   vsnres <- vsn(intensity(abatch)[ind,], ...)
+   vsnres <- do.call("vsn", append(list(intensity(abatch)[ind,]), param))
    intensity(abatch) <- vsnh(intensity(abatch), params(vsnres))
    return(abatch)
 }
+
 
 ##------------------------------------------------------------
 ## Some useful functions
