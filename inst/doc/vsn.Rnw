@@ -3,15 +3,7 @@
 %\VignetteKeywords{Expression Analysis}
 %\VignettePackage{vsn}
 
-\documentclass{article}
-
-\textwidth=16.5cm
-\textheight=8.7in
-\parskip=3mm
-\oddsidemargin=3mm
-\evensidemargin=3mm
-\headheight=-2cm
-\parindent0cm
+\documentclass[11pt,widemargin]{article}
 
 %------------------------------------------------------------
 % newcommand
@@ -39,9 +31,6 @@
 library(affy)
 library(marrayNorm)
 library(multtest)
-
-oopt    <- options(warn=0, digits=3)
-on.exit(options(oopt))
 @
 
 %------------------------------------------------------------
@@ -97,7 +86,7 @@ library(vsn)
 data(kidney) 
 @ 
 % end code -----------------------------------------
-The 2 columns of the matrix \code{exprs(kidney)} object contain the
+The two columns of the matrix \code{exprs(kidney)} contain the
 green and red intensities, respectively. Let's try out \code{vsn} on
 these example data. In Fig.~\ref{vsn-nkid-scp} you can see the
 scatterplot of the calibrated and transformed data. For comparison,
@@ -137,7 +126,7 @@ Such a plot is shown in Fig.~\ref{vsn-nkid-sdmean}.
 The red dots, connected by lines, show the running median of the standard 
 deviation\footnote{Window width: 10\%, window midpoints 5\%, 10\%, 15\%, \ldots.}.
 Within each window, the median may be considered a pooled estimator of the standard 
-deviation, and the curve given by the blue lines is an estimate
+deviation, and the curve given by the red line is an estimate
 of the systematic dependence of the standard deviation on the mean. After 
 variance stabilization, this should be approximately a horizontal line.
 It may have some random fluctuations, but should not show an overall trend. 
@@ -157,9 +146,9 @@ par(mfrow=c(1,2))
 vsnPlotPar(nkid, "offsets")
 vsnPlotPar(nkid, "factors")
 @
+% end code ---------------------------------------------------------
 \myincfig{vsn-nkid-iter}{0.75\textwidth}{Iteration trajectory of the 
 calibration and transformation parameters}
-% end code ---------------------------------------------------------
 The plots in Fig.~\ref{vsn-nkid-iter} show the values of the estimated
 calibration and variance stabilization parameters on the $y$-axis as a
 function of the iteration index. All curves should reach a plateau
@@ -175,15 +164,20 @@ may be obtained for further processing through
 M <- exprs(nkid)[,2] - exprs(nkid)[,1] 
 hist(M, breaks=50, col="#d95f0e")
 @
+% end code -----------------------------------------------------------
 \myincfig{vsn-nkid-histM}{0.4\textwidth}{Histogram of generalized 
 log-ratios for the kidney example data}
-% end code -----------------------------------------------------------
+The histogram is shown in Fig.~\ref{vsn-nkid-iter}.
 
 %---------------------------------------------------------------------
 \section{Calibration} 
 %---------------------------------------------------------------------
 We can access the transformation and calibration parameters through
 % begin code ---------------------------------------------------------
+<<opts,echo=FALSE,results=hide>>=
+oopt <- options(digits=3)
+on.exit(options(oopt))
+@
 <<nkid-calib1>>=
 prep <- preproc(description(nkid))
 names(prep)
@@ -221,15 +215,18 @@ options(warn=-1)
 nbkid <- vsn(bkid)
 <<nkid-calib4,fig=TRUE,include=FALSE,width=8,height=4>>=
 par(mfrow=c(1,2))
-plot(exprs(nbkid), main = "vsn", pch = ".")
 plot(exprs(bkid),  main = "raw", pch = ".", log="xy")
+plot(exprs(nbkid), main = "vsn", pch = ".")
 preproc(description(nbkid))$vsnParams
 @
-\myincfig{vsn-nkid-calib4}{0.9\textwidth}{Scatterplots}
+\myincfig{vsn-nkid-calib4}{0.9\textwidth}{Scatterplots for badly biased 
+data. Left hand side: raw data on log-log scale, right hand side: after 
+calibration and transformation with vsn.}
 <<nkid-calib-warn2,echo=FALSE,results=hide>>=
 options(warn=0)
 @
-The factor for the red channel is now about four times as large as before.
+The factor for the red channel is now about four times as large as
+before.  The result is shown in Fig.~\ref{vsn-nkid-calib4}.
 
 %------------------------------------------------------------
 \section{Running vsn on the data from multiple cDNA arrays} 
@@ -421,28 +418,37 @@ of probes $n$, the number of arrays $d$, the fraction of
 differentially expressed genes $de$, and the fraction of up-regulated
 genes $up$.
 \end{itemize}
-<<sagmb,include=FALSE,results=hide,fig=TRUE,width=7,height=4>>=
+<<sagmb-calc,results=hide>>=
 par(mfrow=c(1,2))
 
 n     <- c(500, 1000, 2000, 4000, 8000)
 d     <- 2
-de    <- c(0, 0.4)
+de    <- c(0, 0.2)
 up    <- 0.5
 nrrep <- 4
 
+res <- array(NA, dim=c(length(n), nrrep, length(de)))
 for (i in seq(along=de)) {
-  res <- matrix(NA, ncol=nrrep, nrow=length(n))
   for (k in seq(along=n)) {
     for (r in 1:nrrep) {
-      sim       <- sagmbSimulateData(n[k], d, de=de[i], up=0.5)
-      ny        <- vsn(sim$y)  
-      res[k, r] <- sagmbAssess(exprs(ny), sim)
+      sim          <- sagmbSimulateData(n[k], d, de=de[i], up=0.5)
+      ny           <- vsn(sim$y)  
+      res[k, r, i] <- sagmbAssess(exprs(ny), sim)
     }
   }
-  matplot(n, res, pch=20, log="xy", col="#909090", main=paste("de=", de[i]))
+}
+@
+<<sagmb-show,include=FALSE,fig=TRUE,width=7,height=4>>=
+for (i in dim(res)[3]) {
+  matplot(n, res[,,i], pch=20, log="xy", col="#909090", main=paste("de=", de[i]))
   lines(n, rowMeans(res), col="blue")
 }
 @
+\myincfig{vsn-sagmb-show}{0.9\textwidth}{Estimation error for the transformation:
+the root mean squared difference between true and estimated transformed data,
+as a function of the number of genes $n$. If \Rfunc{vsn} works correctly, the
+estimation error should decrease as $n^{-1/2}$.
+}
 
 %---------------------------------------------------------
 \section{Quality control}\label{sec.qc}
