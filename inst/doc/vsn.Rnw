@@ -5,6 +5,16 @@
 
 \documentclass[11pt]{article}
 \usepackage{geometry}
+\usepackage{color}
+\definecolor{darkblue}{rgb}{0.0,0.0,0.75}
+\usepackage[%
+baseurl={http://www.bioconductor.org},%
+pdftitle={Robust calibration and variance stabilization with VSN},%
+pdfauthor={Wolfgang Huber},%
+pdfsubject={vsn},%
+pdfkeywords={Bioconductor},%
+pagebackref,bookmarks,colorlinks,linkcolor=darkblue,citecolor=darkblue,%
+pagecolor=darkblue,raiselinks,plainpages,pdftex]{hyperref}
 
 %------------------------------------------------------------
 % newcommand
