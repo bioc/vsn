@@ -445,8 +445,11 @@ of between- and within-group variability.}
 
 <<marraynorm,results=hide>>=
 library(marray)
-mr <- new('marrayRaw', maGf=exprs(lymphoma)[,refrs], maRf=exprs(lymphoma)[,samps])
-mn <- maNorm(mr, norm="median", echo=T)
+mr <- new('marrayRaw', 
+          maGf=exprs(lymphoma)[,refrs], 
+          maRf=exprs(lymphoma)[,samps],
+          maLayout=new('marrayLayout', maNgr=4, maNgc=4, maNsr=24, maNsc=24))
+mn <- maNorm(mr, norm="median", echo=TRUE)
 @
 <<comp,results=hide,fig=TRUE,width=8,height=4,include=FALSE>>=
 par(mfrow=c(1,2))
