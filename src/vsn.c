@@ -1,14 +1,11 @@
 /*******************************************************************
-   optimization of the likelihood for vsn (with strata) in C. 
-
+   Optimization of the likelihood for vsn in C. 
    The function vsnc expects:
    - data matrix
    - start parameters
-   - vector strata (includes the number of genes until the start of a block)
-
-   it returns:
-   - new parameters after calling lbfgsb
-
+   - vector strata 
+   and returns:
+   - parameters at local optimum
 *******************************************************************/
 #include <R.h>
 #include <Rdefines.h>
@@ -19,78 +16,83 @@
 /* #define VSN_DEBUG */
 #undef VSN_DEBUG
 
-/* Global variables */
-int *strat;          /* strat[j] is index of first element of j-th stratum  */
-double *y;           /* expression matrix: y_ik                             */
-double *ly;          /* affine transformed matrix: offs_ik + facs_ik * y_ik */
-double *asly;        /* transformed expression matrix: asinh(ly)            */
-double *rcasly;      /* row centered version of asly                        */
-double *dh;          /* another auxilliary array                            */
-double ssq;
-double *lastpar;
+typedef struct {
+  int *strat;      /* strat[j] is index of first element of j-th stratum  */
+  int nrstrat;     /* no. of strata                                       */
 
-long int nrow;    /* no. of features   */
-long int ncol;    /* no. of chips      */
-long int nstrat;  /* no. of strata     */
-long int npar;    /* no. of parameters */
+  double *y;       /* expression matrix: y_ik     */
+  int nrow;        /* no. of features             */
+  int ncol;        /* no. of chips                */
 
-/* faster than pow(x, 2) */
-double sqr(double x) { return(x*x); }
+  double *ly;      /* affine transformed matrix: offs_ik + facs_ik * y_ik */
+  double *asly;    /* transformed expression matrix: asinh(ly)            */
+  double *rcasly;  /* row centered version of asly                        */
+  double *dh;      /* another auxilliary array                            */
 
-/*------------------------------------------------------------
+  double *lastpar;
+  int npar;         /* no. of parameters */
+  double ssq;
+} vsn_data;
+
+/*----------------------------------------------------------------------
   Function to be optimized: likelihood
-
-  offs[j] for j=0,..,nstrat-1 are the offsets,
-  exp(facs[j]) the factors. By running the minimization 
-  on the logarithm of the factors rather than on the factors
-  themselves, the constraint factors>0 is automatically 
+  offs[j] for j=0,..,nrstrat-1 are the offsets, exp(facs[j]) the factors. 
+  By running the minimization on the logarithm of the factors rather than 
+  on the factors themselves, the constraint factors>0 is automatically 
   satisfied. For the gradient, note that: 
     d/dx f(exp(x)) = f'(exp(x))*exp(x)
-------------------------------------------------------------*/
+-----------------------------------------------------------------------*/
 double optfn(int n, double *par, void *ex)
 {
   double *facs;      
   double *offs;      
-  double s, res, jac;  
-  long int i, j;
+  double s, z, res, jac;  
+  int i, j;
+  int nr, nc;
+  vsn_data *px;
 
+  px   = (vsn_data*) ex;
   offs = par;
-  facs = par+nstrat;
+  facs = par + px->nrstrat;
+  nr   = px->nrow;
+  nc   = px->ncol;
 
-  for(i=0; i<npar; i++) 
-    lastpar[i] = par[i];  
+  for(i=0; i < px->npar; i++) 
+    px->lastpar[i] = par[i];  
 
   jac = 0.;
-  for(j=0; j<nstrat; j++){
-    for(i=strat[j]; i<strat[j+1]; i++){
-      ly[i]   = y[i]*exp(facs[j]) + offs[j]; 
-      asly[i] = asinh(ly[i]); 
-      dh[i]   = 1.0/sqrt(1.0+sqr(ly[i]));
-      jac    += facs[j] + log(dh[i]);    /* Jacobi term */
+  for(j=0; j < px->nrstrat; j++){
+    for(i = px->strat[j]; i < px->strat[j+1]; i++){
+      z           = px->y[i] * exp(facs[j]) + offs[j]; 
+      px->ly[i]   = z;
+      px->asly[i] = asinh(z);
+      px->dh[i]   = 1.0/sqrt(1.0+z*z);
+      jac  += facs[j] + log(px->dh[i]);    /* Jacobi term */
     }
   }
 
   /* calculate ssq and residuals            */
   /* rcasly  = row-centered version of asly */
   /* ssq     = sum_k sum_i rcasly_ik^2      */
-  ssq = 0.;
-  for(i=0; i<nrow; i++){
+  px->ssq = 0.;
+  for(i=0; i<nr; i++){
     s = 0.;
-    for(j=0; j<ncol; j++){
-      s += asly[j*nrow+i];
+    for(j=0; j < nc; j++){
+      s += px->asly[j*nr+i];
     }
-    s /= ncol;
-    for(j=0; j<ncol; j++){
-      rcasly[j*nrow+i] = asly[j*nrow+i] - s;
-      ssq += sqr(rcasly[j*nrow+i]);
+    s /= nc;
+    for(j=0; j < nc; j++){
+      z = px->asly[j*nr+i] - s;
+      px->rcasly[j*nr+i] = z;
+      px->ssq += z*z;
     }
   }
 
   /* the negative profile log likelihood */
-  res = nrow*ncol*log(ssq)/2. - jac;
+  res = nr*nc*log(px->ssq)/2. - jac;
 
   #ifdef VSN_DEBUG
-  Rprintf("optfn %g", res); for(j=0; j<npar; j++) Rprintf(" %g", par[j]); Rprintf("\n"); 
+  Rprintf("optfn %g", res); for(j=0; j < px->npar; j++) Rprintf(" %g", par[j]); Rprintf("\n"); 
   #endif
 
   return(res);
@@ -103,36 +105,42 @@ double optfn(int n, double *par, void *ex)
 void optgr(int n, double *par, double *gr, void *ex)
 {
   double *facs;       
-  double s1, s2, s3, s4, z1, z2; 
-  long int i, j, k;
+  double s1, s2, s3, s4, z1, z2, z3; 
+  int i, j, k;
+  int nr, nc;
+  vsn_data *px;
 
-  facs = par+nstrat;
+  px   = (vsn_data*) ex;
+  facs = par + px->nrstrat;
+  nr   = px->nrow;
+  nc   = px->ncol;
 
-  for(i=0; i<npar; i++) {
-    if (lastpar[i] != par[i]) {
-      Rprintf("%d\t%g\t%g\n", i, lastpar[i], par[i]);
+  for(i=0; i < px->npar; i++) {
+    if (px->lastpar[i] != par[i]) {
+      Rprintf("%d\t%g\t%g\n", i, px->lastpar[i], par[i]);
       error("Parameters in 'optgr' are different from those in 'optfn'.");
     }
   }
 
-  for(j=0; j<nstrat; j++) {
+  for(j = 0; j < px->nrstrat; j++) {
     s1 = s2 = s3 = s4 = 0;
-    for(k=strat[j]; k<strat[j+1]; k++) {
-      z1 = rcasly[k]*dh[k];       /* deviation term   */
-      z2 = ly[k]/(1+sqr(ly[k]));  /* jacobi term      */
-	s1 += z1;       /* deviation term for offset  */
-	s2 += z1*y[k];  /* deviation term for factor  */
-	s3 += z2;       /* jacobi term for offset     */
-	s4 += z2*y[k];  /* jacobi term for factor     */
+    for(k = px->strat[j]; k < px->strat[j+1]; k++) {
+      z1 = px->rcasly[k] * px->dh[k]; /* deviation term   */
+      z2 = px->ly[k];
+      z3 = z2/(1+z2*z2);    /* jacobi term                */
+      s1 += z1;             /* deviation term for offset  */
+      s2 += z1 * px->y[k];  /* deviation term for factor  */
+      s3 += z3;             /* jacobi term for offset     */
+      s4 += z3 * px->y[k];  /* jacobi term for factor     */
     }
-    s4 -= (strat[j+1]-strat[j])/exp(facs[j]);
-    gr[j]        = (nrow*ncol/ssq * s1 + s3);
-    gr[nstrat+j] = (nrow*ncol/ssq * s2 + s4) * exp(facs[j]); /* chain rule */
+    s4 -= (px->strat[j+1] - px->strat[j])/exp(facs[j]);
+    gr[j]           = (nr*nc/px->ssq * s1 + s3);
+    gr[px->nrstrat+j] = (nr*nc/px->ssq * s2 + s4) * exp(facs[j]); /* chain rule */
   }
 
   #ifdef VSN_DEBUG
-  Rprintf("optgr"); for(j=0; j<npar; j++) Rprintf(" %g", gr[j]); Rprintf("\n"); 
-  #endif
+  Rprintf("optgr"); for(j=0; j < px->npar; j++) Rprintf(" %g", gr[j]); Rprintf("\n"); 
+  #endif 
   return;
 }
 
@@ -141,17 +149,17 @@ void optgr(int n, double *par, double *gr, void *ex)
 ------------------------------------------------------------*/
 SEXP vsnc(SEXP e_y, SEXP e_par, SEXP e_strat, SEXP e_doopt)
 {
-  int i;
+  int i, nc, nr;
 
-  int     lmm        = 10;   
-  int     fail       = 0;
-  double  factr      = 5e+7;  /* see below */
-  double  pgtol      = 0; 
-  int     fncount    = 0;
-  int     grcount    = 0;
-  int     maxit      = 40000;
-  int     trace      = 0; /* 6; */
-  int     nREPORT    = 1;
+  int     lmm      = 10;   
+  int     fail     = 0;
+  double  factr    = 5e+7;  /* see below */
+  double  pgtol    = 0; 
+  int     fncount  = 0;
+  int     grcount  = 0;
+  int     maxit    = 40000;
+  int     trace    = 0; /* 6; */
+  int     nREPORT  = 1;
   double  fmin;
   char    msg[60];
 
@@ -162,7 +170,8 @@ SEXP vsnc(SEXP e_y, SEXP e_par, SEXP e_strat, SEXP e_doopt)
   int     *nbd;
 
   SEXP res, dimy;
- 
+  vsn_data x;
+
   /* check input arguments */
   PROTECT(dimy = getAttrib(e_y, R_DimSymbol));
  
@@ -179,52 +188,54 @@ SEXP vsnc(SEXP e_y, SEXP e_par, SEXP e_strat, SEXP e_doopt)
     error("Your 'asinh' function does not seem to work right.");
 
   /* assign length information and pointers to data areas into local caches */
-  npar   = LENGTH(e_par);
-  nstrat = LENGTH(e_strat)-1;
-  nrow   = INTEGER(dimy)[0];
-  ncol   = INTEGER(dimy)[1];
-  y      = REAL(e_y);
-  strat  = INTEGER(e_strat);
+  x.npar    = LENGTH(e_par);
+  x.strat   = INTEGER(e_strat);
+  x.nrstrat = LENGTH(e_strat)-1;
+  nr        = INTEGER(dimy)[0];
+  nc        = INTEGER(dimy)[1];
+  x.nrow    = nr;
+  x.ncol    = nc;
+  x.y       = REAL(e_y);
 
   /* check again */
-  if (2*nstrat != npar) 
+  if (2*x.nrstrat != x.npar) 
     error("Unconformable size of arguments 'e_par', 'e_strat'.");
-  if(strat[0] != 0)
+  if(x.strat[0] != 0)
     error("First element of argument 'e_strat' must be 0.");
-  if(strat[nstrat] != nrow*ncol)
+  if(x.strat[x.nrstrat] != nr*nc)
     error("Last element of argument 'e_strat' must be equal to length of 'n_y'.");
-  for(i=0; i<nstrat; i++) {
-    if(strat[i+1]<=strat[i])
+  for(i=0; i<x.nrstrat; i++) {
+    if(x.strat[i+1]<= x.strat[i])
       error("Elements of argument 'e_strat' must be in ascending order.");
   }
 
-  PROTECT(res = NEW_NUMERIC(npar+1));
+  PROTECT(res = NEW_NUMERIC(x.npar+1));
 
   /* workspaces for function and gradient calculation */
-  ly       = (double *) R_alloc(nrow*ncol, sizeof(double)); 
-  asly     = (double *) R_alloc(nrow*ncol, sizeof(double));
-  rcasly   = (double *) R_alloc(nrow*ncol, sizeof(double));
-  dh       = (double *) R_alloc(nrow*ncol, sizeof(double));
+  x.ly      = (double *) R_alloc(nr*nc,  sizeof(double)); 
+  x.asly    = (double *) R_alloc(nr*nc,  sizeof(double));
+  x.rcasly  = (double *) R_alloc(nr*nc,  sizeof(double));
+  x.dh      = (double *) R_alloc(nr*nc,  sizeof(double));
+  x.lastpar = (double *) R_alloc(x.npar, sizeof(double));
 
   /* parameter bounds and scale */
-  lower   = (double *) R_alloc(npar, sizeof(double));
-  upper   = (double *) R_alloc(npar, sizeof(double));
-  scale   = (double *) R_alloc(npar, sizeof(double));
-  nbd     = (int *)    R_alloc(npar, sizeof(int));
-  lastpar = (double *) R_alloc(npar, sizeof(double));
-  cpar    = (double *) R_alloc(npar, sizeof(double));
+  lower   = (double *) R_alloc(x.npar, sizeof(double));
+  upper   = (double *) R_alloc(x.npar, sizeof(double));
+  scale   = (double *) R_alloc(x.npar, sizeof(double));
+  nbd     = (int *)    R_alloc(x.npar, sizeof(int));
+  cpar    = (double *) R_alloc(x.npar, sizeof(double));
 
-  for(i=0; i<npar; i++) {
+  for(i=0; i<x.npar; i++) {
     lower[i]  = 0.;
     upper[i]  = 0.;
     scale[i]  = 1.;
     nbd[i]    = 0;   /* see below in the Readme file */
   } 
-  for(i=0; i<nstrat; i++) 
+  for(i=0; i<x.nrstrat; i++) 
     cpar[i] = REAL(e_par)[i];
 
   /* transform to log scale - see also comments for optfn */
-  for(i=nstrat; i<2*nstrat; i++) {
+  for(i=x.nrstrat; i < 2*x.nrstrat; i++) {
     if(REAL(e_par)[i] <=0 )
       error("'e_par': factors must be >0.");
     cpar[i] = log(REAL(e_par)[i]);  
@@ -232,21 +243,21 @@ SEXP vsnc(SEXP e_y, SEXP e_par, SEXP e_strat, SEXP e_doopt)
 
   if(asLogical(e_doopt)) {
     /* optimize (see below for documentation of the function arguments) */
-    lbfgsb(npar, lmm, cpar, lower, upper, nbd, &fmin, optfn, optgr, &fail,
-	 (void *) NULL, factr, pgtol, &fncount, &grcount, maxit, msg,
+    lbfgsb(x.npar, lmm, cpar, lower, upper, nbd, &fmin, optfn, optgr, &fail,
+	 (void *) &x, factr, pgtol, &fncount, &grcount, maxit, msg,
 	 trace, nREPORT); 
     /* write new values in result */
-    for(i=0; i<nstrat; i++) 
+    for(i=0; i < x.nrstrat; i++) 
       REAL(res)[i] = cpar[i];
-    for(i=nstrat; i<2*nstrat; i++) 
+    for(i=x.nrstrat; i < 2*x.nrstrat; i++) 
       REAL(res)[i] = exp(cpar[i]);
-    REAL(res)[npar] = (double) fail;
+    REAL(res)[x.npar] = (double) fail;
 
   } else {
     /* just calculate function values and gradients; this is mostly for 
        debugging, see script testderiv.R in inst/scripts directory  */
-    REAL(res)[0] = optfn(npar, cpar, (void*) NULL);
-    optgr(npar, cpar, REAL(res)+1, (void*) NULL);
+    REAL(res)[0] = optfn(x.npar, cpar, (void*) &x);
+    optgr(x.npar, cpar, REAL(res)+1, (void*) &x);
   }
 
   UNPROTECT(2); /* dimy, res */
