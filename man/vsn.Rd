@@ -91,7 +91,7 @@ vsn(intensities,
     \item \code{vsnParams}: a length(2*d) numeric vector of parameters 
     \item \code{vsnParamsIter}: an (2*d) x niter numeric matrix that
     contains the parameter trajectory during the
-    iterative fit process (see\code{link{vsnPlotPar}}).
+    iterative fit process (see \code{\link{vsnPlotPar}}).
     \item \code{vsnTrimSelection}: a length(n) logical vector that for
     each row of the intensities matrix reports whether it was below
     (TRUE) or above (FALSE) the trimming threshold.

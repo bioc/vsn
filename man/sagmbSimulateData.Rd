@@ -2,7 +2,7 @@
 \alias{sagmbSimulateData}
 \alias{sagmbAssess}
 \title{Simulate data and assess vsn's parameter estimation}
-\description{Functions validate and assess the performance of vsn
+\description{Functions to validate and assess the performance of vsn
   through simulation of data.}
 \usage{
 sagmbSimulateData(n=8064, d=2, de=0, up=0.5)
