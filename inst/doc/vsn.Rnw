@@ -132,7 +132,7 @@ green and red intensities, respectively. Let's try out \Robject{vsn} on
 these example data. In Fig.~\ref{vsn-nkid-scp} you can see the
 scatterplot of the calibrated and transformed data. For comparison,
 the scatterplot of the log-transformed raw intensities is also shown.
-<<nkid-calc>>=
+<<nkid-calc, results=hide>>=
 nkid <- vsn(kidney)
 @
 <<nkid-scp,include=FALSE,fig=TRUE,width=8,height=4>>=
