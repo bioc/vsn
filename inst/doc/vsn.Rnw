@@ -444,7 +444,7 @@ plot(rank(rowSums(x2)), diff(t(x2)), ylim=ylim, main="rank(mean) vs differences"
 abline(h=0, col="red")
 @
 
-The resulting plots are shown in Fig.~\ref{vsn-affy}.
+The resulting plots are shown in Fig.~\ref{vsn-affy3}.
 
 \myincfig{vsn-affy3}{\textwidth}{\Rfunction{normalize.AffyBatch.vsn} example}
 
