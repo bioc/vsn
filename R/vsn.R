@@ -57,8 +57,8 @@ vsn <-  function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=N
     stop("argument intensities must not contain NAs.\n")
 
   if (verbose)
-    cat(sprintf("Called vsn on %dx%d matrix, with lts.quantile=%4.2f and niter=%d. This may take a while.\n",
-                 nrow(y), ncol(y), lts.quantile, as.integer(niter)));
+    cat("vsn is working on ", nrow(y), " x ", ncol(y), " matrix, with lts.quantile=", signif(lts.quantile, 2),
+        "; please wait for ", niter+1, " dots:\n.", sep="")
   
   ly <- asly <- res <- array(NA, dim=dim(y))
   nrs <- ncs <- as.integer(0)   
@@ -202,8 +202,9 @@ vsn <-  function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=N
     if (any(o$par[(ncol(sy)+1):(2*ncol(sy))]<0))
       stop(paste("Fatal error in optim, multiplicative normalization parameters have turned negative:", o$par))
     
-    if(verbose)
-      cat(sprintf("iter %2d: par=", as.integer(lts.iter)), sapply(o$par, function(x) sprintf("%9.3g",x)), "\n")
+    if(verbose) cat(".")
+      ## cat(sprintf("iter %2d: par=", as.integer(lts.iter)),
+      ## sapply(o$par, function(x) sprintf("%9.3g",x)), "\n")
     
     # ----------------------------------------
     # selection of points in a LTS fashion
@@ -225,7 +226,8 @@ vsn <-  function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=N
     
     params[,lts.iter] <- pstart <- o$par
   }
-
+  if(verbose) cat("\n")
+  
   return(new("vsn.result", h=vsnh(y, o$par), params=params, sel=sel))
 }
 

@@ -22,7 +22,7 @@ normalize.AffyBatch.vsn = function (abatch, subsample = 20000, niter = 4, ...)
   vsnres <- vsn(intensity(abatch)[ind, ], niter=niter, ...)
 
   ## apply the transformation (to all data)
-  intensity(abatch) <- vsnh(intensity(abatch), params(vsnres))
+  intensity(abatch) <- exp(vsnh(intensity(abatch), params(vsnres)))
   return(abatch)
 }
 

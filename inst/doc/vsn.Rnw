@@ -313,13 +313,13 @@ data processing routines of \code{affy}. See the documentation for
 the package \code{affy} for more information about data structures 
 and other available methods. There are different ways to treat the
 mismatch (MM) intensities, to adjust for background, and summarize 
-the probe sets. The choices made in the following example may not be 
-optimal.
-<<affy,include=FALSE,fig=TRUE>>==
+the probe sets.
+<<affy,include=FALSE,echo=FALSE,fig=TRUE>>==
 example(normalize.AffyBatch.vsn)
 @
-\myincfig{vsn-affy}{70mm}
+\myincfig{vsn-affy}{0.75\textwidth}
 The scatterplot is shown in Fig.~\ref{vsn-affy}.
+
 
 %---------------------------------------------------------
 \section{Quality control}\label{sec.qc}
