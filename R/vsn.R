@@ -49,7 +49,7 @@ vsn = function(intensities,
 
   ## Print welcome message
   if (verbose)
-    cat("vsn: ", nrow(y), " x ", ncol(y), "matrix (lts.quantile=", 
+    cat("vsn: ", nrow(y), " x ", ncol(y), " matrix (lts.quantile=", 
         signif(lts.quantile, 2), "). Please wait for ", niter+1, " dots:\n.", sep="")
 
   ##----------------------------------------------------------------------

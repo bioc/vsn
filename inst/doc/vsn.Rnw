@@ -40,8 +40,7 @@ library(affy)
 library(marrayNorm)
 library(multtest)
 
-vsnwarn <- 0
-oopt <- options(warn=vsnwarn)
+oopt    <- options(warn=0, digits=3)
 on.exit(options(oopt))
 @
 
@@ -104,21 +103,15 @@ these example data. In Fig.~\ref{vsn-nkid-scp} you can see the
 scatterplot of the calibrated and transformed data. For comparison,
 the scatterplot of the log-transformed raw intensities is also shown.
 % begin code ------------------------------------------------------
-<<nkid-scp,echo=FALSE,results=hide,include=FALSE,fig=TRUE,width=8,height=4>>=
+<<nkid-scp,include=FALSE,fig=TRUE,width=8,height=4>>=
 par(mfrow=c(1,2))
-if(!exists("nkid")) 
-  nkid <- vsn(kidney)
-plot(exprs(nkid), main = "vsn", pch = ".")
-plot(log.na(exprs(kidney)), main = "raw", pch = ".")
-@
-<<nkid-scp-show,eval=FALSE>>=
 nkid <- vsn(kidney)
 plot(exprs(nkid), main = "vsn", pch = ".")
 plot(log.na(exprs(kidney)), main = "raw", pch = ".")
 @
+% end code ------------------------------------------------------------
 \myincfig{vsn-nkid-scp}{0.75\textwidth}{Scatterplots of the kidney 
 example data}
-% end code ------------------------------------------------------------
 \code{vsn} returns the transformed intensities in an object of class
 \code{exprSet}. Its slot \code{exprs} is a matrix of the same size as
 the input data.  The plot in Fig.~\ref{vsn-nkid-scp} shows the complete
@@ -191,9 +184,6 @@ log-ratios for the kidney example data}
 %---------------------------------------------------------------------
 We can access the transformation and calibration parameters through
 % begin code ---------------------------------------------------------
-<<digits,echo=FALSE>>=
-options(digits=3)
-@
 <<nkid-calib1>>=
 prep <- preproc(description(nkid))
 names(prep)
@@ -224,25 +214,19 @@ bkid <- kidney
 exprs(bkid)[,"red"] <- 0.25 * (500+exprs(bkid)[,"red"])
 @
 We can again call \code{vsn} on this data
-<<nkid-calib3,echo=FALSE,results=hide>>=
-if(!exists("nbkid")) 
-  nbkid <- vsn(bkid)
-@
-<<nkid-calib3-show,eval=FALSE>>=
-nbkid <- vsn(bkid)
-@
-<<nkid-calibnowarn,echo=FALSE,results=hide>>=
+<<nkid-calib-warn1,echo=FALSE,results=hide>>=
 options(warn=-1)
 @
-<<nkid-calib4,fig=TRUE,include=FALSE,width=8,height=4>>=
-preproc(description(nbkid))$vsnParams
+<<nkid-calib3,results=hide,fig=TRUE,include=FALSE,width=8,height=4>>=
+nbkid <- vsn(bkid)
 par(mfrow=c(1,2))
 plot(exprs(nbkid), main = "vsn", pch = ".")
 plot(exprs(bkid),  main = "raw", pch = ".", log="xy")
+preproc(description(nbkid))$vsnParams
 @
 \myincfig{vsn-nkid-calib4}{0.9\textwidth}{Scatterplots}
-<<nkid-calibnowarn,echo=FALSE,results=hide>>=
-options(warn=vsnwarn)
+<<nkid-calib-warn2,echo=FALSE,results=hide>>=
+options(warn=0)
 @
 The factor for the red channel is now about four times as large as before.
 
@@ -266,12 +250,7 @@ There are now two modes of operation for \code{vsn}: First,
 if there is reason to believe that the slides are 
 of similar quality, it can also be called on all of them at once:
 %------------------------------------------------------------
-<<lym-sdmean,echo=FALSE,results=hide,include=FALSE,fig=TRUE>>=
-if(!exists("lym")) 
-  lym <- vsn(lymphoma, verbose=FALSE)
-meanSdPlot(lym)
-@
-<<lym-sdmean-show,eval=FALSE>>=
+<<lym-sdmean,results=hide,include=FALSE,fig=TRUE>>=
 lym <- vsn(lymphoma, verbose=FALSE)
 meanSdPlot(lym)
 @
@@ -341,7 +320,7 @@ the previous section, is stored in the 3-dimensional array \code{Ms}.
 Fig.~\ref{vsn-Ms-plot} shows, for one of the arrays, a comparison 
 of the resulting log-ratios.
 <<Ms-plot,results=hide,fig=TRUE,include=FALSE>>=
-Ms <- array(NA, dim=c(dim(M), 2))
+Ms <- array(0, dim=c(dim(M), 2))
 Ms[,,1] <- M
 library(marrayNorm)
 ## mr <- new('marrayRaw', maGf=exprs(lymphoma)[,refrs], maRf=exprs(lymphoma)[,samps])
@@ -414,6 +393,7 @@ mismatch (MM) intensities, to adjust for background, and summarize
 the probe sets. See the example for \code{normalize.AffyBatch.vsn}.
 The resulting plot is shown in Fig.~\ref{vsn-affy}.
 <<affy,include=FALSE,results=hide,fig=TRUE,width=7,height=7>>=
+library(affy)
 example(normalize.AffyBatch.vsn)
 @
 \myincfig{vsn-affy}{0.75\textwidth}{\code{normalize.AffyBatch.vsn} 
