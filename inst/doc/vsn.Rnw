@@ -314,7 +314,7 @@ the package \code{affy} for more information about data structures
 and other available methods. There are different ways to treat the
 mismatch (MM) intensities, to adjust for background, and summarize 
 the probe sets.
-<<affy,include=FALSE,results=hide,fig=TRUE,width=8,height=3>>==
+<<affy,include=FALSE,results=hide,fig=TRUE,width=7,height=7>>==
 example(normalize.AffyBatch.vsn)
 @
 \myincfig{vsn-affy}{0.75\textwidth}
