@@ -180,18 +180,13 @@ vsn = function(intensities,
   ll = function(p) {
     assign("p", p, envir=ws)
     with(ws, {
-      offs = p[ 1:ncy     ]
-      facs = p[(1:ncy)+ncy]
-      
-      ## y is an nxd matrix, offs and facs are d-vectors
-      ## the cycling goes column-wise, hence transpose!
-      ly   = offs + facs * t(y)
-      asly = t(asinh(ly))
-      
-      ## residuals
-      res = asly - rowMeans(asly)
-      ssq = sum(res*res)
-      rv  = nry*ncy/2*log(ssq) - sum(log(facs/sqrt(1+ly*ly)))
+      offs = offsfun(p)
+      facs = facsfun(p)
+      ly   = offs + facs * y
+      asly = asinh(ly)
+      res  = asly - rowMeans(asly)              ## residuals
+      ssq  = sum(res*res)
+      rv   = nry*ncy/2*log(ssq) - sum(log(facs/sqrt(1+ly*ly)))
     } )
     return(get("rv", ws))
   }
@@ -213,7 +208,7 @@ vsn = function(intensities,
     with(ws, {
       dhda      = 1/sqrt(1+ly*ly)
       dlndhdyda = -ly/(1+ly*ly)
-      gra       = nry*ncy/ssq*res*t(dhda) - t(dlndhdyda)
+      gra       = nry*ncy/ssq*res*t(dhda) - t(dlndhdyda) ## d*n matrix
       rv        = c(colSums(gra), colSums(gra*y) - nry/p[(ncy+1):(ncy*2)])
     } )
     return(get("rv", ws))
@@ -227,6 +222,10 @@ vsn = function(intensities,
     assign("y",   y[sel,],            envir=ws)
     assign("nry", length(which(sel)), envir=ws)
     assign("ncy", ncol(y),            envir=ws)
+    assign("offsfun", function(p) matrix(p[1:ncy], ncol=ncy,
+                                         nrow=nry, byrow=TRUE))
+    assign("facsfun", function(p) matrix(p[ncy+(1:ncy)], ncol=ncy,
+                                         nrow=nry, byrow=TRUE))
 
     p0 = pstart
     for (optim.iter in 1:optim.niter) {

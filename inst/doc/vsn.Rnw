@@ -486,10 +486,8 @@ genes~\cite{RockeDurbin2001}.
 \code{vsn} assumes that only a minority of genes on the arrays is
 detectably differentially transcribed across the experiments. The
 allowed size of that minority is controlled by the parameter
-\code{lts.quantile} and must be less than $1/2$.  By default,
-\code{lts.quantile}=0.75, which means that not
-more than a quarter ($1-0.75$) of genes should be differentially
-transcribed.
+\code{lts.quantile} and must be less than or equal to $1/2$.  
+By default, \code{lts.quantile}=0.5, that is, the maximum.
 
 \paragraph{Processing biases.} 
 Image analysis software for cDNA arrays typically estimates a {\em
