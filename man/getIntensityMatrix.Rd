@@ -11,7 +11,7 @@
   with raw intensity values from a microarray experiment. Alternatively,
   this may be a \code{\link{matrix}}, a \code{\link{data.frame}} with
   all numeric columns or an
-  \code{\link[marray-Classes:marrayRaw-class]{marrayRaw}} object.}
+  \code{\link[marray:marrayRaw-class]{marrayRaw}} object.}
 \item{verbose}{Logical. If TRUE, some messages are printed.}
 }
 \value{
