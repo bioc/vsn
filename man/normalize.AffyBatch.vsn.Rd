@@ -26,47 +26,46 @@
 
 \seealso{\code{\link{vsn}}}
 \examples{
-library(affy)
-library(affydata)
-data(Dilution)
+### the example has been commented out because it takes very long time
+### (about 10 min on a 2 GHz Pentium). Please also refer to the vignette!
+###
 
-## let affy know about vsn
-normalize.AffyBatch.methods <- c(normalize.AffyBatch.methods, "vsn")
+# library(affy)
+# library(affydata)
+# data(Dilution)
 
-es1 = expresso(Dilution[1:2], 
-               bg.correct       = FALSE,   ## bg correction is done by vsn
-               normalize.method = "vsn",
-               pmcorrect.method = "pmonly", 
-               summary.method   = "medianpolish")
+### let affy know about vsn
+# normalize.AffyBatch.methods <- c(normalize.AffyBatch.methods, "vsn")
 
-es2 = expresso(Dilution[1:2], 
-               bgcorrect.method = "rma",
-               normalize.method = "quantiles", 
-               pmcorrect.method = "pmonly",
-               summary.method   = "medianpolish")
+# es1 = expresso(Dilution[1:2], 
+#             bg.correct       = FALSE,   ## bg correction is done by vsn
+#             normalize.method = "vsn",
+#             pmcorrect.method = "pmonly", 
+#             summary.method   = "medianpolish")
 
-## graphics output
-if(interactive()) x11()
-oldpar = par(mfrow=c(2,2), pch=".")
+# es2 = expresso(Dilution[1:2], 
+#             bgcorrect.method = "rma",
+#             normalize.method = "quantiles", 
+#             pmcorrect.method = "pmonly",
+#             summary.method   = "medianpolish")
 
-## extract expression values
-x1 = exprs(es1)
-x2 = exprs(es2) 
+# par(mfrow=c(2,2), pch=".")
+
+### extract expression values
+# x1 = exprs(es1)
+# x2 = exprs(es2) 
  
-## scatter plot
-plot(x1, main="vsn: chip 3 vs 4")
-plot(x2, main="rma: chip 3 vs 4")
+### scatter plot
+# plot(x1, main="vsn: chip 3 vs 4")
+# plot(x2, main="rma: chip 3 vs 4")
 
-## rank(mean) - difference plot
-ylim = c(-0.7, 0.7)
-plot(rank(rowSums(x1)), diff(t(x1)), ylim=ylim, main="rank(mean) vs differences")
-abline(h=0, col="red")
+### rank(mean) - difference plot
+# ylim = c(-0.7, 0.7)
+# plot(rank(rowSums(x1)), diff(t(x1)), ylim=ylim, main="rank(mean) vs differences")
+# abline(h=0, col="red")
 
-plot(rank(rowSums(x2)), diff(t(x2)), ylim=ylim, main="rank(mean) vs differences")
-abline(h=0, col="red")
-
-## reset old plotting parameters 
-par(oldpar)
+# plot(rank(rowSums(x2)), diff(t(x2)), ylim=ylim, main="rank(mean) vs differences")
+# abline(h=0, col="red")
 }
 
 \keyword{robust}

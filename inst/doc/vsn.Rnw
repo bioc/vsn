@@ -294,60 +294,67 @@ amplification or the printing, see Section~\ref{sec.qc}).
 %-------------------------------------------------------------------
 To compare different microarray calibration and data transformation
 methods one needs to specify a measure of goodness. One approach is to
-compare the obtained values against a known truth. This can be done
-in controlled spike-in experiments and in dilution series, which
-allow to systematically assess the performance of the methods at 
-different biologically relevant spike-in concentrations. Like
-any statistical method, the methods may make different choices with 
-respect to the trade-off between bias and variance.
+compare the obtained values against a known truth. This can be done in
+controlled spike-in experiments and in dilution series, which allow to
+systematically assess the performance of the methods at different
+biologically relevant spike-in concentrations. Like any statistical
+method, one can make different choices with respect to the trade-off
+between bias and variance~\cite{Affycomp}.
 
-Here, we just consider a much coarser and simpler criterion:
-the overall sensitivity and specificity in detecting differential 
-transcription of the combined procedures of data preprocessing and  
-statistical hypothesis testing. Such an analysis can generally be 
-applied to any data set that contains replicated measurements of 
-samples from biologically clearly distinct, known 
-groups (e.\,g.~\cite{HuberISMB2002}).
+Here, we focus on one particular aspect: the overall sensitivity and
+specificity in detecting differential transcription. The following
+type of analysis can be applied to any data set that contains
+replicated measurements made on samples from biologically distinct,
+known groups. The idea is that we compare the within-group variability
+(among the biological replicates) to the between-group variability
+(between different tissue types). The smaller the former and the
+larger the latter, the better we may deem the performance of the
+calibration and data transformation.
 
-We use the $t$-test to find genes that are differentially transcribed 
-between CLL and DLCL. 
+Here, as a measure of the relative size of between- and within-group
+variability we take the size of the $t$-statistics.  The acceptable
+use of CPU time and disk memory of a package vignette is limited, thus
+here we stick to a very simple-minded calculation, and a small data
+set. See Fig.~\ref{fig-comp} and the calculations below. Two
+applications to larger data sets are described in
+reference~\cite{HuberISMB2002}.  More sophistacted analyses can be
+made by comparing not just the distributions of $t$-statistics, but
+for example, the estimated false discovery rates, using different test
+statistics. I have generally found the results to be the same.  You
+are encouraged to try this out with your own data.
 
-{\bf FIXME: explanatory text about the comparison}
-%The comparison relies on the idea that for a given selection of genes
-%we can estimate the {\em False Discovery Rate} through a permutation
-%method~\cite{StoreyTibshirani}.  Thus, if a method consistently
-%produces a smaller false discovery rate for the same size gene list
-%than another method, it may be considered more specific.
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=\textwidth]{vsn-comp}
+\caption{\label{fig-comp}Left hand side: $x$-axis -- generalized
+log-ratios for slide 1 from \code{vsn}, $y$-axis -- log-ratios for
+slide 1 after global median normalization. For most genes, the two are
+the same, but in some cases the generalized log-ratio is smaller.  It
+is never larger. This demonstrates the {\em ratio shrinkage} by the
+variance stabilization. Right hand side: quantile-quantile-plot of the
+$t$-statistic for the comparison between the 4 slides with CLL and the
+4 with DLCL. The $t$-statistics from \code{vsn} are larger, i.\,e.\ 
+it can be seen to compare more favorable with respect to the
+relative size of between- and within-group variability.
+}
+\end{center}
+\end{figure}
 
-Fig.~\ref{vsn-Ms-plot} shows, for one of the arrays, a comparison 
-of the resulting log-ratios.
-<<Ms-calc,results=hide>>=
+<<marraynorm,results=hide>>=
 library(marrayNorm)
 mr <- new('marrayRaw', maGf=exprs(lymphoma)[,refrs], maRf=exprs(lymphoma)[,samps])
 mn <- maNorm(mr, norm="median", echo=T)
 @
-<<Ms-plot,fig=TRUE,include=FALSE>>=
-i <- 1
-plot(M[,i], mn@maM[,i], xlab="M (vsn)", ylab="M (global median)", main=paste(i), pch=".")
-@
-\myincfig{vsn-Ms-plot}{0.5\textwidth}{Generalized log-ratio from
-\code{vsn} ($x$-axis) versus the log-ratio after global median
-normalization ($y$-axis)}
-
-{\bf FIXME: explanatory text about the comparison}. 
-Similar results with test=wilcoxon. Or with permutation p. Or with SAM / siggenes.
-%The function \code{calc.fdr} provides a very simple-minded 
-%implementation of the estimation of the false discovery rate from 
-%the permutation distribution of the sorted test statistics. 
-%The result is shown in Fig.~\ref{vsn-fdr3}.
-\myincfig{vsn-mt1}{0.5\textwidth}{Quantile-quantile plot}
-<<mt1,results=hide>>=
+<<comp,results=hide,fig=TRUE,width=8,height=4,include=FALSE>>=
+par(mfrow=c(1,2))
+plot(M[,1], mn@maM[,1], xlab="M (vsn)", ylab="M (global median)", main="slide 1", pch=".")
 library(multtest)
 classlabel <- regexpr("CLL",colnames(M)) > 0
 t1 <- mt.teststat(M, classlabel)
 t2 <- mt.teststat(mn@maM, classlabel)
 t2[abs(t2)>1e30] <- NA
 qqplot(t1, t2, xlab="t (vsn)", ylab="t (global median)", main="QQ plot", pch=".")
+abline(a=0,b=1,col="red")
 @
 
 %---------------------------------------------------------
@@ -450,6 +457,11 @@ for (i in seq(along=de)) {
   lines(n, rowMeans(res[,,i]), col="blue")
 }
 @
+{\bf Note:} The code has been deactivated since it takes a long time
+to run.  In a version of the vignette (soon!), this section will be
+branched out into a separate Sweave file, where CPU runtime is not
+so much of a concern.
+
 \myincfig{vsn-sagmb-show}{\textwidth}{Estimation error for the transformation:
 the root mean squared difference between true and estimated transformed data,
 as a function of the number of genes $n$. If \Rfunc{vsn} works correctly, the
@@ -587,18 +599,16 @@ S. Dudoit, Y.~H. Yang, T.~P. Speed, and M.~J. Callow.
   replicated {cDNA} microarray experiments.
 \newblock {\em Statistica Sinica}, 12:111--139, 2002.
 
-\bibitem{StoreyTibshirani}
-J.~D. Storey and R.~Tibshirani.
-\newblock SAM thresholding and false discovery rates for detecting differential
-  gene expression in {DNA} microarrays.
-\newblock To appear in: G. Parmigiani, E.~S. Garrett, R.~A. Irizarry and 
-  S.~L. Zeger (eds.), The analysis of gene expression data: Methods and 
-  software. New York, Springer 2003.
-
 \bibitem{Alizadeh}
 A.~A. Alizadeh et al.
 \newblock Distinct types of diffuse large B-cell lymphoma identified by gene expression profiling.
 \newblock {\em Nature}, 403:503--511, 2000.
+
+\bibitem{Affycomp}
+L.~M. Cope, R.~A. Irizarry, H.~A. Jaffee, Z.~Wu, and T.~P. Speed.
+\newblock A Benchmark for Affymetrix GeneChip Expression Measures
+\newblock http://affycomp.biostat.jhsph.edu
+(submitted to {\em Bioinformatics}, 2003).
 
 \end{thebibliography}
 \end{document}
