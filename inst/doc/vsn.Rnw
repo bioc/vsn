@@ -5,9 +5,9 @@
 
 \documentclass{article}
 
-\usepackage{hyperref}
-%% \usepackage{/export/share1/H0600/R/library/Sweave}
+%% \usepackage{hyperref}
 %% \usepackage{wrapfig}
+\usepackage{Sweave}
 
 \textwidth=16.5cm
 \textheight=8.7in
@@ -439,7 +439,7 @@ W. Huber, A. von Heydebreck, H. {S\"ultmann}, A. Poustka, and M. Vingron.
 \bibitem{HSG2002}
 W. Huber, A. von Heydebreck, and M. Vingron.
 \newblock Analysis of microarray gene expression data.
-\newblock Manuscript, \url{http://www.dkfz.de/abt0840/whuber}, 2002.
+\newblock Manuscript, \code{http://www.dkfz.de/abt0840/whuber}, 2002.
 
 \bibitem{RockeDurbin2001}
 David~M. Rocke and Blythe Durbin.
