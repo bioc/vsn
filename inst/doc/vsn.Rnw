@@ -21,6 +21,9 @@
   \end{figure}
 }
 
+<<stopptdenunfug,eval=FALSE>>=
+q(save="no")
+@
 %------------------------------------------------------------
 \begin{document}
 %------------------------------------------------------------
@@ -612,8 +615,5 @@ L.~M. Cope, R.~A. Irizarry, H.~A. Jaffee, Z.~Wu, and T.~P. Speed.
 
 \end{thebibliography}
 \end{document}
-
-
-
 
 
