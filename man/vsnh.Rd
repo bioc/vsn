@@ -57,7 +57,15 @@ http://www.bepress.com/sagmb/vol2/iss1/art3.}
 
 \examples{
 data(kidney)
-p <- array(c(-0.2, 0.2, 0.0028, 0.0032), dim=c(1,2,2))
-res <- vsnh(exprs(kidney), p)
+y      = exprs(kidney)
+p      = array(c(-0.2, -0.1, 0.1, 0.2, 0.0026, 0.0028, 0.0030, 0.0032), dim=c(2,2,2))
+strata = sample(1:2, nrow(y), replace=TRUE)
+res1   = vsnh(exprs(kidney), p, strata)
+
+res2   = asinh(p[strata,,1] + p[strata,,2] * y) - log(2*p[strata,1,2])
+
+stopifnot(max(abs(res1 - res2)) < 1e-10)
+
+
 }
 \keyword{}

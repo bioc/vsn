@@ -1,0 +1,9 @@
+useDynLib(vsn)
+
+export("vsn", "vsnh", "vsnPlotPar",
+       "getIntensityMatrix",
+       ## "kidney", "lymphoma",
+       "normalize.AffyBatch.vsn", "rowSds",
+       "sagmbAssess", "sagmbSimulateData",
+       "meanSdPlot", "nchoosek")
+

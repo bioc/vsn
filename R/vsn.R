@@ -6,7 +6,7 @@
 ##----------------------------------------------------------------------
 ## vsn: the main function of this library
 ##----------------------------------------------------------------------
-vsn <- function(intensities,
+vsn = function(intensities,
                 lts.quantile = 0.5,
                 verbose      = TRUE,
                 niter        = 10,
@@ -14,8 +14,8 @@ vsn <- function(intensities,
                 describe.preprocessing=TRUE,
                 pstart,
                 strata) {
-  y <- getIntensityMatrix(intensities, verbose)
-  d <- ncol(y)
+  y = getIntensityMatrix(intensities, verbose)
+  d = ncol(y)
 
   ## Make sure the arguments are valid and plausible
   if (!is.numeric(lts.quantile) || (length(lts.quantile)!=1) ||
@@ -27,18 +27,18 @@ vsn <- function(intensities,
     stop("'verbose' must be a logical value.")
 
   if(missing(strata)) {
-    strata <- rep(as.integer(1), nrow(y))
+    strata = rep(as.integer(1), nrow(y))
   } else {
     if(!is.integer(strata) || !is.vector(strata) ||
        length(strata)!=nrow(y) || any(is.na(strata)))
       stop("'strata' must be an integer vector of length nrow(y) with no NAs.")
   }
 
-  nrstrata <- max(strata)
+  nrstrata = max(strata)
   if(missing(pstart)) {
-    pstart <- array(0, dim=c(nrstrata, d, 2))
+    pstart = array(0, dim=c(nrstrata, d, 2))
     for(i in 1:d)
-      pstart[,i,2] <- 1/diff(quantile(y[,i], probs=c(0.25, 0.75)))
+      pstart[,i,2] = 1/diff(quantile(y[,i], probs=c(0.25, 0.75)))
   } else {
     if(!is.array(pstart) || length(dim(pstart))!=3)
       stop("'pstart' must be a 3D array.")
@@ -48,23 +48,23 @@ vsn <- function(intensities,
         paste(dim(pstart), collapse=" x "), ".", sep=""))
   }
 
-  minperstratum <- as.integer(42/lts.quantile)
-  sstr <- sum(table(strata) < minperstratum)
+  minperstratum = as.integer(42/lts.quantile)
+  sstr = sum(table(strata) < minperstratum)
   if(sstr>0) {
-    mess <- paste("*** There are less than", minperstratum, "data points in", sstr,
+    mess = paste("*** There are less than", minperstratum, "data points in", sstr,
       "of the strata.\n*** The fitted parameters may be unreliable.\n")
     if(lts.quantile<0.9)
-      mess <- paste(mess, "*** You could try to increase the value of 'lts.quantile'.\n", sep="")
+      mess = paste(mess, "*** You could try to increase the value of 'lts.quantile'.\n", sep="")
     if(nrstrata>1)
-      mess <- paste(mess, "*** You could try to reduce the number of strata.\n", sep="")
+      mess = paste(mess, "*** You could try to reduce the number of strata.\n", sep="")
     warning(mess)
   }
 
   ## reorder the rows of the matrix so that each stratum sits in a contiguous block
-  ordstrata <- order(strata)
-  reord     <- order(ordstrata)
-  y         <- y[ordstrata,]
-  strata    <- strata[ordstrata]
+  ordstrata = order(strata)
+  reord     = order(ordstrata)
+  y         = y[ordstrata,]
+  strata    = strata[ordstrata]
 
   ## Print welcome message
   if (verbose)
@@ -72,13 +72,13 @@ vsn <- function(intensities,
         ifelse(nrstrata==1, "um", "a"), ").  0% done.", sep="")
 
   ##---------------------------
-  succeed <- FALSE
-  ltsq <- seq(lts.quantile, 1, length=3)
+  succeed = FALSE
+  ltsq = seq(lts.quantile, 1, length=3)
   for(i in seq(along=ltsq)) {
     tryCatch({
-      v <- .dovsn(y=y, lts.quantile=ltsq[i], verbose=verbose,
+      v = dovsn(y=y, lts.quantile=ltsq[i], verbose=verbose,
                   niter=niter, cvg.check=cvg.check, pstart=pstart, strata=strata)
-      succeed <- TRUE
+      succeed = TRUE
       break
     }, error= function(e) {
       if(verbose) {
@@ -105,15 +105,15 @@ vsn <- function(intensities,
   ## To the slot description@preprocessing, append the parameters and the
   ##    trimming selection.
 
-  res <- descr <- NULL
+  res = descr = NULL
   if (is(intensities, "exprSet")) {
-    res <- intensities
+    res = intensities
     if (is(description(intensities), "MIAME")) {
-      descr <- description(intensities)
+      descr = description(intensities)
     }
   }
-  if(is.null(descr))   descr <- new("MIAME")
-  if(is.null(res))     res   <- new("exprSet", description=descr)
+  if(is.null(descr))   descr = new("MIAME")
+  if(is.null(res))     res   = new("exprSet", description=descr)
 
   exprs(res) = v$hy[reord, ]
   if (describe.preprocessing) {
@@ -130,46 +130,29 @@ vsn <- function(intensities,
 ##--------------------------------------------------
 ## This is the actual "workhorse" function 
 ##--------------------------------------------------
-.dovsn = function(y, lts.quantile, verbose, niter, cvg.check, pstart, strata) {
+dovsn = function(y, lts.quantile, verbose, niter, cvg.check, pstart, strata) {
 
-  nrstrata <- dim(pstart)[1]
-  d        <- dim(pstart)[2]
+  nrstrata = dim(pstart)[1]
+  d        = dim(pstart)[2]
   
   ## a place to save the trajectory of estimated parameters along the iterations:
-  params <- array(NA, dim=c(dim(pstart), niter))
+  params = array(NA, dim=c(dim(pstart), niter))
 
   ## begin of the outer LL iteration loop
-  optim.niter <- 10
-  oldhy   <- Inf  ## for calculating a convergence criterion: earlier result
-  cvgcCnt <- 0    ## counts the number of iterations that have already met
+  optim.niter = 10
+  oldhy   = Inf  ## for calculating a convergence criterion: earlier result
+  cvgcCnt = 0    ## counts the number of iterations that have already met
                   ## the convergence criterion
-  sel     <- rep(TRUE, nrow(y))
+  sel     = rep(TRUE, nrow(y))
   for(lts.iter in 1:niter) {
-    ysel   <- y[sel,]
-    strsel <- strata[sel]
-
-    ## istrat[j] is the starting position for stratum j
-    ## i.e. istrat[j]...istrat[j+1] are the elements of ysel that
-    ## belong to stratum j (using C indexing convention,
-    ## i.e. starting at 0).
-    ## Note: the counting over the different samples is folded into j,
-    ## i.e., if there are 4 strata on the array and 3 samples, then
-    ## j runs from 1:12
-    istr <- which(!duplicated(strsel))-1
-    stopifnot(length(istr)==nrstrata, all(diff(strsel[istr])>0))
-
-    istrat <- numeric(d*nrstrata+1)
-    istrat[d*nrstrata+1] <- length(ysel)  ## end point
-    for(i in 1:d)
-      istrat[(i-1)*nrstrata + (1:nrstrata)] <- ((i-1)*nrow(ysel) + istr)
-    istrat <- as.integer(istrat)
-
-    p0 = pstart
+    ysel   = y[sel,]
+    istrat = calc.istrat(strata[sel], nrstrata, d)
+    p0     = pstart
     for (optim.iter in 1:optim.niter) {
-      optres <- .Call("vsnc", ysel, as.vector(p0), istrat, TRUE, PACKAGE="vsn")
+      optres = .Call("vsn_c", ysel, as.vector(p0), istrat, as.integer(0), PACKAGE="vsn")
       stopifnot(length(optres)==2*nrstrata*d+1)
-      conv <- round(optres[length(optres)])
-      par  <- array(optres[-length(optres)], dim=dim(p0))
+      conv = round(optres[length(optres)])
+      par  = array(optres[-length(optres)], dim=dim(p0))
       if (conv==0)
         break
       if(conv==52) {
@@ -201,35 +184,35 @@ vsn <- function(intensities,
 
     ## selection of points in a LTS fashion:
     ## calculate residuals
-    hy     <- vsnh(y, par, strata)
-    hmean  <- rowMeans(hy)
-    sqres  <- hy - hmean
-    sqres  <- rowSums(sqres*sqres) ## squared residuals
+    hy     = vsnh(y, par, strata)
+    hmean  = rowMeans(hy)
+    sqres  = hy - hmean
+    sqres  = rowSums(sqres*sqres) ## squared residuals
 
     ## select those data points within lts.quantile; do this separately
     ## within each stratum, and also within strata defined by hmean
     ## (see the SAGMB 2003 paper for details)
-    nrslice <- 5
-    group   <- ceiling(rank(hmean)/length(hmean)*nrslice)
-    group   <- factor((strata-1)*nrslice + group)
-    grmed   <- tapply(sqres, group, quantile, probs=lts.quantile)
-    meds    <- grmed[as.character(group)]
+    nrslice = 5
+    group   = ceiling(rank(hmean)/length(hmean)*nrslice)
+    group   = factor((strata-1)*nrslice + group)
+    grmed   = tapply(sqres, group, quantile, probs=lts.quantile)
+    meds    = grmed[as.character(group)]
     stopifnot(!any(is.na(meds)))
-    sel     <- (sqres <= meds)
+    sel     = (sqres <= meds)
 
-    params[,,,lts.iter] <- pstart <- par
+    params[,,,lts.iter] = pstart = par
 
     ## Convergence check
     ## after a suggestion from David Kreil, kreil@ebi.ac.uk
     if(!is.null(cvg.check)) {
-      cvgc    <- max(abs((hy - oldhy)/diff(range(hy))))
-      cvgcCnt <- ifelse( cvgc < cvg.check$eps, cvgcCnt + 1, 0 )
+      cvgc    = max(abs((hy - oldhy)/diff(range(hy))))
+      cvgcCnt = ifelse( cvgc < cvg.check$eps, cvgcCnt + 1, 0 )
       if (verbose)
         cat(sprintf("iter %2d: cvgc=%.5f%%, par=", as.integer(lts.iter), cvgc),
             sapply(par, function(x) sprintf("%9.3g",x)),"\n")
       if (cvgcCnt >= cvg.check$n)
         break
-      oldhy <- hy
+      oldhy = hy
     }
 
   } ## end of for-loop (iter)
@@ -237,4 +220,24 @@ vsn <- function(intensities,
     cat("\n")
 
   return(list(hy=hy, par=par, params=params, sel=sel))
+}
+
+##------------------------------------------------------------
+## istrat[j] is the starting position for stratum j
+## i.e. istrat[j]...istrat[j+1] are the elements of ysel that
+## belong to stratum j (using C indexing convention,
+## i.e. starting at 0).
+## Note: the counting over the different samples is folded into j,
+## i.e., if there are 4 strata on the array and 3 samples, then
+## j runs from 1:12
+##------------------------------------------------------------
+calc.istrat = function(strata, nrstrata, d) {
+    istr = which(!duplicated(strata))-1
+    stopifnot(length(istr)==nrstrata, all(diff(strata[istr])>0))
+
+    istrat = numeric(d*nrstrata+1)
+    istrat[d*nrstrata+1] = length(strata)*d  ## end point
+    for(i in 1:d)
+      istrat[(i-1)*nrstrata + (1:nrstrata)] = ((i-1)*length(strata) + istr)
+    return(as.integer(istrat))
 }
