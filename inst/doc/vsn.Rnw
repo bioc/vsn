@@ -313,8 +313,11 @@ calibration and transformation of the probe intensities, a wrapper
 for \code{vsn} is provided that can be used as module within the 
 data processing routines of \code{affy}. See the documentation for 
 the package \code{affy} for more information about data structures 
-and other available methods.
-<<affy>>==
+and other available methods. There are different ways to treat the
+mismatch (MM) intensities, to adjust for background, and summarize 
+the probe sets. The choices made in the following example may not be 
+optimal!
+<<affy,eval=FALSE>>==
 example(normalize.AffyBatch.vsn)
 @
 
