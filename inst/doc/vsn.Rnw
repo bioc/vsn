@@ -390,43 +390,44 @@ intensities, a wrapper is provided that can be used within the data
 processing routines of \Rpackage{affy}. See the documentation for the
 package \Rpackage{affy} for more information about data structures and
 other available methods. Affymetrix genechips preprocessing involves
-three steps:
-\begin{enumerate}
-\item \label{joinpmmm} combining the perfect match (PM) and mismatch 
-  (MM) intensities into one number per probe
-\item \label{calibrate} calibrating 
-\item \label{transform} transforming
-\item \label{summarize} summarizing
-\end{enumerate}
-\Rfunction{vsn} addresses steps \ref{calibrate} and \ref{transform}. For
-steps \ref{joinpmmm} and \ref{summarize}, we follow the RMA method. The 
-resulting plot is shown in Fig.~\ref{vsn-affy}.
-<<affy-calc,results=hide>>=
+the following steps:
+(i) combining the perfect match (PM) and mismatch 
+(MM) intensities into one number per probe,
+(ii) calibrating,
+(iii) transforming, and
+(iv) summarizing.
+\Rfunction{vsn} addresses the calibration and transformation. We can use 
+the function \Rfunction{expresso} to run the whole process in one go:
+
+<<affy1,results=hide>>=
 library(affy)
 library(affydata)
 data(Dilution)
-
 ## let affy know about vsn
 normalize.AffyBatch.methods <- c(normalize.AffyBatch.methods, "vsn")
-
 es1 = expresso(Dilution[1:2], 
                bg.correct       = FALSE,   ## bg correction is done by vsn
                normalize.method = "vsn",
                pmcorrect.method = "pmonly", 
                summary.method   = "medianpolish")
+@
 
+Here, we have ignored the MM values and used \Rfunction{medianpolish} for
+summarization, as in the RMA method~\cite{RMA}. For comparison, let's 
+calculate expression values using another normalization method:
+
+<<affy2,results=hide>>=
 es2 = expresso(Dilution[1:2], 
                bgcorrect.method = "rma",
                normalize.method = "quantiles", 
                pmcorrect.method = "pmonly",
                summary.method   = "medianpolish")
-
 ## extract expression values
 x1 = exprs(es1)
 x2 = exprs(es2) 
 @ 
 
-<<affy,include=FALSE,fig=TRUE,width=7,height=7>>=
+<<affy3,include=FALSE,fig=TRUE,width=7,height=7>>=
 ## graphics output
 par(mfrow=c(2,2), pch=".")
 
@@ -442,7 +443,10 @@ abline(h=0, col="red")
 plot(rank(rowSums(x2)), diff(t(x2)), ylim=ylim, main="rank(mean) vs differences")
 abline(h=0, col="red")
 @
-\myincfig{vsn-affy}{\textwidth}{\Rfunction{normalize.AffyBatch.vsn} example}
+
+The resulting plots are shown in Fig.~\ref{vsn-affy}.
+
+\myincfig{vsn-affy3}{\textwidth}{\Rfunction{normalize.AffyBatch.vsn} example}
 
 %---------------------------------------------------------
 \section{Quality control}\label{sec.qc}
@@ -591,9 +595,14 @@ A.~A. Alizadeh et al.
 
 \bibitem{Affycomp}
 L.~M. Cope, R.~A. Irizarry, H.~A. Jaffee, Z.~Wu, and T.~P. Speed.
-\newblock A Benchmark for Affymetrix GeneChip Expression Measures
-\newblock http://affycomp.biostat.jhsph.edu
-(submitted to \textit{Bioinformatics}, 2003).
+\newblock A Benchmark for Affymetrix GeneChip Expression Measures.
+\newblock \textit{Bioinformatics}, 20:323--331, 2004.
+
+\bibitem{RMA}
+R.~A. Irizarry, B.~Hobbs, F.~Collin, Y.~D. Beazer-Barclay, K.~J. Antonellis, 
+U.~Scherf, and T.~P. Speed. \newblock Exploration, normalization, and 
+summaries of high density oligonucleotide array probe level data.
+\newblock \textit{Biostatistics} 4:249--264, 2003.
 
 \end{thebibliography}
 \end{document}

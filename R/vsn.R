@@ -160,13 +160,13 @@ vsn <- function(intensities,
     params[,,,lts.iter] <- pstart <- par
 
     ## Convergence check
-    ## after a suggestion from D Kreil 2003, UCgenetics@Kreil.Org
+    ## after a suggestion from David Kreil, kreil@ebi.ac.uk
     if(!is.null(cvg.check)) {
-      cvgc    <- max(abs((hy - oldhy)/range(hy)))
+      cvgc    <- max(abs((hy - oldhy)/diff(range(hy))))
       cvgcCnt <- ifelse( cvgc < cvg.check$eps, cvgcCnt + 1, 0 )
       if (verbose)
         cat(sprintf("iter %2d: cvgc=%.5f%%, par=", as.integer(lts.iter), cvgc),
-            sapply(o$par, function(x) sprintf("%9.3g",x)),"\n")
+            sapply(par, function(x) sprintf("%9.3g",x)),"\n")
       if (cvgcCnt >= cvg.check$n)
         break
       oldhy <- hy
