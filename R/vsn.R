@@ -3,8 +3,6 @@
 ## (C) Wolfgang Huber 2002
 ## w.huber@dkfz.de
 ##-----------------------------------------------------------------
-
-require(methods) || stop("can't load without package \"methods\"")
 require(Biobase) || stop("can't load without package \"Biobase\"")
 
 ##------------------------------------------------------------
@@ -39,8 +37,7 @@ vsn <-  function(intensities, lts.quantile=0.75, niter=10, verbose=TRUE, pstart=
                     colnames(tmp) <- rownames(pData(intensities))
                     tmp
                   },
-    marrayRaw   = { require(marrayClasses)  || stop("Can't continue without package \"marrayClasses\"")
-                    nrslides <- ncol(intensities@maRf)
+    marrayRaw   = { nrslides <- ncol(intensities@maRf)
                     nrspots  <- nrow(intensities@maRf)
                     if (verbose)
                       cat(sprintf("Converting marrayRaw (%d spots, %d slides) to %dx%d matrix.\n",

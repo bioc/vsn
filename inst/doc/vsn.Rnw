@@ -1,6 +1,7 @@
 %\VignetteIndexEntry{vsn}
 %\VignetteDepends{Biobase,vsn,multtest,marrayNorm}
 %\VignetteKeywords{Expression Analysis}
+%\VignettePackage{vsn}
 
 \documentclass{article}
 
