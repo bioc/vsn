@@ -9,8 +9,11 @@
 %------------------------------------------------------------
 % newcommand
 %------------------------------------------------------------
-\newcommand{\code}[1]{{\tt #1}}
-\newcommand{\Rfunc}[1]{{\tt #1}}
+\newcommand{\Rfunction}[1]{\texttt{#1}}
+\newcommand{\Robject}[1]{\texttt{#1}}
+\newcommand{\Rpackage}[1]{\textit{#1}}
+\newcommand{\Rfunarg}[1]{\textit{#1}}
+\newcommand{\Rclass}[1]{\textit{#1}}
 
 \newcommand{\myincfig}[3]{%
   \begin{figure}[htbp]
@@ -21,38 +24,38 @@
   \end{figure}
 }
 
+\begin{document}
+\SweaveOpts{eps=false}
+%------------------------------------------------------------
+\title{Robust calibration and variance stabilization with VSN}
+%------------------------------------------------------------
+\author{Wolfgang Huber}
+\maketitle
 <<no.nonsense,eval=FALSE,echo=FALSE,results=hide>>=
 q(save="no")
 @
-%------------------------------------------------------------
-\begin{document}
-%------------------------------------------------------------
-\title{Robust calibration and variance stabilization with VSN}
-\author{Wolfgang Huber}
-\maketitle
 <<setup,echo=FALSE,results=hide>>=
 library(affy)
 library(marrayNorm)
 library(multtest)
 oldopt <- options(digits=3)
-oldpar <- par(no.readonly=TRUE)
-on.exit( {options(oldopt); par(oldpar)} )
+on.exit( {options(oldopt)} )
 @
 
 %------------------------------------------------------------
 \section*{Introduction}
 %------------------------------------------------------------
-\code{vsn} is a method to preprocess DNA microarray intensity data. As
-input, the function \code{vsn} takes the raw intensity measurements
+\Rpackage{vsn} is a method to preprocess DNA microarray intensity data. As
+input, the function \Rpackage{vsn} takes the raw intensity measurements
 from the DNA probes on a series of microarrays. The intensities from
 each array are calibrated by a suitable affine transformation, then
-transformed by a variance-stabilizing transformation.  After this,
-systematic array- or dye-biases should be removed, and the variance
-should be approximately independent of the mean intensity.  This is
-useful for subsequent analyses such as hypothesis tests, ANOVA
+the whole data are transformed by a variance-stabilizing transformation.  
+After this, systematic array- or dye-biases should be removed, and the 
+variance should be approximately independent of the mean intensity.  
+This is useful for subsequent analyses such as hypothesis tests, ANOVA
 modeling, clustering, or classification that assume that the variance
 is the same for all observations\footnote{% 
-  Note that \code{vsn} only addresses the dependence of the variance
+  Note that \Rpackage{vsn} only addresses the dependence of the variance
   on the mean intensity. There may be other factors influencing the
   variance, such as gene-inherent properties, or changes of the
   tightness of transcriptional control in different conditions.  If
@@ -67,37 +70,35 @@ they remain well-defined and statistically meaningful if $x_i$ or
 $x_j$ are close to zero.
 
 %------------------------------------------------------------
-\section{The data} 
-%------------------------------------------------------------
-The prefered input type for \code{vsn} are objects of class
-\code{exprSet}. It is also possible to pass matrices, data frames with
-numeric columns only, and objects of class \code{marrayRaw}.
-Furthermore, \code{vsn} can be used as a normalization method in the
-function \code{expresso} in the package \code{affy}
+\section{The data}
+%------------------------------------------------------------ 
+The prefered input type for \Rpackage{vsn} are objects of class
+\Rclass{exprSet}. It is also possible to pass matrices, data frames
+with numeric columns only, and objects of class \Rclass{marrayRaw}.
+Furthermore, \Rpackage{vsn} can be used as a normalization method in
+the function \Rfunction{expresso} in the package \Rpackage{affy}
 (cf.~Section~\ref{affy}).
 
 To load intensity data from your own experiments, you can use the
-function \code{read.table}, the \code{read}-functions from the package
-\code{marrayInput}, or \code{ReadAffy} from the package \code{affy}.
+function \Rfunction{read.table}, the \Rfunction{read}-functions from
+the package \Rpackage{marrayInput}, or \Rfunction{ReadAffy} from the
+package \Rpackage{affy}.
 
 %------------------------------------------------------------
 \section{Running vsn on the data from a single cDNA array} 
 %------------------------------------------------------------
 The package includes example data from a cDNA array on which two
-biologically highly similar samples, one labeled in green (Cy3), one in red
-(Cy5), were hybridized.
-% begin code ----------------------------------------
+biologically highly similar samples, one labeled in green (Cy3), one
+in red (Cy5), were hybridized.
 <<lib,results=hide>>= 
 library(vsn) 
 data(kidney) 
 @ 
-% end code -----------------------------------------
-The two columns of the matrix \code{exprs(kidney)} contain the
-green and red intensities, respectively. Let's try out \code{vsn} on
+The two columns of the matrix \Robject{exprs(kidney)} contain the
+green and red intensities, respectively. Let's try out \Rfunction{vsn} on
 these example data. In Fig.~\ref{vsn-nkid-scp} you can see the
 scatterplot of the calibrated and transformed data. For comparison,
 the scatterplot of the log-transformed raw intensities is also shown.
-% begin code ------------------------------------------------------
 <<nkid-calc>>=
 nkid <- vsn(kidney)
 @
@@ -106,72 +107,68 @@ par(mfrow=c(1,2))
 plot(exprs(nkid), main = "vsn", pch = ".")
 plot(log.na(exprs(kidney)), main = "raw", pch = ".")
 @
-% end code ------------------------------------------------------------
-\myincfig{vsn-nkid-scp}{\textwidth}{Scatterplots of the kidney 
-example data}
-\code{vsn} returns the transformed intensities in an object of class
-\code{exprSet}. Its slot \code{exprs} is a matrix of the same size as
-the input data.  The plot in Fig.~\ref{vsn-nkid-scp} shows the complete
-set of $n=9216$ red and green intensities, without any thresholding or
-masking of data points.  To verify the variance stabilization, there
-is the function \code{meanSdPlot}. For each probe $k=1,\ldots,n$
-it shows the estimated standard deviation $\hat{\sigma}_k$ on the
-$y$-axis versus the rank of the average $\hat{\mu}_k$ on the $x$-axis,
+\myincfig{vsn-nkid-scp}{\textwidth}{Scatterplots of the kidney example
+data}
+\Rfunction{vsn} returns the transformed intensities in an object of
+class \Rclass{exprSet}. Its slot \Robject{exprs} is a matrix of the
+same size as the input data.  The plot in Fig.~\ref{vsn-nkid-scp}
+shows the complete set of $n=9216$ red and green intensities, without
+any thresholding or masking of data points.  To verify the variance
+stabilization, there is the function \Rfunction{meanSdPlot}. For each
+probe $k=1,\ldots,n$ it shows the estimated standard deviation
+$\hat{\sigma}_k$ on the $y$-axis versus the rank of the average
+$\hat{\mu}_k$ on the $x$-axis,
 \begin{equation}
 \hat{\mu}_k     =\frac{1}{d}  \sum_{i=1}^d h_{ki}\quad\quad
 \hat{\sigma}_k^2=\frac{1}{d-1}\sum_{i=1}^d (h_{ki}-\hat{\mu}_k)^2.
 \end{equation}
-% begin code ------------------------------------------------------------
 <<nkid-sdmean,include=FALSE,fig=TRUE,width=8,height=4,results=hide>>=
 par(mfrow=c(1,2))
 meanSdPlot(nkid, ranks=TRUE)
 meanSdPlot(nkid, ranks=FALSE)
 @
-\myincfig{vsn-nkid-sdmean}{\textwidth}{Standard deviation versus 
-rank of the mean, and the mean, respectively}
-% end code ------------------------------------------------------------
-Such a plot is shown in Fig.~\ref{vsn-nkid-sdmean}.
-The red dots, connected by lines, show the running median of the standard 
-deviation\footnote{Window width: 10\%, window midpoints 5\%, 10\%, 15\%, \ldots.}.
-Within each window, the median may be considered a pooled estimator of the standard 
-deviation, and the curve given by the red line is an estimate
-of the systematic dependence of the standard deviation on the mean. After 
-variance stabilization, this should be approximately a horizontal line.
-It may have some random fluctuations, but should not show an overall trend. 
-If this is not the case, that could indicate a data quality 
-problem, see Section~\ref{sec.qc}. The rank ordering distributes the data 
-evenly along the $x$-axis, which is in many cases useful for the visualization. 
-A plot in which the $x$-axis shows the average intensities themselves is 
-obtained by calling the \code{plot} command with the argument 
-\code{ranks=FALSE}.
+\myincfig{vsn-nkid-sdmean}{\textwidth}{Standard deviation versus rank
+of the mean, and the mean, respectively}
+Such a plot is shown in Fig.~\ref{vsn-nkid-sdmean}.  The red dots,
+connected by lines, show the running median of the standard
+deviation\footnote{Window width: 10\%, window midpoints 5\%, 10\%,
+15\%, \ldots.}. Within each window, the median may be considered a
+pooled estimator of the standard deviation, and the curve given by the
+red line is an estimate of the systematic dependence of the standard
+deviation on the mean. After variance stabilization, this should be
+approximately a horizontal line.  It may have some random
+fluctuations, but should not show an overall trend.  If this is not
+the case, that usually indicates a data quality problem, or is a
+consequence of inadequate prior data preprocessing (see
+Section~\ref{sec.qc}). The rank ordering distributes the data evenly
+along the $x$-axis, which is in many cases useful for the
+visualization.  A plot in which the $x$-axis shows the average
+intensities themselves is obtained by calling the \Rfunction{plot}
+command with the argument \Rfunarg{ranks=FALSE}.
 
-The parameter estimation in \code{vsn} works in an iterative manner.
-To verify that the iterations have converged, you can call the
-function \code{vsnPlotPar}.
-% begin code -------------------------------------------------------
+The parameter estimation in \Rfunction{vsn} works in an iterative
+manner.  To verify that the iterations have converged, you can call
+the function \Rfunction{vsnPlotPar}.
 <<nkid-iter,include=FALSE,fig=TRUE,width=8,height=4,results=hide>>=
 par(mfrow=c(1,2))
 vsnPlotPar(nkid, "offsets")
 vsnPlotPar(nkid, "factors")
 @
-% end code ---------------------------------------------------------
-\myincfig{vsn-nkid-iter}{\textwidth}{Iteration trajectory of the 
+\myincfig{vsn-nkid-iter}{\textwidth}{Iteration trajectory of the
 calibration and transformation parameters}
 The plots in Fig.~\ref{vsn-nkid-iter} show the values of the estimated
 calibration and variance stabilization parameters on the $y$-axis as a
 function of the iteration index. All curves should reach a plateau
 well before the last iteration. If this is not the case, the number of
-iterations may be increased through the parameter \code{iter}.
+iterations may be increased through the parameter \Rfunarg{iter}.
 It could also indicate a data quality problem, see Section~\ref{sec.qc}.
 
 The "generalized log-ratios"~\cite{HuberISMB2002} for this experiment
 may be obtained for further processing through
-% begin code -------------------------------------------------------
 <<nkid-histM,include=FALSE,fig=TRUE,results=hide>>=
 M <- exprs(nkid)[,2] - exprs(nkid)[,1] 
 hist(M, breaks=50, col="#d95f0e")
 @
-% end code -----------------------------------------------------------
 \myincfig{vsn-nkid-histM}{0.4\textwidth}{Histogram of generalized 
 log-ratios for the kidney example data}
 The histogram is shown in Fig.~\ref{vsn-nkid-iter}.
@@ -180,26 +177,24 @@ The histogram is shown in Fig.~\ref{vsn-nkid-iter}.
 \section{Calibration} 
 %---------------------------------------------------------------------
 We can access the transformation and calibration parameters through
-% begin code ---------------------------------------------------------
 <<nkid-calib1>>=
 prep <- preproc(description(nkid))
 names(prep)
 prep$vsnParams
 @
-% end code $-----------------------------------------------------------
-The \code{description} slot of an \code{exprSet} is an object of class
-\code{MIAME}, and may contain annotation (or ``metadata'') pertinent
-to the experiment represented by the object. For an exprSet with $d$
-columns, \code{prep\$vsnParams} is a numeric vector of length $2d$. Its
-elements $1,\ldots,d$ contain the additive calibration and
-transformation parameters $a_i$, its elements $d+1,\ldots,2d$ the
-multiplicative ones. Compare the above numbers with the final values
-in Fig.~\ref{vsn-nkid-iter}.
+% $ for ESS
+The \Robject{description} slot of an \Rclass{exprSet} is an object of
+class \Rclass{MIAME}, and may contain annotation (or ``metadata'')
+pertinent to the experiment represented by the object. For an exprSet
+with $d$ columns, \Robject{prep\$vsnParams} is a numeric vector of
+length $2d$. Its elements $1,\ldots,d$ contain the additive
+calibration and transformation parameters $a_i$, its elements
+$d+1,\ldots,2d$ the multiplicative ones. Compare the above numbers
+with the final values in Fig.~\ref{vsn-nkid-iter}.
 
-If $y_{ki}$ is the matrix of uncalibrated data, 
-with $k$ indexing the rows and $i$ the columns, then the calibrated 
-data $y_{ki}'$ is obtained through scaling by $b_i$ and shifting 
-by $a_i$:
+If $y_{ki}$ is the matrix of uncalibrated data, with $k$ indexing the
+rows and $i$ the columns, then the calibrated data $y_{ki}'$ is
+obtained through scaling by $b_i$ and shifting by $a_i$:
 \begin{equation}\nonumber
 y_{ki}' = a_i+b_i y_{ki}
 \end{equation}
@@ -210,10 +205,9 @@ that differed by a factor of $0.25$:
 bkid <- kidney
 exprs(bkid)[,"red"] <- 0.25 * (500+exprs(bkid)[,"red"])
 @
-We can again call \code{vsn} on this data
-%------------------------------------------------------------
+We can again call \Rfunction{vsn} on this data
 <<nkid-calib-warn1,echo=FALSE,results=hide>>=
-options(warn=-1)
+oldwarn <- options(warn=-1)
 @
 <<nkid-calib3,results=hide>>=
 nbkid <- vsn(bkid)
@@ -223,12 +217,13 @@ plot(exprs(bkid),  main = "raw", pch = ".", log="xy")
 plot(exprs(nbkid), main = "vsn", pch = ".")
 preproc(description(nbkid))$vsnParams
 @
-% $------------------------------------------------------------
+% $ for ESS
 \myincfig{vsn-nkid-calib4}{\textwidth}{Scatterplots for badly biased 
 data. Left hand side: raw data on log-log scale, right hand side: after 
 calibration and transformation with vsn.}
 <<nkid-calib-warn2,echo=FALSE,results=hide>>=
-options(warn=0)
+options(oldwarn)
+rm(oldwarn)
 @
 The factor for the red channel is now about four times as large as
 before.  The result is shown in Fig.~\ref{vsn-nkid-calib4}.
@@ -244,31 +239,24 @@ data(lymphoma)
 dim(exprs(lymphoma))
 pData(lymphoma)
 @
-The 16 columns of the \code{lymphoma} object contain the red 
-and green intensities, respectively, from the $8$ slides, as shown 
-in the table. Thus, the CH1 intensities are in columns 
-$1, 3, \ldots, 15$, the CH2 intensities in columns $2, 4, \ldots, 16$.
-
-There are now two modes of operation for \code{vsn}: First,
-\code{vsn} can be called for each slide in turn. Second,
-if there is reason to believe that the slides are 
-of similar quality, it can also be called on all of them at once:
-%------------------------------------------------------------
+The 16 columns of the \Robject{lymphoma} object contain the red and
+green intensities, respectively, from the 8 slides, as shown in the
+table. Thus, the CH1 intensities are in columns $1, 3, \ldots, 15$,
+the CH2 intensities in columns $2, 4, \ldots, 16$.  We can call
+\Rfunction{vsn} on all of them at once:
 <<lym-sdmean1,results=hide>>=
 lym <- vsn(lymphoma, verbose=FALSE)
 @
+This calculation may take a while. 
 <<lym-sdmean2,include=FALSE,fig=TRUE>>=
 meanSdPlot(lym)
 @
 \myincfig{vsn-lym-sdmean2}{0.5\textwidth}{Standard deviation 
 versus rank of the mean for the lymphoma example data}
-%------------------------------------------------------------
-This calculation may take a while. Again, Fig.~\ref{vsn-lym-sdmean2} 
-helps to visually verify that the variance stabilization worked.
-As above, we can obtain the "generalized log-ratios" for each slide,
-by subtracting the common reference intensities from those for the 
-8 samples:
-%------------------------------------------------------------
+Again, Fig.~\ref{vsn-lym-sdmean2} helps to visually verify that the
+variance stabilization worked.  As above, we can obtain the
+"generalized log-ratios" for each slide, by subtracting the common
+reference intensities from those for the 8 samples:
 <<lym-M,include=FALSE,fig=TRUE,width=8,height=4,results=hide>>=
 refrs <- (1:8)*2-1
 samps <- (1:8)*2
@@ -283,7 +271,6 @@ abline(h=0, col="red")
 @
 \myincfig{vsn-lym-M}{\textwidth}{Mean-difference plots for two slides 
 from the lymphoma example data}
-%------------------------------------------------------------
 Fig.~\ref{vsn-lym-M} shows the analagon to the $M$-vs-$A$-plots
 as described in reference~\cite{Dudoit578}. Note that in the left
 scatterplot, there is a cloud of points at low intensities that is
@@ -320,26 +307,23 @@ use of CPU time and disk memory of a package vignette is limited, thus
 here we stick to a very simple-minded calculation, and a small data
 set. See Fig.~\ref{fig-comp} and the calculations below. Two
 applications to larger data sets are described in
-reference~\cite{HuberISMB2002}.  More sophistacted analyses can be
+reference~\cite{HuberISMB2002}.  More sophisticated analyses can be
 made by comparing not just the distributions of $t$-statistics, but
 for example, the estimated false discovery rates, using different test
-statistics. I have generally found the results to be the same.  You
-are encouraged to try this out with your own data.
-
+statistics. You are encouraged to try this out with your own data.
 \begin{figure}[htbp]
 \begin{center}
 \includegraphics[width=\textwidth]{vsn-comp}
 \caption{\label{fig-comp}Left hand side: $x$-axis -- generalized
-log-ratios for slide 1 from \code{vsn}, $y$-axis -- log-ratios for
-slide 1 after global median normalization. For most genes, the two are
-the same, but in some cases the generalized log-ratio is smaller.  It
-is never larger. This demonstrates the {\em ratio shrinkage} by the
-variance stabilization. Right hand side: quantile-quantile-plot of the
-$t$-statistic for the comparison between the 4 slides with CLL and the
-4 with DLCL. The $t$-statistics from \code{vsn} are larger, i.\,e.\ 
-it compares more favorable with respect to the
-relative size of between- and within-group variability.
-}
+log-ratios for slide 1 from \Rfunction{vsn}, $y$-axis -- log-ratios
+for slide 1 after global median normalization. For most genes, the two
+are the same, but in some cases the generalized log-ratio is smaller.
+It is never larger. This demonstrates the \textit{ratio shrinkage} by
+the variance stabilization. Right hand side: quantile-quantile-plot of
+the $t$-statistic for the comparison between the 4 slides with CLL and
+the 4 with DLCL. The $t$-statistics from \Rfunction{vsn} are larger,
+i.\,e.\ it compares more favorable with respect to the relative size
+of between- and within-group variability.}
 \end{center}
 \end{figure}
 
@@ -359,23 +343,29 @@ t2[abs(t2)>1e30] <- NA
 qqplot(t1, t2, xlab="t (vsn)", ylab="t (global median)", main="QQ plot", pch=".")
 abline(a=0,b=1,col="red")
 @
+The line \Rexpression{t2[abs(t2)>1e30] <- NA} is there to avoid a bug in \Rpackage{multtest}.
 
 %---------------------------------------------------------
 \section{Running vsn on Affymetrix data} \label{affy}
 %---------------------------------------------------------
-The package \code{affy} provides excellent functionality for reading and 
-processing Affymetrix genechip data. To use \code{vsn} for the 
-calibration and transformation of the probe intensities, a wrapper 
-for \code{vsn} is provided that can be used within the 
-data processing routines of \code{affy}. See the documentation for 
-the package \code{affy} for more information about data structures 
-and other available methods. There are different ways to treat the
-mismatch (MM) intensities, to adjust for background, and summarize 
-the probe sets. 
-
-The following code is taken from the example in the man page for 
-\code{normalize.AffyBatch.vsn}. The resulting plot is shown in 
-Fig.~\ref{vsn-affy}.
+The package \Rpackage{affy} provides excellent functionality for
+reading and processing Affymetrix genechip data. To use
+\Rfunction{vsn} for the calibration and transformation of the probe
+intensities, a wrapper is provided that can be used within the data
+processing routines of \Rpackage{affy}. See the documentation for the
+package \Rpackage{affy} for more information about data structures and
+other available methods. Affymetrix genechips preprocessing involves
+three steps:
+\begin{enumerate}
+\item \label{joinpmmm} combining the perfect match (PM) and mismatch 
+  (MM) intensities into one number per probe
+\item \label{calibrate} calibrating 
+\item \label{transform} transforming
+\item \label{summarize} summarizing
+\end{enumerate}
+\Rfunction{vsn} addresses steps \ref{calibrate} and \ref{transform}. For
+steps \ref{joinpmmm} and \ref{summarize}, we follow the RMA method. The 
+resulting plot is shown in Fig.~\ref{vsn-affy}.
 <<affy-calc,results=hide>>=
 library(affy)
 library(affydata)
@@ -417,14 +407,14 @@ abline(h=0, col="red")
 plot(rank(rowSums(x2)), diff(t(x2)), ylim=ylim, main="rank(mean) vs differences")
 abline(h=0, col="red")
 @
-\myincfig{vsn-affy}{\textwidth}{\code{normalize.AffyBatch.vsn} example}
+\myincfig{vsn-affy}{\textwidth}{\Rfunction{normalize.AffyBatch.vsn} example}
 
 %------------------------------------------------------------------------
 \section{Verifying and assessing the performance of vsn with 
    simulated data} \label{sagmb}
 %------------------------------------------------------------------------
-There are two functions \Rfunc{sagmbSimulateData} and
-\Rfunc{sagmbAssess} that can be used to generate simulated data and
+There are two functions \Rfunction{sagmbSimulateData} and
+\Rfunction{sagmbAssess} that can be used to generate simulated data and
 assess the difference between the 'true' and 'estimated' data
 calibration and transformation by vsn. An example is shown in the code
 chunk below. Reference~\cite{HuberSAGMB2003} describes in more detail
@@ -453,6 +443,7 @@ for (i in seq(along=de)) {
   res <- array(1, dim=c(length(n), nrrep, length(de)))
 }
 @
+% $ for ESS
 <<sagmb-show,include=FALSE,fig=TRUE,width=7,height=4>>=
 par(mfrow=c(1,2))
 for (i in seq(along=de)) {
@@ -461,28 +452,28 @@ for (i in seq(along=de)) {
 }
 @
 {\bf Note:} The code has been deactivated since it takes a long time
-to run.  In a version of the vignette (soon!), this section will be
-branched out into a separate Sweave file, where CPU runtime is not
+to run.  In a later version of the vignette (soon!), this section will
+be branched out into a separate Sweave file, where CPU runtime is not
 so much of a concern.
 
-\myincfig{vsn-sagmb-show}{\textwidth}{Estimation error for the transformation:
-the root mean squared difference between true and estimated transformed data,
-as a function of the number of genes $n$. If \Rfunc{vsn} works correctly, the
-estimation error should decrease roughly as $n^{-1/2}$.
-}
+\myincfig{vsn-sagmb-show}{\textwidth}{Estimation error for the
+transformation: the root mean squared difference between true and
+estimated transformed data, as a function of the number of genes
+$n$. If \Rfunction{vsn} works correctly, the estimation error should
+decrease roughly as $n^{-1/2}$.}
 
 %---------------------------------------------------------
 \section{Quality control}\label{sec.qc}
 %---------------------------------------------------------
-\code{vsn} makes some assumptions about your data that need to hold 
-if it is to produce meaningful results. We have found them appropriate for 
-many microarray experiments, but it is your responsibility to make sure 
-that they hold for your data.  
+\Rfunction{vsn} makes some assumptions about your data that need to
+hold if it is to produce meaningful results. We have found them
+appropriate for many microarray experiments, but it is your
+responsibility to make sure that they hold for your data.
 
-First, \code{vsn} assumes that the measured signal $y_{ik}$ 
-increases, to sufficient approximation, proportionally to the
-mRNA abundance $c_{ik}$ of gene $k$ on the $i$-th array, or on
-the $i$-th color channel:
+First, \Rfunction{vsn} assumes that the measured signal $y_{ik}$
+increases, to sufficient approximation, proportionally to the mRNA
+abundance $c_{ik}$ of gene $k$ on the $i$-th array, or on the $i$-th
+color channel:
 \begin{equation}\label{assumption} 
 y_{ik}\approx a_i + b_i b_k c_{ik}.  
 \end{equation} 
@@ -507,65 +498,66 @@ gene-specific dye-biases to subsequent analyses can also be reduced.}.
 
 Situations in which the assumption~(\ref{assumption}) is violated include:
 
-{\em Saturation.} The biochemical reactions and/or the photodetection 
+\paragraph{Saturation.} The biochemical reactions and/or the photodetection 
 can be run in such a manner that saturation effects occur.
 It may be possible to rescue such data by using non-linear transformations. 
 Alternatively, it is recommended that the experimental parameters are 
 chosen to avoid saturation.
 
-{\em Print-tip and PCR effects.} In cDNA microarray data, systematic 
-patterns have been observed that are associated with the print-tips 
-used for the spotting of DNA, and with the microtitre plates 
-used to store and amplify the DNA. Possibly, these effects could be included
-in~(\ref{assumption}) by replacing $a_i$ and $b_i$ by print-tip and/or plate 
-specific coefficients, but presently \code{vsn} does not include this option.
+\paragraph{Print-tip and PCR effects.} In cDNA microarray data, systematic
+patterns have been observed that are associated with the print-tips
+used for the spotting of DNA, and with the microtitre plates used to
+store and amplify the DNA. Possibly, these effects could be included
+in~(\ref{assumption}) by replacing $a_i$ and $b_i$ by print-tip and/or
+plate specific coefficients, but presently \Rfunction{vsn} does not
+include this option.
 
-{\em Batch effects.} The probe affinities $b_k$ may differ between different 
-manufacturing batches of arrays due, e.g., to different qualities of DNA 
-amplification or printing. \code{vsn} cannot be used to simultaneously 
-calibrate and transform data from different batches.
+\paragraph{Batch effects.} The probe affinities $b_k$ may differ between
+different manufacturing batches of arrays due, e.g., to different
+qualities of DNA amplification or printing. \Rfunction{vsn} cannot be
+used to simultaneously calibrate and transform data from different
+batches.
 
 How to reliably diagnose and deal with such violations is beyond the scope 
 of this vignette; see the references for more~\cite{Dudoit578,HSG2002}. 
 
-\paragraph{Variance.} A further assumption that \code{vsn} makes is that 
-the measurement error (more exactly: the variance) is the sum of two 
-contributions: an additive component that has roughly the same size for all 
-probes on an array, and a multiplicative component that is roughly proportional 
-in size to the signal's true value, with a proportionality factor (called
-the {\em coefficient of variation}) that is the same for all 
-genes~\cite{RockeDurbin2001}.
+\paragraph{Variance.} A further assumption that \Rfunction{vsn} makes is that 
+the measurement error (more exactly: the variance) is the sum of two
+contributions: an additive component that has roughly the same size
+for all probes on an array, and a multiplicative component that is
+roughly proportional in size to the signal's true value, with a
+proportionality factor (called the \textit{coefficient of variation})
+that is the same for all genes~\cite{RockeDurbin2001}.
 
 \paragraph{Most genes unchanged assumption.} 
-\code{vsn} assumes that only a minority (less than half) of genes on
-the arrays is detectably differentially transcribed across the
+\Rfunction{vsn} assumes that only a minority (less than half) of genes
+on the arrays is detectably differentially transcribed across the
 experiments. If it is safe to assume that a smaller fraction of genes
 is non-negligibly differentially transcribed, the efficiency of the
 estimation can be improved by increasing the parameter
-\code{lts.quantile} from its default value of 0.5 to a value between
+\Rfunarg{lts.quantile} from its default value of 0.5 to a value between
 0.5 and 1.
 
 \paragraph{Processing biases.} 
-Image analysis software for cDNA arrays typically estimates a {\em
-local background} associated with each probe intensity. For Affymetrix
-arrays, the intensities from {mismatch} probes are thought to
-represent the level of non-specific signal. In both cases, the raw
-probe intensities may be {\em adjusted} by subtracting these
+Image analysis software for cDNA arrays typically estimates a
+\textit{local background} associated with each probe intensity. For
+Affymetrix arrays, the intensities from {mismatch} probes are thought
+to represent the level of non-specific signal. In both cases, the raw
+probe intensities may be \textit{adjusted} by subtracting these
 background estimates. Some software packages, however, bias the
 adjustment through rules based on the data values. For example,
 Affymetrix' MAS 5.0 software uses the mismatch intensity only if it is
-smaller than the probe's intensity, and otherwise employs a heuristic to
-make sure that the net intensities always remain positive. As a
+smaller than the probe's intensity, and otherwise employs a heuristic
+to make sure that the net intensities always remain positive. As a
 consequence, the intensities are systematically over-estimated, and
-cannot be used with \code{vsn}. For Affymetrix data, we recommend to
-use \code{vsn} on the probe intensities from the "CEL file". For cDNA
-data, we recommend to use only background adjustment procedures that
-estimate the background independent of the observed foreground
-intensity.
+cannot be used with \Rfunction{vsn}. For Affymetrix data, we recommend
+to use \Rfunction{vsn} on the probe intensities from the "CEL
+file". For cDNA data, we recommend to use only background adjustment
+procedures that estimate the background independent of the observed
+foreground intensity.
 
 <<setdown,echo=FALSE,results=hide>>=
 options(oldopt)
-par(oldpar)
 @
 
 \begin{thebibliography}{10}
@@ -574,44 +566,44 @@ par(oldpar)
 W. Huber, A. von Heydebreck, H. {S\"ultmann}, A. Poustka, and M. Vingron.
 \newblock Variance stablization applied to microarray data calibration and to
   quantification of differential expression.
-\newblock {\em Bioinformatics}, 18:S96--S104, 2002.
+\newblock \textit{Bioinformatics}, 18:S96--S104, 2002.
 
 \bibitem{HuberSAGMB2003}
 W. Huber, A. von Heydebreck, H. {S\"ultmann}, A. Poustka, and M. Vingron.
 \newblock Parameter estimation for the calibration and variance stabilization 
 of microarray data.
-\newblock {\em Statistical Applications in Genetics and Molecular Biology}, 
+\newblock \textit{Statistical Applications in Genetics and Molecular Biology}, 
 Vol. 2: No. 1, Article 3, 2003. 
 http://www.bepress.com/sagmb/vol2/iss1/art3
 
 \bibitem{HSG2002}
 W. Huber, A. von Heydebreck, and M. Vingron.
 \newblock Analysis of microarray gene expression data.
-\newblock To appear in the {\em Handbook of Statistical Genetics}, 2003.
+\newblock To appear in the \textit{Handbook of Statistical Genetics}, 2003.
 Eds.: D. J. Balding, M. Bishop, C. Cannings. 
 John Wiley \& Sons, Inc., 
 
 \bibitem{RockeDurbin2001}
 David~M. Rocke and Blythe Durbin.
 \newblock A model for measurement error for gene expression analysis.
-\newblock {\em Journal of Computational Biology}, 8:557--569, 2001.
+\newblock \textit{Journal of Computational Biology}, 8:557--569, 2001.
 
 \bibitem{Dudoit578}
 S. Dudoit, Y.~H. Yang, T.~P. Speed, and M.~J. Callow.
 \newblock Statistical methods for identifying differentially expressed genes in
   replicated {cDNA} microarray experiments.
-\newblock {\em Statistica Sinica}, 12:111--139, 2002.
+\newblock \textit{Statistica Sinica}, 12:111--139, 2002.
 
 \bibitem{Alizadeh}
 A.~A. Alizadeh et al.
 \newblock Distinct types of diffuse large B-cell lymphoma identified by gene expression profiling.
-\newblock {\em Nature}, 403:503--511, 2000.
+\newblock \textit{Nature}, 403:503--511, 2000.
 
 \bibitem{Affycomp}
 L.~M. Cope, R.~A. Irizarry, H.~A. Jaffee, Z.~Wu, and T.~P. Speed.
 \newblock A Benchmark for Affymetrix GeneChip Expression Measures
 \newblock http://affycomp.biostat.jhsph.edu
-(submitted to {\em Bioinformatics}, 2003).
+(submitted to \textit{Bioinformatics}, 2003).
 
 \end{thebibliography}
 \end{document}
