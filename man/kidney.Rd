@@ -13,7 +13,6 @@
   (532 nm) respectively. For each spot, a background estimate from a
   surrounding region was subtracted.
 }
-\usage{data(lymphoma)}
 
 \details{The chip was produced in 2001 by Holger Sueltmann at
   the Division of Molecular Genome Analysis at the German Cancer

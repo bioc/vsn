@@ -34,6 +34,10 @@
 \maketitle
 
 <<loadotherpackages,echo=FALSE,results=hide>>=
+vsnwarn = 2
+oopt = options(digits=3, warn=vsnwarn)
+on.exit(options(oopt))
+
 library(affy)
 library(marrayNorm)
 library(multtest)
@@ -103,8 +107,10 @@ scaling is also shown.
 par(mfrow=c(1,2))
 if(!exists("nkid")) 
   nkid = vsn(kidney)
+options(warn=-1)
 plot(exprs(nkid),   main = "vsn", pch = ".")
 plot(exprs(kidney), main = "raw", pch = ".", log="xy")
+options(warn=vsnwarn)
 @
 <<nkid-scp-show,eval=FALSE>>=
 nkid = vsn(kidney)
@@ -191,16 +197,22 @@ prep$vsnParams
 The \code{description} slot of an \code{exprSet} is an object of class
 \code{MIAME}, and may contain annotation (or ``metadata'') pertinent
 to the experiment represented by the object. For an exprSet with $d$
-columns, \code{prep$vsnParams} is a numeric vector of length $2d$. Its
+columns, \code{prep\$vsnParams} is a numeric vector of length $2d$. Its
 elements $1,\ldots,d$ contain the additive calibration and
 transformation parameters $a_i$, its elements $d+1,\ldots,2d$ the
 multiplicative ones. Compare the above numbers with the final values
 in Fig.~\ref{vsn-nkid-iter}.
 
-\code{vsn} is able to correct for a shift in the position and a
-different scaling shift of the data. Suppose the example data were not
-so well measured, and the red channel had a baseline that was shifted by 50 and
-a scale that differed by a factor of $1/2$:
+If $y_{ki}$ is the matrix of uncalibrated data, 
+with $k$ indexing the rows and $i$ the columns, then the calibrated 
+data $y_{ki}'$ is obtained through scaling by $b_i$ and shifting 
+by $a_i$:
+\begin{equation}\nonumber
+y_{ki}' = a_i+b_i y_{ki}
+\end{equation}
+Now suppose the kidney example data were not
+that well measured, and the red channel had a baseline that was shifted 
+by 50 and a scale that differed by a factor of $1/2$:
 <<nkid-calib2>>=
 bkid = kidney
 exprs(bkid)[,"red"] = 0.5 * (50+exprs(bkid)[,"red"])
@@ -213,6 +225,9 @@ if(!exists("nbkid"))
 <<nkid-calib3-show,eval=FALSE>>=
 nbkid = vsn(bkid)
 @
+<<nkid-calibnowarn,echo=FALSE,results=hide>>=
+options(warn=-1)
+@
 <<nkid-calib4,fig=TRUE,width=8,height=4>>=
 preproc(description(nbkid))$vsnParams
 par(mfrow=c(1,2))
@@ -220,49 +235,45 @@ plot(exprs(nbkid), main = "vsn", pch = ".")
 plot(exprs(bkid),  main = "raw", pch = ".", log="xy")
 @
 \myincfig{vsn-nkid-calib4}{0.75\textwidth}
+<<nkid-calibnowarn,echo=FALSE,results=hide>>=
+options(warn=vsnwarn)
+@
+The factor for the red channel is now twice as large as before, and 
+also the offset has decreased by amount of $\approx 50 \times b_2$.
 
 %------------------------------------------------------------
 \section{Running vsn on the data from multiple cDNA arrays} 
 %------------------------------------------------------------
---->TO DO:::
-SOME BLA ON THE EXAMPLE DATA:
-
 The package includes example data from a series of 8 cDNA arrays 
 on which different lymphoma were hybridized together with a reference 
 cDNA~\cite{Alizadeh}.
-<<loadotherpackages,echo=FALSE,results=hide>>=
-library(affy)
-library(marrayNorm)
-library(multtest)
-@
-<<loadpackage,results=hide>>=
-library(vsn)
+<<loadlymphoma,results=hide>>=
 data(lymphoma)
 lymphoma
 @
 <<showpdata>>=
 pData(lymphoma)
 @
-The 16 colums of the \code{lymphoma} object contain the red 
-and green intensities, respectively, from the 8 slides, as shown 
-in the table. 
+The 16 columns of the \code{lymphoma} object contain the red 
+and green intensities, respectively, from the $8$ slides, as shown 
+in the table. Thus, the CH1 intensities are in columns $1:8$, the 
+CH2 intensities in columns $9:16$.
 
-<----TO DO:::
-
-To process multiple slides, \code{vsn} can be called for each slide in turn,
-as described above. If there is reason to believe that the slides are 
+There are now two modes of operation for \code{vsn}: First,
+\code{vsn} can be called for each slide in turn. Second,
+if there is reason to believe that the slides are 
 of similar quality, it can also be called on all of them at once:
 %------------------------------------------------------------
-<<b-sdmean,echo=FALSE,results=hide,include=FALSE,fig=TRUE>>=
-if(!exists("b")) 
-  b = vsn(lymphoma, verbose=FALSE)
-meanSdPlot(b)
+<<lym-sdmean,echo=FALSE,results=hide,include=FALSE,fig=TRUE>>=
+if(!exists("lym")) 
+  lym = vsn(lymphoma, verbose=FALSE)
+meanSdPlot(lym)
 @
-<<b-sdmean-show,eval=FALSE>>=
-b = vsn(lymphoma, verbose=FALSE)
-meanSdPlot(b)
-\myincfig{vsn-b-sdmean}{0.5\textwidth}
+<<lym-sdmean-show,eval=FALSE>>=
+lym = vsn(lymphoma, verbose=FALSE)
+meanSdPlot(lym)
 @
+\myincfig{vsn-lym-sdmean}{0.5\textwidth}
 %------------------------------------------------------------
 This calculation may take a while. Again, the \code{plot} 
 command helps to visually verify that the variance stabilization worked
@@ -271,21 +282,21 @@ As above, we can obtain the "generalized log-ratios" for each slide,
 by subtracting the common reference intensities from those for the 
 8 samples:
 %------------------------------------------------------------
-<<b-M,include=FALSE,fig=TRUE,width=8,height=4,results=hide>>=
+<<lym-M,include=FALSE,fig=TRUE,width=8,height=4,results=hide>>=
 refrs <- (1:8)*2-1
 samps <- (1:8)*2
-M <- exprs(b)[,samps] - exprs(b)[,refrs] 
+M <- exprs(lym)[,samps] - exprs(lym)[,refrs] 
 colnames(M) <-  pData(lymphoma)[samps, "sample"]
-A <- rowMeans(exprs(b))
+A <- rowMeans(exprs(lym))
 par(mfrow=c(1,2))
 plot(A, M[,"CLL-13"], pch=".")
 abline(h=0, col="red")
 plot(A, M[,"DLCL-0032"], pch=".")
 abline(h=0, col="red")
 @
-\myincfig{vsn-b-M}{\textwidth}
+\myincfig{vsn-lym-M}{\textwidth}
 %------------------------------------------------------------
-Fig.~\ref{vsn-b-M} shows the analagon to the $M$-vs-$A$-plots
+Fig.~\ref{vsn-lym-M} shows the analagon to the $M$-vs-$A$-plots
 described in reference~\cite{Dudoit578}. Note that in the left
 scatterplot, there is a cloud of points at low intensities that is
 concentrated slightly off the line $M=0$.  In the right scatterplot, a

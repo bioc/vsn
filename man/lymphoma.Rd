@@ -14,7 +14,6 @@
   matrix \code{exprs(lymphoma)} contains the background-subtracted spot
   intensities (CH1I-CH1B and CH2I-CH2B, respectively). 
 }
-\usage{data(lymphoma)}
 
 \details{
 The following chip intensity files were downloaded from the Stanford

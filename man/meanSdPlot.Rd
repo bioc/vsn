@@ -49,9 +49,6 @@ meanSdPlot(x,
 \author{Wolfgang Huber \url{http://www.dkfz.de/abt0840/whuber}}
 \seealso{\code{\link{vsn}}}
 \examples{
-  ## to avoid warnings
-  log.na = function(x) log(ifelse(x>0, x, NA))
-
   data(kidney)
   exprs(kidney) = log.na(exprs(kidney))
 
