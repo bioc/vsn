@@ -4,7 +4,7 @@
 %\VignettePackage{vsn}
 
 \documentclass[11pt]{article}
-\usepackage[margin=1.75cm,noheadfoot]{geometry}
+\usepackage[margin=2.5cm,noheadfoot]{geometry}
 
 %------------------------------------------------------------
 % newcommand
