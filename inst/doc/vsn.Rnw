@@ -5,10 +5,6 @@
 
 \documentclass{article}
 
-%% \usepackage{hyperref}
-%% \usepackage{wrapfig}
-\usepackage{Sweave}
-
 \textwidth=16.5cm
 \textheight=8.7in
 \parskip=3mm
@@ -17,10 +13,22 @@
 \headheight=-2cm
 \parindent0cm
 
-\newcommand{\classdef}[1]{{\em #1}}
+%------------------------------------------------------------
+% newcommand
+%------------------------------------------------------------
 \newcommand{\code}[1]{{\tt #1}}
+\newcommand{\myincfig}[2]{%
+  \begin{figure}[htbp]
+    \begin{center}
+      \includegraphics[width=#2]{#1}
+      \caption{\label{#1}}
+    \end{center}
+  \end{figure}
+}
 
+%------------------------------------------------------------
 \begin{document}
+%------------------------------------------------------------
 \title{Robust calibration and variance stabilization with VSN}
 \author{Wolfgang Huber}
 \maketitle
@@ -93,18 +101,13 @@ and it can be used as one of the normalization methods in the package
 You can run \code{vsn} on the intensities from one first slide,
 and verify the result simply by
 %%-----scatterplot one slide
-<<ny1-calc>>=
-ny <- vsn(lymphoma[, 3:4])
-@
 <<ny1-scp,include=FALSE,fig=TRUE>>=
+ny <- vsn(lymphoma[, 3:4])
+ny
 plot(ny@h, pch = ".")
 @
-\begin{center}
-\includegraphics[width=85mm]{vsn-ny1-scp}
-\end{center}
-<<ny1-show>>=
-ny
-@
+\myincfig{vsn-ny1-scp}{85mm}
+The result is shown in Fig.~\ref{vsn-ny1-scp}.
 The slot \code{h} of the returned object \code{ny} is an $n\times d$ 
 matrix $h_{ki}$ with the calibrated and transformed data. Note that 
 the plot shows the complete set of $n=9216$ red and green intensities, 
@@ -117,15 +120,13 @@ rank of the average $\hat{\mu}_k$ on the $x$-axis,
 \hat{\mu}_k   =\frac{1}{d}  \sum_{i=1}^d h_{ki}\quad\quad
 \hat{\sigma}_k=\frac{1}{d-1}\sum_{i=1}^d (h_{ki}-\hat{\mu}_k)^2.
 \end{equation}
-%%%-----sd vs rank
-<<ny1-sdmean,include=FALSE,fig=TRUE,width=8,height=4>>=
+<<ny1-sdmean,include=FALSE,fig=TRUE,width=8,height=4,results=hide>>=
 par(mfrow=c(1,2))
 plot(ny, ranks=TRUE)
 plot(ny, ranks=FALSE)
 @
-\begin{center}
-\includegraphics[width=\textwidth]{vsn-ny1-sdmean}
-\end{center}
+\myincfig{vsn-ny1-sdmean}{\textwidth}
+Such a plot is shown in Fig.~\ref{vsn-ny1-sdmean}.
 The blue dots, connected by lines, show the running median of the standard 
 deviation\footnote{Windows width: 20\%, window midpoints 10\%, 20\%, \ldots.}.
 Within each window, the median may be considered a pooled estimator of the standard 
@@ -142,16 +143,14 @@ The parameter estimation in \code{vsn} works in an iterative manner.
 To verify that the iterations have converged, you can call the plot 
 method with the option \code{what}.
 %%%--------iterations
-<<ny1-iter,include=FALSE,fig=TRUE,width=8,height=4>>=
+<<ny1-iter,include=FALSE,fig=TRUE,width=8,height=4,results=hide>>=
 par(mfrow=c(1,2))
 plot(ny, what="offsets")
 plot(ny, what="factors")
 @
-\begin{center}
-\includegraphics[width=0.75\textwidth]{vsn-ny1-iter}
-\end{center}
-
-The plots show the values of the estimated calibration and variance 
+\myincfig{vsn-ny1-iter}{0.75\textwidth}
+The plots in Fig.~\ref{vsn-ny1-iter}
+show the values of the estimated calibration and variance 
 stabilization parameters on the $y$-axis as a function of the iteration index. All 
 curves should reach a plateau well before the last iteration. If this 
 is not the case, the number of iterations may be increased through 
@@ -161,50 +160,50 @@ Section~\ref{sec.qc}.
 
 The "generalized log-ratios"~\cite{HuberISMB2002} for this experiment
 may be obtained for further processing through
+The histogram is shown in the left panel of Fig.~\ref{vsn-ny1}.
 %%%-------histogram of M
-<<ny1-M,include=FALSE,fig=TRUE>>=
+<<ny1-M,include=FALSE,fig=TRUE,results=hide>>=
 M <- ny@h[,2] - ny@h[,1] 
 hist(M, breaks=50)
 @
-\begin{center}
-\includegraphics[width=60mm]{vsn-ny1-M}
-\end{center}
+\begin{figure}[htbp]
+  \begin{center}
+    \includegraphics[width=0.45\textwidth]{vsn-ny1-M}
+    \includegraphics[width=0.45\textwidth]{vsn-ny2-sdmean}
+     \caption{\label{vsn-ny1}}
+   \end{center}
+\end{figure}
+
 To process multiple slides, \code{vsn} can be called for each slide in turn,
 as described above. If there is reason to believe that the slides are 
 of similar quality, it can also be called on all of them at once:
 %%------run vsn on all slides at once
-<<ny2-sdmean,include=FALSE,fig=TRUE>>=
+<<ny2-sdmean,include=FALSE,fig=TRUE,results=hide>>=
 ny <- vsn(lymphoma,verbose=FALSE)
 plot(ny)
-ny
 @
-\begin{center}
-\includegraphics[width=65mm]{vsn-ny2-sdmean}
-\end{center}
 This calculation may take a while. Again, the \code{plot} 
-command helps to visually verify that the variance stabilization worked. 
+command helps to visually verify that the variance stabilization worked
+(see the right panel of Fig.~\ref{vsn-ny1}). 
 As above, we can obtain the "generalized log-ratios" for each slide,
 by subtracting the common reference intensities from those for the 
 8 samples:
-<<ny2-M,include=FALSE,fig=TRUE,width=8,height=4>>=
+<<ny2-M,include=FALSE,fig=TRUE,width=8,height=4,results=hide>>=
 refrs <- (1:8)*2-1
 samps <- (1:8)*2
 M <- ny@h[,samps] - ny@h[,refrs] 
 colnames(M) <-  pData(lymphoma)[samps, "sample"]
 A <- rowMeans(ny@h)
-
 par(mfrow=c(1,2))
 plot(A, M[,"CLL-13"], pch=".")
 abline(h=0, col="red")
 plot(A, M[,"DLCL-0032"], pch=".")
 abline(h=0, col="red")
 @
-\begin{center}
-\includegraphics[width=\textwidth]{vsn-ny2-M}
-\end{center}
-The plot shows the analagon to the $M$-vs-$A$-plot described in 
+\myincfig{vsn-ny2-M}{\textwidth}
+Fig.~\ref{vsn-ny2-M} shows the analagon to the $M$-vs-$A$-plots described in 
 reference~\cite{Dudoit578}. Note that in the left scatterplot, 
-there is a cloud of points at very low intensities ($A\approx0.5$) 
+there is a cloud of points at low intensities 
 that is concentrated slightly off the line $M=0$.
 In the right scatterplot, a similar cloud sits right on the $M=0$
 line. This could be related to a quality problem with the left 
@@ -242,33 +241,33 @@ considered more specific.
 In the following piece of code, data is transformed to log-ratios and 
 normalized by the global median. The result, together with that of 
 the previous section, is stored in the 3-dimensional array \code{Ms}. 
-The plot shows, for one of the arrays, a comparison of the resulting 
-log-ratios.
-<<Ms-calc,results=hide>>=
+Fig.~\ref{vsn-Ms-plot} shows, for one of the arrays, a comparison 
+of the resulting log-ratios.
+<<Ms-plot,results=hide,fig=TRUE,include=FALSE>>=
 Ms <- array(NA, dim=c(dim(M), 2))
 Ms[,,1] <- M
 library(marrayNorm)
 mr = new('marrayRaw', maGf=exprs(lymphoma)[,refrs], maRf=exprs(lymphoma)[,samps])
 mn = maNorm(mr, norm="median", echo=T)
 Ms[,,2] <- mn@maM
-@
-<<Ms-plot,fig=TRUE,include=FALSE>>=
 plot(Ms[,1,], xlab="vsn", ylab="global median", main="M (array 1)", pch=".")
 @
-\begin{center}
-\includegraphics[width=80mm]{vsn-Ms-plot}
-\end{center}
+\myincfig{vsn-Ms-plot}{80mm}
 
 The function \code{calc.fdr} provides a simple-minded 
-implementation of the estimation of the false discovery rate from the permutation
-distribution of the sorted test statistics:
-<<fdr,fig=TRUE,include=FALSE>>==
+implementation of the estimation of the false discovery rate from 
+the permutation distribution of the sorted test statistics. 
+The result is shown in Fig.~\ref{vsn-fdr3}.
+\myincfig{vsn-fdr3}{80mm}
+<<fdr1,results=hide>>==
 library(multtest)
 calc.t <- function(classlabel, M) {
   t <- mt.teststat(M, classlabel) 
   t[abs(t)>1e30] <- NA
   return(t)
 }
+@
+<<fdr2,results=hide>>==
 calc.fdr <- function(M, classlabel, nrgeneselect) {
   t <- calc.t(classlabel, M)
   st <- sort(abs(t), decreasing=TRUE)
@@ -291,6 +290,8 @@ calc.fdr <- function(M, classlabel, nrgeneselect) {
   }
   return(fdr)
 }
+@
+<<fdr3,fig=TRUE,include=FALSE,results=hide>>==
 classlabel <- regexpr("CLL",colnames(M)) > 0
 nrgeneselect <- c(10, 20, 50, 100, 200, 500, 1000)  
 fdr <- apply(Ms, 3, calc.fdr, classlabel, nrgeneselect) 
@@ -300,9 +301,6 @@ for(j in 1:ncol(fdr))
   lines(nrgeneselect, fdr[,j], type='b', pch=19, lty=j)
 legend(10, max(fdr), c("vsn", "global median"), lty=1:ncol(fdr))
 @
-\begin{center}
-\includegraphics[width=80mm]{vsn-fdr}
-\end{center}
 
 %---------------------------------------------------------
 \section{Running vsn on Affymetrix data} \label{affy}
@@ -316,13 +314,12 @@ the package \code{affy} for more information about data structures
 and other available methods. There are different ways to treat the
 mismatch (MM) intensities, to adjust for background, and summarize 
 the probe sets. The choices made in the following example may not be 
-optimal!
-<<affy,fig=TRUE>>==
+optimal.
+<<affy,include=FALSE,fig=TRUE>>==
 example(normalize.AffyBatch.vsn)
 @
-
-Note that the runtime of \code{vsn} is approximately proportional 
-to the number of chips times the number of probes, and may be large.
+\myincfig{vsn-affy}{70mm}
+The scatterplot is shown in Fig.~\ref{vsn-affy}.
 
 %---------------------------------------------------------
 \section{Quality control}\label{sec.qc}
