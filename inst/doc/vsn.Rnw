@@ -56,8 +56,8 @@ $h(x_i)-h(x_j)\approx\log(x_i)-\log(x_j)=\log(x_i/x_j)$~\cite{HuberISMB2002,HSG2
 The package includes example data from a series of 8 cDNA arrays 
 on which different lymphoma were hybridized together with a reference 
 cDNA~\cite{Alizadeh}.
+%% library(affy)
 <<loadotherpackages,echo=FALSE,results=hide>>=
-library(affy)
 library(marrayNorm)
 library(multtest)
 @
