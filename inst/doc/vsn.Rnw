@@ -38,8 +38,8 @@ library(affy)
 library(marrayNorm)
 library(multtest)
 
-vsnwarn = 0
-oopt = options(warn=vsnwarn)
+vsnwarn <- 0
+oopt <- options(warn=vsnwarn)
 on.exit(options(oopt))
 @
 
@@ -105,13 +105,13 @@ the scatterplot of the log-transformed raw intensities is also shown.
 <<nkid-scp,echo=FALSE,results=hide,include=FALSE,fig=TRUE,width=8,height=4>>=
 par(mfrow=c(1,2))
 if(!exists("nkid")) 
-  nkid = vsn(kidney)
+  nkid <- vsn(kidney)
 plot(exprs(nkid), main = "vsn", pch = ".")
 plot(log.na(exprs(kidney)), main = "raw", pch = ".")
 @
 <<nkid-scp-show,eval=FALSE>>=
-nkid = vsn(kidney)
-plot(exprs(nkid),   main = "vsn", pch = ".")
+nkid <- vsn(kidney)
+plot(exprs(nkid), main = "vsn", pch = ".")
 plot(log.na(exprs(kidney)), main = "raw", pch = ".")
 @
 \myincfig{vsn-nkid-scp}{0.75\textwidth}{Scatterplots of the kidney 
@@ -193,7 +193,7 @@ We can access the transformation and calibration parameters through
 options(digits=3)
 @
 <<nkid-calib1>>=
-prep = preproc(description(nkid))
+prep <- preproc(description(nkid))
 names(prep)
 prep$vsnParams
 @
@@ -218,16 +218,16 @@ Now suppose the kidney example data were not
 that well measured, and the red channel had a baseline that was shifted 
 by 500 and a scale that differed by a factor of $0.25$:
 <<nkid-calib2>>=
-bkid = kidney
-exprs(bkid)[,"red"] = 0.25 * (500+exprs(bkid)[,"red"])
+bkid <- kidney
+exprs(bkid)[,"red"] <- 0.25 * (500+exprs(bkid)[,"red"])
 @
 We can again call \code{vsn} on this data
 <<nkid-calib3,echo=FALSE,results=hide>>=
 if(!exists("nbkid")) 
-  nbkid = vsn(bkid)
+  nbkid <- vsn(bkid)
 @
 <<nkid-calib3-show,eval=FALSE>>=
-nbkid = vsn(bkid)
+nbkid <- vsn(bkid)
 @
 <<nkid-calibnowarn,echo=FALSE,results=hide>>=
 options(warn=-1)
@@ -266,11 +266,11 @@ of similar quality, it can also be called on all of them at once:
 %------------------------------------------------------------
 <<lym-sdmean,echo=FALSE,results=hide,include=FALSE,fig=TRUE>>=
 if(!exists("lym")) 
-  lym = vsn(lymphoma, verbose=FALSE)
+  lym <- vsn(lymphoma, verbose=FALSE)
 meanSdPlot(lym)
 @
 <<lym-sdmean-show,eval=FALSE>>=
-lym = vsn(lymphoma, verbose=FALSE)
+lym <- vsn(lymphoma, verbose=FALSE)
 meanSdPlot(lym)
 @
 \myincfig{vsn-lym-sdmean}{0.5\textwidth}{Standard deviation 
@@ -342,8 +342,8 @@ of the resulting log-ratios.
 Ms <- array(NA, dim=c(dim(M), 2))
 Ms[,,1] <- M
 library(marrayNorm)
-mr = new('marrayRaw', maGf=exprs(lymphoma)[,refrs], maRf=exprs(lymphoma)[,samps])
-mn = maNorm(mr, norm="median", echo=T)
+mr <- new('marrayRaw', maGf=exprs(lymphoma)[,refrs], maRf=exprs(lymphoma)[,samps])
+mn <- maNorm(mr, norm="median", echo=T)
 Ms[,,2] <- mn@maM
 plot(Ms[,1,], xlab="vsn", ylab="global median", main="M (array 1)", pch=".")
 @
@@ -374,8 +374,8 @@ calc.fdr <- function(M, classlabel, nrgeneselect) {
   nck <- nchoosek(n-1, length(grp2)-1)
   permclasslabel <- matrix(0, nrow=n, ncol=ncol(nck))
   for(p in 1:ncol(nck)) {
-   permclasslabel[      n, p] = 1
-   permclasslabel[nck[,p], p] = 1
+   permclasslabel[      n, p] <- 1
+   permclasslabel[nck[,p], p] <- 1
   }     
 
   permt <- apply(permclasslabel, 2, calc.t, M)

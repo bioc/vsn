@@ -54,16 +54,16 @@ vsn = function(intensities,
                   },
      exprSet    = { exprs(intensities)
                   },
-     marrayRaw  = { nrslides <- ncol(intensities@maRf)
-                    nrspots  <- nrow(intensities@maRf)
+     marrayRaw  = { nrslides = ncol(intensities@maRf)
+                    nrspots  = nrow(intensities@maRf)
                     if (verbose)
                       cat(sprintf("Converting marrayRaw (%d spots, %d slides) to %dx%d matrix.\n",
                                   as.integer(nrspots), as.integer(nrslides),
                                   as.integer(nrspots), as.integer(2*nrslides)),
                           "Gf-Gb in odd columns, Rf-Rb in even columns.\n")
                     tmp = matrix(NA, nrow=nrspots, ncol=2*nrslides)
-                    tmp[, (1:nrslides)*2-1 ] <- intensities@maGf - intensities@maGb
-                    tmp[, (1:nrslides)*2   ] <- intensities@maRf - intensities@maRb
+                    tmp[, (1:nrslides)*2-1 ] = intensities@maGf - intensities@maGb
+                    tmp[, (1:nrslides)*2   ] = intensities@maRf - intensities@maRb
                     tmp
                    },
     { badarg = "intensities"
@@ -103,23 +103,23 @@ vsn = function(intensities,
   ## guess a parameter scale, set boundaries for optimization,
   ## and, if they are not user-supplied, set the start parameters
   ##----------------------------------------------------------------------
-  pscale  <- plower <- numeric(2*ncol(y))
-  pscale[1:ncol(y)] <- 1
+  pscale  = plower = numeric(2*ncol(y))
+  pscale[1:ncol(y)] = 1
   for (j in 1:ncol(y)) {
-    pscale[ncol(y)+j] <- 1/diff(quantile(y[,j], probs=c(0.25, 0.75)))
+    pscale[ncol(y)+j] = 1/diff(quantile(y[,j], probs=c(0.25, 0.75)))
   }
   ## lower boundary for 'factors': a small positive value
   ## no boundary for 'offsets'
-  plower <- c(rep(-Inf,ncol(y)), pscale[(ncol(y)+1):(2*ncol(y))]/1e8)
+  plower = c(rep(-Inf,ncol(y)), pscale[(ncol(y)+1):(2*ncol(y))]/1e8)
   if (is.null(pstart))
-    pstart <- c(rep(0,ncol(y)), pscale[(ncol(y)+1):(2*ncol(y))])
+    pstart = c(rep(0,ncol(y)), pscale[(ncol(y)+1):(2*ncol(y))])
 
   ## factr controls the convergence of the "L-BFGS-B" method. Convergence
   ## occurs when the reduction in the objective is within this factor of
   ## the machine tolerance. Default is 1e7, that is a tolerance of about
   ## 1e-8. Here we use 5e8 to save a little time.
-  control     <- list(trace=0, maxit=4000, parscale=pscale, factr=5e8)
-  optim.niter <- 10
+  control     = list(trace=0, maxit=4000, parscale=pscale, factr=5e8)
+  optim.niter = 10
 
   ## a place to save the trajectory of estimated parameters along the iterations:
   params  = matrix(NA, nrow=length(pscale), ncol=niter)
@@ -192,7 +192,7 @@ vsn = function(intensities,
   ##--------------------------------------------------------------
   ## Gradient of the profile log likelihood
   ##--------------------------------------------------------------
-  grll <- function(p) {
+  grll = function(p) {
     ## Generally, optim() will call the gradient of the objective function (gr)
     ## immediately after a call to the objective (fn) at the same parameter values.
     ## Anyway, we like to doublecheck
@@ -216,15 +216,15 @@ vsn = function(intensities,
   ##--------------------------------------------------
   ## begin of the outer LL iteration loop
   ##--------------------------------------------------
-  sel <- rep(TRUE, nrow(y))
+  sel = rep(TRUE, nrow(y))
   for(lts.iter in 1:niter) {
     assign("y",   y[sel,],            envir=ws)
     assign("nry", length(which(sel)), envir=ws)
     assign("ncy", ncol(y),            envir=ws)
 
-    p0 <- pstart
+    p0 = pstart
     for (optim.iter in 1:optim.niter) {
-      o  <- optim(par=p0, fn=ll, gr=grll, method="L-BFGS-B",
+      o  = optim(par=p0, fn=ll, gr=grll, method="L-BFGS-B",
                   control=control, lower=plower)
       if (o$convergence==0) next
 
@@ -234,13 +234,13 @@ vsn = function(intensities,
         ## probably because the start point p0 was already right at the optimum. Hence, try
         ## again from a slightly different start point
         ## cat("lts.iter=", lts.iter, "optim.iter=", optim.iter, "pstart was", p0, "now trying ")
-        p0 <- p0 + runif(length(pstart), min=0, max=0.01) * pscale
+        p0 = p0 + runif(length(pstart), min=0, max=0.01) * pscale
         ## cat(p0, "\n")
       } else if(o$convergence==1) {
         ## This seems to indicate that the max. number of iterations has been exceeded. Try again
         ## with more
         ## cat("lts.iter=", lts.iter, "optim.iter=", optim.iter, "maxit was", control$maxit, "now trying ")
-        control$maxit <- control$maxit*2
+        control$maxit = control$maxit*2
         ## cat(control$maxit, "\n")
       } else {
         stop(paste("Likelihood optimization: the function optim() returned the value convergence=",
@@ -269,21 +269,21 @@ vsn = function(intensities,
     # selection of points in a LTS fashion
     # 1. calculate residuals; cf. ll()
     # ----------------------------------------
-    offs   <- matrix(o$par[    1      :   ncol(y) ], nrow=nrow(y), ncol=ncol(y), byrow=TRUE)
-    facs   <- matrix(o$par[(ncol(y)+1):(2*ncol(y))], nrow=nrow(y), ncol=ncol(y), byrow=TRUE)
-    asly   <- asinh(offs + facs * y)
-    res    <- asly - rowMeans(asly)
-    rsqres <- rowSums(res*res)
-    hmean  <- rowSums(asly)
+    offs   = matrix(o$par[    1      :   ncol(y) ], nrow=nrow(y), ncol=ncol(y), byrow=TRUE)
+    facs   = matrix(o$par[(ncol(y)+1):(2*ncol(y))], nrow=nrow(y), ncol=ncol(y), byrow=TRUE)
+    asly   = asinh(offs + facs * y)
+    res    = asly - rowMeans(asly)
+    rsqres = rowSums(res*res)
+    hmean  = rowSums(asly)
 
     # 2. select those data points within lts.quantile; do this separately for
     # each of nrslice slices along hmean
-    nrslice <- 5
-    group   <- ceiling(rank(hmean)/length(hmean)*nrslice)
-    grmed   <- tapply(rsqres, group, quantile, probs=lts.quantile)
-    sel     <- rsqres <= grmed[group]
+    nrslice = 5
+    group   = ceiling(rank(hmean)/length(hmean)*nrslice)
+    grmed   = tapply(rsqres, group, quantile, probs=lts.quantile)
+    sel     = rsqres <= grmed[group]
 
-    params[,lts.iter] <- pstart <- o$par
+    params[,lts.iter] = pstart = o$par
   }
   if(verbose)
     cat("\n")
@@ -319,7 +319,7 @@ vsn = function(intensities,
 ## better comparability to the log transformation.
 ## It has no effect on the generalized log-ratios.
 ##---------------------------------------------------------------------
-vsnh <- function(y, p) {
+vsnh = function(y, p) {
   if (!is.matrix(y) || !is.numeric(y))
     stop("vsnh: argument y must be a numeric matrix.\n")
   if (!is.vector(p) || !is.numeric(p) || any(is.na(p)))
@@ -327,9 +327,9 @@ vsnh <- function(y, p) {
   if (2*ncol(y) != length(p))
     stop("vsnh: argument p must be a vector of length 2*ncol(y).\n")
 
-  offs <- matrix(p[         1  :  ncol(y) ], nrow=nrow(y), ncol=ncol(y), byrow=TRUE)
-  facs <- matrix(p[(ncol(y)+1):(2*ncol(y))], nrow=nrow(y), ncol=ncol(y), byrow=TRUE)
-  hy   <- asinh(offs + facs * y) - log(2*facs[1])
+  offs = matrix(p[         1  :  ncol(y) ], nrow=nrow(y), ncol=ncol(y), byrow=TRUE)
+  facs = matrix(p[(ncol(y)+1):(2*ncol(y))], nrow=nrow(y), ncol=ncol(y), byrow=TRUE)
+  hy   = asinh(offs + facs * y) - log(2*facs[1])
   dimnames(hy) = dimnames(y)
   return(hy)
 }
@@ -341,29 +341,29 @@ vsnh <- function(y, p) {
 ## have it for the examples / the vignette and I haven't
 ## yet found it anywhere else.
 ##---------------------------------------------------------
-nchoosek <- function(n, k) {
+nchoosek = function(n, k) {
   if (!is.numeric(n)||!is.numeric(k)||is.na(n)||is.na(k)||length(n)!=1||length(k)!=1)
     stop("arguments must be non-NA numeric scalars.")
   if (k>n||k<0)
     stop("Arguments must satisfy 0 <= k <= n.")
 
-  nck <- choose(n, k)
-  res <- matrix(NA, nrow=k, ncol = nck)
-  res[, 1] <- 1:k
-  j <- 2
+  nck = choose(n, k)
+  res = matrix(NA, nrow=k, ncol = nck)
+  res[, 1] = 1:k
+  j = 2
   repeat {
-    res[, j] <- res[, j-1]
-    i <- k
+    res[, j] = res[, j-1]
+    i = k
     repeat {
-      res[i,j] <- res[i,j]+1
+      res[i,j] = res[i,j]+1
       if(res[i,j] <= n-(k-i))
         break
-      i <- i-1
+      i = i-1
       stopifnot(i>=1)
     }
     if (i<k)
-       res[(i+1):k,j] <- res[i,j] + 1:(k-i)
-    j <- j+1
+       res[(i+1):k,j] = res[i,j] + 1:(k-i)
+    j = j+1
     if (j>nck) break
   }
   ## plausibility tests
