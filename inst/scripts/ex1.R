@@ -1,5 +1,6 @@
 library(affy)
 library(vsn)
+library(affydata)
 data(Dilution)
 normalize.AffyBatch.methods <- c(normalize.AffyBatch.methods, "vsn")
 
