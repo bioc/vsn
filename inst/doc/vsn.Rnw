@@ -321,14 +321,12 @@ the previous section, is stored in the 3-dimensional array \code{Ms}.
 Fig.~\ref{vsn-Ms-plot} shows, for one of the arrays, a comparison 
 of the resulting log-ratios.
 <<Ms-plot,results=hide,fig=TRUE,include=FALSE>>=
+library(marrayNorm)
 Ms <- array(0, dim=c(dim(M), 2))
 Ms[,,1] <- M
-library(marrayNorm)
-if(FALSE) {  ## does not work presently
-  mr <- new('marrayRaw', maGf=exprs(lymphoma)[,refrs], maRf=exprs(lymphoma)[,samps])
-  mn <- maNorm(mr, norm="median", echo=T)
-  Ms[,,2] <- mn@maM
-}
+mr <- new('marrayRaw', maGf=exprs(lymphoma)[,refrs], maRf=exprs(lymphoma)[,samps])
+mn <- maNorm(mr, norm="median", echo=T)
+Ms[,,2] <- mn@maM
 plot(Ms[,1,], xlab="vsn", ylab="global median", main="M (array 1)", pch=".")
 @
 \myincfig{vsn-Ms-plot}{0.5\textwidth}{Generalized log-ratio from

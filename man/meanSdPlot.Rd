@@ -8,19 +8,20 @@ meanSdPlot(x,
            xlab  = ifelse(ranks, "rank(mean)", "mean"),
            ylab  = "sd",
            pch   = ".",
-           col   = NULL, ...)} 
+           col, ...)} 
 \arguments{
-  \item{x}{An object of class \code{\link[Biobase:exprSet-class]{exprSet}}}
-  \item{ranks}{Logical, indicating whether the x-axis (means) should be plotted
-    on the original scale (FALSE) or on the rank scale (TRUE). The latter
-    distributes the data more evenly along the x-axis and allows a
-    better visual assessment of the standard deviation as a function of 
-    the mean.}
-   \item{xlab}{Character, label for the x-axis.}
-   \item{ylab}{Character, label for the y-axis.}
-   \item{pch}{Plot symbol.}
-   \item{col}{Color of plotted points. See details.}
-   \item{...}{Further arguments that get passed to plot.default.}
+\item{x}{An object of class \code{\link[base:matrix]{matrix}} or
+  \code{\link[Biobase:exprSet-class]{exprSet}}}
+\item{ranks}{Logical, indicating whether the x-axis (means) should be plotted
+  on the original scale (FALSE) or on the rank scale (TRUE). The latter
+  distributes the data more evenly along the x-axis and allows a
+  better visual assessment of the standard deviation as a function of 
+  the mean.}
+\item{xlab}{Character, label for the x-axis.}
+\item{ylab}{Character, label for the y-axis.}
+\item{pch}{Plot symbol.}
+\item{col}{Color of plotted points. See details.}
+\item{...}{Further arguments that get passed to plot.default.}
 }
 
 \details{Standard deviation and mean are calculated row-wise from the
