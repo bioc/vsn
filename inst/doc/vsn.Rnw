@@ -3,7 +3,8 @@
 %\VignetteKeywords{Expression Analysis}
 %\VignettePackage{vsn}
 
-\documentclass[11pt,widemargin]{article}
+\documentclass[11pt]{article}
+\usepackage{geometry}
 
 %------------------------------------------------------------
 % newcommand
@@ -254,7 +255,7 @@ lym <- vsn(lymphoma, verbose=FALSE)
 <<lym-sdmean2,include=FALSE,fig=TRUE>>=
 meanSdPlot(lym)
 @
-\myincfig{vsn-lym-sdmean}{0.5\textwidth}{Standard deviation 
+\myincfig{vsn-lym-sdmean2}{0.5\textwidth}{Standard deviation 
 versus rank of the mean for the lymphoma example data}
 %------------------------------------------------------------
 This calculation may take a while. Again, Fig.~\ref{vsn-lym-sdmean} 
@@ -323,9 +324,11 @@ of the resulting log-ratios.
 Ms <- array(0, dim=c(dim(M), 2))
 Ms[,,1] <- M
 library(marrayNorm)
-## mr <- new('marrayRaw', maGf=exprs(lymphoma)[,refrs], maRf=exprs(lymphoma)[,samps])
-## mn <- maNorm(mr, norm="median", echo=T)
-## Ms[,,2] <- mn@maM
+if(FALSE) {  ## does not work presently
+  mr <- new('marrayRaw', maGf=exprs(lymphoma)[,refrs], maRf=exprs(lymphoma)[,samps])
+  mn <- maNorm(mr, norm="median", echo=T)
+  Ms[,,2] <- mn@maM
+}
 plot(Ms[,1,], xlab="vsn", ylab="global median", main="M (array 1)", pch=".")
 @
 \myincfig{vsn-Ms-plot}{80mm}{Generalized log-ratio from \code{vsn} ($x$-axis)
@@ -390,21 +393,59 @@ data processing routines of \code{affy}. See the documentation for
 the package \code{affy} for more information about data structures 
 and other available methods. There are different ways to treat the
 mismatch (MM) intensities, to adjust for background, and summarize 
-the probe sets. See the example for \code{normalize.AffyBatch.vsn}.
-The resulting plot is shown in Fig.~\ref{vsn-affy}.
+the probe sets. 
+
+The following code is taken from the example in the man page for 
+\code{normalize.AffyBatch.vsn}. The resulting plot is shown in 
+Fig.~\ref{vsn-affy}.
 <<affy,include=FALSE,results=hide,fig=TRUE,width=7,height=7>>=
 library(affy)
-example(normalize.AffyBatch.vsn)
+library(affydata)
+data(Dilution)
+
+## let affy know about vsn
+normalize.AffyBatch.methods <- c(normalize.AffyBatch.methods, "vsn")
+
+es1 = expresso(Dilution[1:2], 
+               bg.correct       = FALSE,   ## bg correction is done by vsn
+               normalize.method = "vsn",
+               pmcorrect.method = "pmonly", 
+               summary.method   = "medianpolish")
+
+es2 = expresso(Dilution[1:2], 
+               bgcorrect.method = "rma",
+               normalize.method = "quantiles", 
+               pmcorrect.method = "pmonly",
+               summary.method   = "medianpolish")
+
+## extract expression values
+x1 = exprs(es1)
+x2 = exprs(es2) 
+ 
+## graphics output
+oldpar = par(mfrow=c(2,2), pch=".")
+
+## scatter plot
+plot(x1, main="vsn: chip 3 vs 4")
+plot(x2, main="rma: chip 3 vs 4")
+
+## rank(mean) - difference plot
+ylim = c(-0.7, 0.7)
+plot(rank(rowSums(x1)), diff(t(x1)), ylim=ylim, main="rank(mean) vs differences")
+abline(h=0, col="red")
+
+plot(rank(rowSums(x2)), diff(t(x2)), ylim=ylim, main="rank(mean) vs differences")
+abline(h=0, col="red")
+
+## reset old plotting parameters 
+par(oldpar)
 @
-\myincfig{vsn-affy}{0.75\textwidth}{\code{normalize.AffyBatch.vsn} 
-example}
+\myincfig{vsn-affy}{0.75\textwidth}{\code{normalize.AffyBatch.vsn} example}
 
-
-%---------------------------------------------------------
-\section{Verifying and assessing the performance of vsn with 
-simulated data}
+%------------------------------------------------------------------------
+\section{Verifying and assessing the performance of vsn with simulated data}
 \label{sagmb}
-%---------------------------------------------------------
+%------------------------------------------------------------------------
 There are two functions \Rfunc{sagmbSimulateData} and \Rfunc{sagmbAssess}
 that can be used to generate simulated data and assess the difference between 
 the 'true' and 'estimated' data calibration and transformation by vsn. An 
@@ -419,13 +460,11 @@ differentially expressed genes $de$, and the fraction of up-regulated
 genes $up$.
 \end{itemize}
 <<sagmb-calc,results=hide>>=
-par(mfrow=c(1,2))
-
 n     <- c(500, 1000, 2000, 4000, 8000)
 d     <- 2
 de    <- c(0, 0.2)
 up    <- 0.5
-nrrep <- 4
+nrrep <- 8
 
 res <- array(NA, dim=c(length(n), nrrep, length(de)))
 for (i in seq(along=de)) {
@@ -439,6 +478,7 @@ for (i in seq(along=de)) {
 }
 @
 <<sagmb-show,include=FALSE,fig=TRUE,width=7,height=4>>=
+par(mfrow=c(1,2))
 for (i in dim(res)[3]) {
   matplot(n, res[,,i], pch=20, log="xy", col="#909090", main=paste("de=", de[i]))
   lines(n, rowMeans(res), col="blue")
@@ -447,7 +487,7 @@ for (i in dim(res)[3]) {
 \myincfig{vsn-sagmb-show}{0.9\textwidth}{Estimation error for the transformation:
 the root mean squared difference between true and estimated transformed data,
 as a function of the number of genes $n$. If \Rfunc{vsn} works correctly, the
-estimation error should decrease as $n^{-1/2}$.
+estimation error should decrease roughly as $n^{-1/2}$.
 }
 
 %---------------------------------------------------------
