@@ -4,7 +4,7 @@
 %\VignettePackage{vsn}
 
 \documentclass[11pt]{article}
-\usepackage{geometry}
+\usepackage[margin=1.75cm,noheadfoot]{geometry}
 
 %------------------------------------------------------------
 % newcommand
@@ -100,7 +100,7 @@ plot(exprs(nkid), main = "vsn", pch = ".")
 plot(log.na(exprs(kidney)), main = "raw", pch = ".")
 @
 % end code ------------------------------------------------------------
-\myincfig{vsn-nkid-scp}{0.75\textwidth}{Scatterplots of the kidney 
+\myincfig{vsn-nkid-scp}{\textwidth}{Scatterplots of the kidney 
 example data}
 \code{vsn} returns the transformed intensities in an object of class
 \code{exprSet}. Its slot \code{exprs} is a matrix of the same size as
@@ -148,7 +148,7 @@ vsnPlotPar(nkid, "offsets")
 vsnPlotPar(nkid, "factors")
 @
 % end code ---------------------------------------------------------
-\myincfig{vsn-nkid-iter}{0.75\textwidth}{Iteration trajectory of the 
+\myincfig{vsn-nkid-iter}{\textwidth}{Iteration trajectory of the 
 calibration and transformation parameters}
 The plots in Fig.~\ref{vsn-nkid-iter} show the values of the estimated
 calibration and variance stabilization parameters on the $y$-axis as a
@@ -220,7 +220,7 @@ plot(exprs(bkid),  main = "raw", pch = ".", log="xy")
 plot(exprs(nbkid), main = "vsn", pch = ".")
 preproc(description(nbkid))$vsnParams
 @
-\myincfig{vsn-nkid-calib4}{0.9\textwidth}{Scatterplots for badly biased 
+\myincfig{vsn-nkid-calib4}{\textwidth}{Scatterplots for badly biased 
 data. Left hand side: raw data on log-log scale, right hand side: after 
 calibration and transformation with vsn.}
 <<nkid-calib-warn2,echo=FALSE,results=hide>>=
@@ -258,7 +258,7 @@ meanSdPlot(lym)
 \myincfig{vsn-lym-sdmean2}{0.5\textwidth}{Standard deviation 
 versus rank of the mean for the lymphoma example data}
 %------------------------------------------------------------
-This calculation may take a while. Again, Fig.~\ref{vsn-lym-sdmean} 
+This calculation may take a while. Again, Fig.~\ref{vsn-lym-sdmean2} 
 helps to visually verify that the variance stabilization worked.
 As above, we can obtain the "generalized log-ratios" for each slide,
 by subtracting the common reference intensities from those for the 
@@ -331,14 +331,15 @@ if(FALSE) {  ## does not work presently
 }
 plot(Ms[,1,], xlab="vsn", ylab="global median", main="M (array 1)", pch=".")
 @
-\myincfig{vsn-Ms-plot}{80mm}{Generalized log-ratio from \code{vsn} ($x$-axis)
-versus the log-ratio after global median normalization ($y$-axis)}
+\myincfig{vsn-Ms-plot}{0.5\textwidth}{Generalized log-ratio from
+\code{vsn} ($x$-axis) versus the log-ratio after global median
+normalization ($y$-axis)}
 
 The function \code{calc.fdr} provides a very simple-minded 
 implementation of the estimation of the false discovery rate from 
 the permutation distribution of the sorted test statistics. 
 The result is shown in Fig.~\ref{vsn-fdr3}.
-\myincfig{vsn-fdr3}{80mm}{False Discovery Rate}
+\myincfig{vsn-fdr3}{0.5\textwidth}{False Discovery Rate}
 <<fdr1,results=hide>>=
 library(multtest)
 calc.t <- function(classlabel, M) {
@@ -440,32 +441,27 @@ abline(h=0, col="red")
 ## reset old plotting parameters 
 par(oldpar)
 @
-\myincfig{vsn-affy}{0.75\textwidth}{\code{normalize.AffyBatch.vsn} example}
+\myincfig{vsn-affy}{\textwidth}{\code{normalize.AffyBatch.vsn} example}
 
 %------------------------------------------------------------------------
-\section{Verifying and assessing the performance of vsn with simulated data}
-\label{sagmb}
+\section{Verifying and assessing the performance of vsn with simulated
+data} \label{sagmb}
 %------------------------------------------------------------------------
-There are two functions \Rfunc{sagmbSimulateData} and \Rfunc{sagmbAssess}
-that can be used to generate simulated data and assess the difference between 
-the 'true' and 'estimated' data calibration and transformation by vsn. An 
-example is shown in the code chunk below. Reference~\cite{HuberSAGMB2003} 
-describes in more detail
-\begin{itemize}
-\item the simulation model
-\item the assessment strategy
-\item a comprehensive suite of assessments with respect to the number
-of probes $n$, the number of arrays $d$, the fraction of
-differentially expressed genes $de$, and the fraction of up-regulated
-genes $up$.
-\end{itemize}
+There are two functions \Rfunc{sagmbSimulateData} and
+\Rfunc{sagmbAssess} that can be used to generate simulated data and
+assess the difference between the 'true' and 'estimated' data
+calibration and transformation by vsn. An example is shown in the code
+chunk below. Reference~\cite{HuberSAGMB2003} describes in more detail
+(i) the simulation model, (ii) the assessment strategy, and (iii) a
+comprehensive suite of assessments with respect to the number of
+probes $n$, the number of arrays $d$, the fraction of differentially
+expressed genes $de$, and the fraction of up-regulated genes $up$.
 <<sagmb-calc,results=hide>>=
 n     <- c(500, 1000, 2000, 4000, 8000)
 d     <- 2
 de    <- c(0, 0.2)
 up    <- 0.5
 nrrep <- 8
-
 res <- array(NA, dim=c(length(n), nrrep, length(de)))
 for (i in seq(along=de)) {
   for (k in seq(along=n)) {
@@ -479,12 +475,12 @@ for (i in seq(along=de)) {
 @
 <<sagmb-show,include=FALSE,fig=TRUE,width=7,height=4>>=
 par(mfrow=c(1,2))
-for (i in dim(res)[3]) {
+for (i in seq(along=de)) {
   matplot(n, res[,,i], pch=20, log="xy", col="#909090", main=paste("de=", de[i]))
   lines(n, rowMeans(res), col="blue")
 }
 @
-\myincfig{vsn-sagmb-show}{0.9\textwidth}{Estimation error for the transformation:
+\myincfig{vsn-sagmb-show}{\textwidth}{Estimation error for the transformation:
 the root mean squared difference between true and estimated transformed data,
 as a function of the number of genes $n$. If \Rfunc{vsn} works correctly, the
 estimation error should decrease roughly as $n^{-1/2}$.
