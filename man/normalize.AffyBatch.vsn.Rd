@@ -29,22 +29,36 @@
   library(affy)
   data(Dilution)
 
+  ## normalize
   normalize.AffyBatch.methods <- c(normalize.AffyBatch.methods, "vsn")
 
-  es1 = express(Dilution,
-        normalize.method = "vsn", niter=4, bg.correct = FALSE)
+  es1 = express(Dilution[1:2],
+       normalize.method = "vsn", niter=4, bg.correct = FALSE)
 
-  es2 = express(Dilution)  ## rma
+  es2 = express(Dilution[1:2])  ## rma
 
+  ## graphics output
   if(interactive())
-    x11(width=9, height=3.5)
-
-  par(mfrow=c(1,3))
+    x11()
+  par(mfrow=c(2,2))
   pch="."
-  arrays = c(1,4)
-  plot(exprs(Dilution)[, arrays], pch=pch, log="xy", main="raw")
-  plot(exprs(es1)[, arrays], pch=pch, main="vsn")
-  plot(exprs(es2)[, arrays], pch=pch, main="rma")
+
+  ## extract expression values
+  x1 = exprs(es1); x2 = exprs(es2) 
+ 
+  ## scatter plot
+  plot(x1, pch=pch, main="vsn: chip 3 vs 4")
+  plot(x2, pch=pch, main="rma: chip 3 vs 4")
+
+  ## rank(mean) - difference plot
+  ylim = c(-0.7, 0.7)
+  plot(rank(rowSums(x1)), diff(t(x1)), pch=pch, ylim=ylim, main="rank(mean) vs differences")
+  abline(h=0, col="red")
+  plot(rank(rowSums(x2)), diff(t(x2)), pch=pch, ylim=ylim, main="rank(mean) vs differences")
+  abline(h=0, col="red")
+
+  ## plot(exprs(Dilution)[, c(1,4)], 
+  ##      pch=pch, log="xy", main="raw: chip 1 vs 4")
 }
 
 \keyword{robust}
