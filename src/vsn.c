@@ -16,13 +16,6 @@
 /* #define VSN_DEBUG */
 #undef VSN_DEBUG
 
-/* #ifndef HAVE_ASINH
-#error "Don't have the 'asinh' function"
-#endif
-#ifndef HAVE_DECL_ASINH
-#error "'asinh' function is not declared"
-#endif */
-
 /* Global variables */
 int *strat;          /* strat[j] is index of first element of j-th stratum  */
 double *y;           /* expression matrix: y_ik                             */
@@ -42,11 +35,13 @@ long int npar;    /* no. of parameters */
 typedef double optimfn(int n, double *par, void *ex);
 typedef void optimgr(int n, double *par, double *gr, void *ex);
 
+/* We hope that these two functions hang around somewhere */
 void lbfgsb(int n, int lmm, double *x, double *lower, double *upper,
 	    int *nbd, double *Fmin, optimfn fn, optimgr gr, int *fail,
 	    void *ex, double factr, double pgtol, int *fncount,
 	    int *grcount, int maxit, char *msg, int trace, int nREPORT);
 
+double asinh(double);
 
 /* faster than pow(x, 2) */
 double sqr(double x) { return(x*x); }
