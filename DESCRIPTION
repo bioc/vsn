@@ -1,0 +1,10 @@
+Package: vsn
+Version: 0.7
+Date: 14 Oct 2002
+Title: Variance stabilization and calibration for microarray data
+Author: Wolfgang Huber <w.huber@dkfz.de>, A. von Heydebreck <heydebre@molgen.mpg.de>.
+Maintainer: Wolfgang Huber <w.huber@dkfz.de>
+Depends: R (>= 1.6.0)
+Description: The package implements a robust variant of the maximum-likelihood estimator for the statistical model described in [1]. The model incorporates data calibration ("normalization"), an intensity-dependent error model ("variance-versus-mean-dependence") and a data transformation that leads to a measure of differential expression which is independent of the mean intensity, and is usually more sensitive/specific than the "log-ratio". [1] Variance stabilization applied to microarray data calibration and to the quantification of differential expression, Wolfgang Huber, Anja von Heydebreck, Holger S\"ultmann, Annemarie Poustka, Martin Vingron; Bioinformatics (2002) 18 Suppl1 S96-S104.
+License: This is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2, or (at your option) any later version. This software is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. A copy of the GNU General Public License is available via WWW at http://www.gnu.org/copyleft/gpl.html.
+URL: http://www.r-project.org, http://www.dkfz.de/abt0840/whuber

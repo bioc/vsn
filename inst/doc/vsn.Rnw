@@ -1,0 +1,449 @@
+%\VignetteIndexEntry{vsn}
+\documentclass{article}
+
+\usepackage{hyperref}
+%% \usepackage{/export/share1/H0600/R/library/Sweave}
+%% \usepackage{wrapfig}
+
+\textwidth=16.5cm
+\textheight=8.7in
+\parskip=3mm
+\oddsidemargin=3mm
+\evensidemargin=3mm
+\headheight=-2cm
+\parindent0cm
+
+\newcommand{\classdef}[1]{{\em #1}}
+\newcommand{\code}[1]{{\tt #1}}
+
+\begin{document}
+\title{Robust calibration and variance stabilization with VSN}
+\author{Wolfgang Huber}
+\maketitle
+
+%------------------------------------------------------------
+\section*{Introduction}
+%------------------------------------------------------------
+\code{vsn} is a method to preprocess DNA microarray intensity data. As
+input, the function \code{vsn} takes the net intensity measurements
+from the DNA probes on a series of microarrays. The intensities from
+each array are calibrated by a suitable affine transformation. After
+this, the whole data are subject to a variance-stabilizing
+transformation $h$. On the transformed scale, the variance of the data
+is approximately independent of the mean intensity. This is useful for
+subsequent analyses such as $t$- or related tests or for ANOVA
+analyses that assume that the variance is the same for all
+observations\footnote{% 
+Note that \code{vsn} only addresses the dependence of the variance 
+on the mean intensity. There may be other factors influencing the 
+variance, such as gene-inherent properties, or changes of the 
+tightness of transcriptional control in different conditions. 
+If they are non-negligible, they need to be addressed by other 
+methods.}.
+The function returns the transformed intensities in a matrix of the
+same size as the input data. Differences between the transformed 
+values may be considered "generalized log-ratios"
+in the following sense: for high intensities, 
+$h(x_i)-h(x_j)\approx\log(x_i)-\log(x_j)=\log(x_i/x_j)$~\cite{HuberISMB2002,HSG2002}. 
+
+%------------------------------------------------------------
+\section{Example data} 
+%------------------------------------------------------------
+The package includes example data from a series of 8 cDNA arrays 
+on which different lymphoma were hybridized together with a reference 
+cDNA~\cite{Alizadeh}.
+
+<<loadpackage-do,results=hide>>=
+library(vsn)
+data(lymphoma)
+lymphoma
+pData(lymphoma)
+@
+\vspace*{-3ex}
+\begin{Soutput}
+Expression Set (exprSet) with 
+	9216 genes
+	16 samples
+		 phenoData object with 2 variables and 16 cases
+	 varLabels
+		name: Name of the Chip
+		sample: Sample
+\end{Soutput}
+
+To load intensity data from your own experiments,
+you can use the function \code{read.table}, the 
+\code{read}-functions from the package \code{marrayInput},
+or \code{ReadAffy} from the package \code{affy}. 
+\code{vsn} accepts matrices, data frames
+with all numeric columns, and objects of class \code{marrayRaw} as input, 
+and it can be used as one of the normalization methods in the package 
+\code{affy} (cf.~Section~\ref{affy}).
+
+%------------------------------------------------------------
+\section{Running vsn on cDNA data} 
+%------------------------------------------------------------
+You can run \code{vsn} on the intensities from one first slide,
+and verify the result simply by
+%%-----scatterplot one slide
+<<ny1-calc>>=
+ny <- vsn(lymphoma[, 3:4])
+@
+<<ny1-scp,include=FALSE,fig=TRUE>>=
+plot(ny@h, pch = ".")
+@
+\begin{center}
+\includegraphics[width=85mm]{vsn-ny1-scp}
+\end{center}
+<<ny1-show>>=
+ny
+@
+The slot \code{h} of the returned object \code{ny} is an $n\times d$ 
+matrix $h_{ki}$ with the calibrated and transformed data. Note that 
+the plot shows the complete set of $n=9216$ red and green intensities, 
+without any thresholding or deletion of data points.
+To verify the variance stabilization, there is a plot method for 
+\code{vsn} objects, which for each probe $k$ shows the estimated 
+standard deviation $\hat{\sigma}_k$ on the $y$-axis versus the 
+rank of the average $\hat{\mu}_k$ on the $x$-axis,
+\begin{equation}
+\hat{\mu}_k   =\frac{1}{d}  \sum_{i=1}^d h_{ki}\quad\quad
+\hat{\sigma}_k=\frac{1}{d-1}\sum_{i=1}^d (h_{ki}-\hat{\mu}_k)^2.
+\end{equation}
+%%%-----sd vs rank
+<<ny1-sdmean,include=FALSE,fig=TRUE,width=8,height=4>>=
+par(mfrow=c(1,2))
+plot(ny, ranks=TRUE)
+plot(ny, ranks=FALSE)
+@
+\begin{center}
+\includegraphics[width=\textwidth]{vsn-ny1-sdmean}
+\end{center}
+The blue dots, connected by lines, show the running median of the standard 
+deviation\footnote{Windows width: 20\%, window midpoints 10\%, 20\%, \ldots.}.
+Within each window, the median may be considered a pooled estimator of the standard 
+deviation, and the curve given by the blue lines is an estimate
+of the systematic dependence of the standard deviation on the mean. After 
+variance stabilization, this should simply be a horizontal line.
+If this is not the case, that probably indicates a data quality 
+problem, see Section~\ref{sec.qc}. The rank ordering distributes the data 
+evenly along the $x$-axis, which is in many cases useful for the visualization. 
+A plot in which the $x$-axis shows the average intensities themselves is 
+obtained by calling the \code{plot} command with the argument \code{ranks=FALSE}.
+
+The parameter estimation in \code{vsn} works in an iterative manner. 
+To verify that the iterations have converged, you can call the plot 
+method with the option \code{what}.
+%%%--------iterations
+<<ny1-iter,include=FALSE,fig=TRUE,width=8,height=4>>=
+par(mfrow=c(1,2))
+plot(ny, what="offsets")
+plot(ny, what="factors")
+@
+\begin{center}
+\includegraphics[width=0.75\textwidth]{vsn-ny1-iter}
+\end{center}
+
+The plots show the values of the estimated calibration and variance 
+stabilization parameters on the $y$-axis as a function of the iteration index. All 
+curves should reach a plateau well before the last iteration. If this 
+is not the case, the number of iterations may be increased through 
+the parameter \code{iter}, and/or \code{lts.quantile} may be decreased,
+but more likely, it indicates a data quality problem, see 
+Section~\ref{sec.qc}.
+
+The "generalized log-ratios"~\cite{HuberISMB2002} for this experiment
+may be obtained for further processing through
+%%%-------histogram of M
+<<ny1-M,include=FALSE,fig=TRUE>>=
+M <- ny@h[,2] - ny@h[,1] 
+hist(M, breaks=50)
+@
+\begin{center}
+\includegraphics[width=60mm]{vsn-ny1-M}
+\end{center}
+To process multiple slides, \code{vsn} can be called for each slide in turn,
+as described above. If there is reason to believe that the slides are 
+of similar quality, it can also be called on all of them at once:
+%%------run vsn on all slides at once
+<<ny2-sdmean,include=FALSE,fig=TRUE>>=
+ny <- vsn(lymphoma,verbose=FALSE)
+plot(ny)
+ny
+@
+\begin{center}
+\includegraphics[width=65mm]{vsn-ny2-sdmean}
+\end{center}
+This calculation may take a while. Again, the \code{plot} 
+command helps to visually verify that the variance stabilization worked. 
+As above, we can obtain the "generalized log-ratios" for each slide,
+by subtracting the common reference intensities from those for the 
+8 samples:
+<<ny2-M,include=FALSE,fig=TRUE,width=8,height=4>>=
+refrs <- (1:8)*2-1
+samps <- (1:8)*2
+M <- ny@h[,samps] - ny@h[,refrs] 
+colnames(M) <-  pData(lymphoma)[samps, "sample"]
+A <- rowMeans(ny@h)
+
+par(mfrow=c(1,2))
+plot(A, M[,"CLL-13"], pch=".")
+abline(h=0, col="red")
+plot(A, M[,"DLCL-0032"], pch=".")
+abline(h=0, col="red")
+@
+\begin{center}
+\includegraphics[width=\textwidth]{vsn-ny2-M}
+\end{center}
+The plot shows the analagon to the $M$-vs-$A$-plot described in 
+reference~\cite{Dudoit578}. Note that in the left scatterplot, 
+there is a cloud of points at very low intensities ($A\approx0.5$) 
+that is concentrated slightly off the line $M=0$.
+In the right scatterplot, a similar cloud sits right on the $M=0$
+line. This could be related to a quality problem with the left 
+slide (e.\,g. related to the PCR amplification or the printing, see 
+Section~\ref{sec.qc}).
+
+%-------------------------------------------------------------------
+\section{Comparing calibration and data transformation methods}
+%-------------------------------------------------------------------
+To compare different microarray calibration and data transformation
+methods one needs to specify a measure of goodness. One approach is to
+compare the obtained values against a known truth. This can be done
+in controlled spike-in experiments and in dilution series, which
+allow to systematically assess the performance of the methods at 
+different biologically relevant spike-in concentrations. Also, like
+any statistical method, they may make different choices with respect 
+to the trade-off between bias and variance.
+
+Here, we just consider a much coarser and simpler criterion:
+the overall sensitivity and specificity in detecting differential 
+transcription of the combined procedures of data preprocessing and  
+statistical hypothesis testing. Such an analysis can generally be 
+applied to any data set that contains replicated measurements of 
+samples from biologically clearly distinct, known 
+groups (e.\,g.~\cite{HuberISMB2002}).
+
+We use the $t$-test to find genes that are differentially transcribed 
+between CLL and DLCL. The comparison relies on the fact that for 
+a given selection of genes we can estimate the {\em False Discovery 
+Rate} through a permutation method~\cite{StoreyTibshirani}.
+Thus, if a method consistently produces a smaller false discovery 
+rate for the same size gene list than another method, it may be 
+considered more specific.
+
+In the following piece of code, data is transformed to log-ratios and 
+normalized by the global median. The result, together with that of 
+the previous section, is stored in the 3-dimensional array \code{Ms}. 
+The plot shows, for one of the arrays, a comparison of the resulting 
+log-ratios.
+<<Ms-calc,results=hide>>=
+Ms <- array(NA, dim=c(dim(M), 2))
+Ms[,,1] <- M
+library(marrayNorm)
+mr = new('marrayRaw', maGf=exprs(lymphoma)[,refrs], maRf=exprs(lymphoma)[,samps])
+mn = maNorm(mr, norm="median", echo=T)
+Ms[,,2] <- mn@maM
+@
+<<Ms-plot,fig=TRUE,include=FALSE>>=
+plot(Ms[,1,], xlab="vsn", ylab="global median", main="M (array 1)", pch=".")
+@
+\begin{center}
+\includegraphics[width=80mm]{vsn-Ms-plot}
+\end{center}
+
+The following function \code{calc.fdr} provides a simple-minded 
+implementation of the estimation of the false discovery rate from the permutation
+distribution of the sorted test statistics:
+<<fdr,fig=TRUE,include=FALSE>>==
+library(multtest)
+calc.t <- function(classlabel, M) {
+  t <- mt.teststat(M, classlabel) 
+  t[abs(t)>1e30] <- NA
+  return(t)
+}
+calc.fdr <- function(M, classlabel, nrgeneselect) {
+  t <- calc.t(classlabel, M)
+  st <- sort(abs(t), decreasing=TRUE)
+  threshold <- st[nrgeneselect]
+
+  n <- length(classlabel)
+  grp2 <- which(classlabel)
+  nck <- nchoosek(n-1, length(grp2)-1)
+  permclasslabel <- matrix(0, nrow=n, ncol=ncol(nck))
+  for(p in 1:ncol(nck)) {
+   permclasslabel[      n, p] = 1
+   permclasslabel[nck[,p], p] = 1
+  }     
+
+  permt <- apply(permclasslabel, 2, calc.t, M)
+  fdr <- numeric(length(nrgeneselect))
+  for(j in 1:length(threshold)) {
+    pnrsel <- apply(permt, 2, function(pt) length(which(abs(pt)>=threshold[j])))
+    fdr[j] <- mean(pnrsel) / nrgeneselect[j]
+  }
+  return(fdr)
+}
+classlabel <- regexpr("CLL",colnames(M)) > 0
+nrgeneselect <- c(10, 20, 50, 100, 200, 500, 1000)  
+fdr <- apply(Ms, 3, calc.fdr, classlabel, nrgeneselect) 
+plot(range(nrgeneselect), range(fdr), type='n', log='x', 
+xlab='No. of genes selected', ylab='Estimated FDR')
+for(j in 1:ncol(fdr)) 
+  lines(nrgeneselect, fdr[,j], type='b', pch=19, lty=j)
+legend(10, max(fdr), c("vsn", "global median"), lty=1:ncol(fdr))
+@
+\begin{center}
+\includegraphics[width=80mm]{vsn-fdr}
+\end{center}
+
+%---------------------------------------------------------
+\section{Running vsn on Affymetrix data} \label{affy}
+%---------------------------------------------------------
+<<affy,eval=FALSE>>=
+library(affy)
+data(Dilution)
+normalize.Plob.methods <- c(normalize.Plob.methods, "vsn")
+e <- express(Dilution[,c(4,7)], bg = subtractmm, normalize.method = "vsn", summary.stat=avdiff)
+plot(exprs(e))
+@
+
+%---------------------------------------------------------
+\section{Quality control}\label{sec.qc}
+%---------------------------------------------------------
+\code{vsn} makes some assumptions about your data that need to hold 
+if it is to produce meaningful results. We have found them appropriate for 
+many microarray experiments, but it is your responsibility to make sure 
+that they hold for your data.  
+
+First, \code{vsn} assumes that the measured signal $y_{ik}$ 
+increases, to sufficient approximation, proportionally to the
+mRNA abundance $c_{ik}$ of gene $k$ on the $i$-th array, or on
+the $i$-th color channel:
+\begin{equation}\label{assumption} 
+y_{ik}\approx a_i + b_i b_k c_{ik}.  
+\end{equation} 
+For a series of $d$ single-color arrays such as Affymetrix arrays
+or cDNA nylon membranes, $i=1,\ldots,d$, and the different factors 
+$b_i$ reflect the different initial amounts of sample mRNA, or different
+overall reverse transcription, hybridization and detection efficiencies. 
+The probe affinity $b_k$ contains factors that affect
+all measurements with probe $k$ in the same manner, such as
+the amount of probe DNA on the array, or the sequence-specific labelling 
+efficiency. The $b_k$ are assumed to be the same across all arrays.
+There can be a non-zero overall offset $a_i$ for each color channel.
+For a two-color cDNA array, $i=1,2$, and the $b_i$ take into account
+the different overall efficiencies of the two dyes\footnote{% 
+It has been reported that for some genes the dye bias is different from 
+gene to gene, such that the proportionality factor does not simply factorize 
+as in~(\ref{assumption}). As long as this only occurs sporadically, this 
+should not have much effect on the estimation of the calibration and 
+variance stabilization parameters. Further, by using an appropriate 
+experimental design such as color-swap or reference design, the effects of 
+gene-specific dye-biases to subsequent analyses can also be reduced.}.
+
+Situations in which the assumption~(\ref{assumption}) is violated include:
+
+{\em Saturation.} The biochemical reactions and/or the photodetection 
+can be run in such a manner that saturation effects occur.
+It may be possible to rescue such data by using non-linear transformations. 
+Alternatively, it is recommended that the experimental parameters are 
+chosen to avoid saturation.
+
+{\em Print-tip and PCR effects.} In cDNA microarray data, systematic 
+patterns have been observed that are associated with the print-tips 
+used for the spotting of DNA, and with the microtitre plates 
+used to store and amplify the DNA. Possibly, these effects could be included
+in~(\ref{assumption}) by replacing $a_i$ and $b_i$ by print-tip and/or plate 
+specific coefficients, but presently \code{vsn} does not include this option.
+
+{\em Batch effects.} The probe affinities $b_k$ may differ between different 
+manufacturing batches of arrays due, e.g., to different qualities of DNA 
+amplification or printing. \code{vsn} cannot be used to simultaneously 
+calibrate and transform data from different batches.
+
+How to reliably diagnose and deal with such violations is beyond the scope 
+of this vignette; see the references for more~\cite{Dudoit578,HSG2002}. 
+
+\paragraph{Variance.} A further assumption that \code{vsn} makes is that 
+the measurement error (more exactly: the variance) is the sum of two 
+contributions: an additive component that has roughly the same size for all 
+probes on an array, and a multiplicative component that is roughly proportional 
+in size to the signal's true value, with a proportionality factor (called
+the {\em coefficient of variation}) that is the same for all 
+genes~\cite{RockeDurbin2001}.
+
+\paragraph{Most genes unchanged assumption.} 
+\code{vsn} assumes that only a minority of genes on the arrays is
+detectably differentially transcribed across the experiments. The
+allowed size of that minority is controlled by the parameter
+\code{lts.quantile} and must be less than $1/2$.  By default,
+\code{lts.quantile}=0.75, which means that not
+more than a quarter ($1-0.75$) of genes should be differentially
+transcribed.
+
+\paragraph{Processing biases.} 
+Image analysis software for cDNA arrays typically estimates a {\em
+local background} associated with each probe intensity. For Affymetrix
+arrays, the intensities from {mismatch} probes are thought to
+represent the level of non-specific signal. In both cases, the raw
+probe intensities may be {\em adjusted} by subtracting these
+background estimates. Some software packages, however, bias the
+adjustment through rules based on the data values. For example,
+Affymetrix' MAS 5.0 software uses the mismatch intensity only if it is
+smaller than the probe's intensity, and otherwise employs a heuristic to
+make sure that the net intensities all remain positive. As a
+consequence, the intensities are systematically over-estimated, and
+cannot be used with \code{vsn}. For Affymetrix data, we recommend to
+use \code{vsn} on the probe intensities from the "CEL file". For cDNA
+data, we recommend to use only background adjustment procedures that
+estimate the background independent of the observed foreground
+intensity.
+
+
+
+\begin{thebibliography}{10}
+
+\bibitem{HuberISMB2002}
+W. Huber, A. von Heydebreck, H. {S\"ultmann}, A. Poustka, and M. Vingron.
+\newblock Variance stablization applied to microarray data calibration and to
+  quantification of differential expression.
+\newblock {\em Bioinformatics}, 18:S96--S104, 2002.
+
+\bibitem{HSG2002}
+W. Huber, A. von Heydebreck, and M. Vingron.
+\newblock Analysis of microarray gene expression data.
+\newblock Manuscript, \url{http://www.dkfz.de/abt0840/whuber}, 2002.
+
+\bibitem{RockeDurbin2001}
+David~M. Rocke and Blythe Durbin.
+\newblock A model for measurement error for gene expression analysis.
+\newblock {\em Journal of Computational Biology}, 8:557--569, 2001.
+
+\bibitem{Dudoit578}
+S. Dudoit, Y.~H. Yang, T.~P. Speed, and M.~J. Callow.
+\newblock Statistical methods for identifying differentially expressed genes in
+  replicated {cDNA} microarray experiments.
+\newblock {\em Statistica Sinica}, 12:111--139, 2002.
+
+\bibitem{StoreyTibshirani}
+J.~D. Storey and R.~Tibshirani.
+\newblock SAM thresholding and false discovery rates for detecting differential
+  gene expression in {DNA} microarrays.
+\newblock To appear in: G. Parmigiani, E.~S. Garrett, R.~A. Irizarry and 
+  S.~L. Zeger (eds.), The analysis of gene expression data: Methods and 
+  software. New York, Springer 2003.
+
+\bibitem{Alizadeh}
+A.~A. Alizadeh et al.
+\newblock Distinct types of diffuse large B-cell lymphoma identified by gene expression profiling.
+\newblock {\em Nature}, 403:503--511, 2000.
+
+
+\end{thebibliography}
+
+\end{document}
+
+
+
+
+
