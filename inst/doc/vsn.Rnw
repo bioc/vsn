@@ -17,7 +17,7 @@
 % newcommand
 %------------------------------------------------------------
 \newcommand{\code}[1]{{\tt #1}}
-\newcommand{\myincfig}[2]{%
+\newcommand{\myincfig}[3]{%
   \begin{figure}[htbp]
     \begin{center}
       \includegraphics[width=#2]{#1}
