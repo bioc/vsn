@@ -21,7 +21,7 @@
   \end{figure}
 }
 
-<<stopptdenunfug,eval=FALSE>>=
+<<no.nonsense,eval=FALSE,echo=FALSE,results=hide>>=
 q(save="no")
 @
 %------------------------------------------------------------
