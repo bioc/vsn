@@ -12,11 +12,13 @@ vsn(intensities,
     pstart       = NULL,
     describe.preprocessing=TRUE)}
 \arguments{
-\item{intensities}{An object of class \code{\link{exprSet-class}}
+\item{intensities}{An object of class
+  \code{\link[Biobase:exprSet-class]{expr-Set}}
   with raw intensity values from a microarray experiment. Alternatively,
   this may be a \code{\link{matrix}}, a \code{\link{data.frame}} with
-  all numeric columns or an \code{\link{marrayRaw}} object (from package
-  \code{marrayClasses}). The intensities are assumed to be the raw
+  all numeric columns or an
+  \code{\link[marray-Classes:marrayRaw-class]{marrayRaw}} object.
+  The intensities are assumed to be the raw
   scanner data, summarized over the spots by an image analysis program,
   and possibly "background" subtracted.
   The intensities must not be logarithmically or otherwise transformed,
@@ -83,8 +85,8 @@ vsn(intensities,
 
   \bold{Calibration and transformation parameters:} The parameters
   are stored in the \code{preprocessing} slot of the \code{description}
-  slot of the \code{\link{exprSet-class}} object that is returned, in
-  the form of a \code{\link{list}} with three elements
+  slot of the \code{\link[Biobase:exprSet-class]{expr-Set}} object that
+  is returned, in the form of a \code{\link{list}} with three elements
   \itemize{
     \item \code{vsnParams}: a length(2*d) numeric vector of parameters 
     \item \code{vsnParamsIter}: an (2*d) x niter numeric matrix that
@@ -95,14 +97,16 @@ vsn(intensities,
     (TRUE) or above (FALSE) the trimming threshold.
     }
 
-  If \code{intensities} has class \code{\link{exprSet-class}}, and its
-  \code{description} slot has class \code{\link{MIAME-class}}, then this
+  If \code{intensities} has class
+  \code{\link[Biobase:exprSet-class]{expr-Set}}, and its \code{description} 
+  slot has class \code{\link[Biobase:MIAME-class]{MIAME}}, then this
   list is appended to any existing entries in the \code{preprocessing}
   slot. Otherwise, the \code{description} object and its
   \code{preprocessing} slot are created.
 }
 
-\value{An object of class \code{\link{exprSet-class}}. Differences
+\value{An object of class \code{\link[Biobase:exprSet-class]{expr-Set}}.
+  Differences
   between the columns of the transformed intensities may be interpreted
   as "regularized" or "shrunken" log-ratios. For the calibration and
   transformation parameters, see the \emph{Details} section.
