@@ -144,7 +144,8 @@ vsn <- function(intensities,
     ## calculate residuals
     hy     <- vsnh(y, par, strata)
     hmean  <- rowMeans(hy)
-    sqres  <- rowSums(sqr(hy - hmean)) ## squared residuals
+    sqres  <- hy - hmean
+    sqres  <- rowSums(sqres*sqres) ## squared residuals
 
     ## select those data points within lts.quantile; do this separately
     ## within each stratum, and also within strata defined by hmean
