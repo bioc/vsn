@@ -121,7 +121,7 @@ vsn = function(intensities,
 
   ## a place to save the trajectory of estimated parameters along the iterations:
   params  = matrix(NA, nrow=length(pscale), ncol=niter)
-  rownames(params) = c(paste("offs", 1:d, sep=""), paste("fac", 1:d, sep=""))
+  rownames(params) = c(paste("offs", 1:ncol(y), sep=""), paste("fac", 1:ncol(y), sep=""))
     
   ## Workspace. This has two purposes: 1. we do not need to pass y around,
   ## 2. the intermediate results of "ll" can be used by "grll" (see functions
@@ -130,6 +130,87 @@ vsn = function(intensities,
   assign("timell",   numeric(0), envir=ws)
   assign("timegrll", numeric(0), envir=ws)
 
+  ##----------------------------------------------------------
+  ## Profile log likelihood of the model
+  ##
+  ##    asinh(a_i + b_i * y_ki) = m_k + epsilon_ki
+  ##
+  ## where k=1..n, i=1..d, y is a n-by-d matrix,
+  ## (a_i, b_i) are real parameters to be estimated
+  ## epsilon_ki are i.i.d N(0, sigma^2)
+  ## and sigma, and all m_k are estimated from the data
+  ## ("profiling")
+  ##
+  ## Argments:
+  ## p numeric vector of length 2*d, with elements a_1,...,a_d, b_1,...,b_d
+  ##
+  ## Return value:
+  ## Profile Log-Likelihood
+  ##
+  ## Side effects:
+  ## 1. The function expects the matrix of input data y_ki in the environment ws.
+  ## Since the matrix can be large (O(10^4) x O(10^2)), we want to avoid passing
+  ## around this matrix by value.
+  ## 2. The function stores intermediate results in that environment, too.
+  ## They can then be re-used by vsngrll.
+  ##
+  ## The variables stored in environment ws are
+  ## y      the matrix of the y_ki
+  ## nry    number of rows of y
+  ## ncy    number of columns of y
+  ## ly     the matrix of the a_i + b_i * y_ki
+  ## asly   the matrix of the asinh(a_i + b_i * y_ki)
+  ## res    the matrix of the residuals epsilon_ki
+  ## ssq    sum of squared residuals sum(res^2)
+  ## p      the call arguments of ll() . With this, when grll()
+  ##        is called it can double-check whether it is indeed called
+  ##        with the same arguments (see below for details)
+  ##----------------------------------------------------------
+  vsnll = function(p) {
+    assign("p", p, envir=ws)
+    with(ws, {
+      offs = p[ 1:ncy     ]
+      facs = p[(1:ncy)+ncy]
+      
+      ## y is an nxd matrix, offs and facs are d-vectors
+      ## the cycling goes column-wise, hence transpose!
+      ly   = offs + facs * t(y)
+      asly = t(asinh(ly))
+      
+      ## residuals
+      res = asly - rowMeans(asly)
+      ssq = sum(res*res)
+      rv  = nry*ncy/2*log(ssq) - sum(log(facs/sqrt(1+ly*ly)))
+    } )
+    return(get("rv", ws))
+  }
+  ##--------------------------------------------------------------
+  ## Gradient of the profile log likelihood
+  ##--------------------------------------------------------------
+  vsngrll <- function(p) {
+    ## Generally, optim() will call the gradient of the objective function (gr)
+    ## immediately after a call to the objective (fn) at the same parameter values.
+    ## Anyway, we like to doublecheck
+    if(any(p!=get("p", ws))) {
+      mess = paste(
+        "\n\n\The function grll (likelihood-gradient) was called with different\n",
+        "parameters than the previous call of ll (likelihood-value).\n",
+        "This should never happen. Please contact package maintainer at\n",
+        "w.huber@dkfz.de\n\n")
+      error(mess)
+    }
+    with(ws, {
+      dhda      = 1/sqrt(1+ly*ly)
+      dlndhdyda = -ly/(1+ly*ly)
+      gra       = nry*ncy/ssq*res*t(dhda) - t(dlndhdyda)
+      rv        = c(colSums(gra), colSums(gra*y) - nry/p[(ncy+1):(ncy*2)])
+    } )
+    return(get("rv", ws))
+  }
+
+  ##--------------------------------------------------
+  ## begin of the outer LL iteration loop
+  ##--------------------------------------------------
   sel <- rep(TRUE, nrow(y))
   for(lts.iter in 1:niter) {
     assign("y",   y[sel,],            envir=ws)
@@ -247,92 +328,12 @@ vsnh <- function(y, p) {
   dimnames(hy) = dimnames(y)
   return(hy)
 }
-##----------------------------------------------------------
-## Profile log likelihood of the model
-##
-##    asinh(a_i + b_i * y_ki) = m_k + epsilon_ki
-##
-## where k=1..n, i=1..d, y is a n-by-d matrix,
-## (a_i, b_i) are real parameters to be estimated
-## epsilon_ki are i.i.d N(0, sigma^2)
-## and sigma, and all m_k are estimated from the data
-## ("profiling")
-##
-## Argments:
-## p numeric vector of length 2*d, with elements a_1,...,a_d, b_1,...,b_d
-##
-## Return value:
-## Profile Log-Likelihood
-##
-## Side effects:
-## 1. The function expects the matrix of input data y_ki in the environment ws.
-## Since the matrix can be large (O(10^4) x O(10^2)), we want to avoid passing
-## around this matrix by value.
-## 2. The function stores intermediate results in that environment, too.
-## They can then be re-used by vsngrll.
-##
-## The variables stored in environment ws are
-## y      the matrix of the y_ki
-## nry    number of rows of y
-## ncy    number of columns of y
-## ly     the matrix of the a_i + b_i * y_ki
-## asly   the matrix of the asinh(a_i + b_i * y_ki)
-## res    the matrix of the residuals epsilon_ki
-## ssq    sum of squared residuals sum(res^2)
-## p      the call arguments of ll() . With this, when grll()
-##        is called it can double-check whether it is indeed called
-##        with the same arguments (see below for details)
-##----------------------------------------------------------
-vsnll = function(p) {
-  assign("p", p, envir=ws)
-  with(ws, {
-    offs = p[ 1:ncy     ]
-    facs = p[(1:ncy)+ncy]
-    
-    ## y is an nxd matrix, offs and facs are d-vectors
-    ## the cycling goes column-wise, hence transpose!
-    ly   = offs + facs * t(y)
-    asly = t(asinh(ly))
-    
-    ## residuals
-    res = asly - rowMeans(asly)
-    ssq = sum(res*res)
-    rv  = nry*ncy/2*log(ssq) - sum(log(facs/sqrt(1+ly*ly)))
-  } )
-  return(get("rv", ws))
-}
-##--------------------------------------------------------------
-## Gradient of the profile log likelihood
-##--------------------------------------------------------------
-vsngrll <- function(p) {
-  ## Generally, optim() will call the gradient of the objective function (gr)
-  ## immediately after a call to the objective (fn) at the same parameter values.
-  ## Anyway, we like to doublecheck
-  if(any(p!=get("p", ws))) {
-    mess = paste(
-      "\n\n\The function grll (likelihood-gradient) was called with different\n",
-      "parameters than the previous call of ll (likelihood-value).\n",
-      "This should never happen. Please contact package maintainer at\n",
-      "w.huber@dkfz.de\n\n")
-    error(mess)
-  }
-  with(ws, {
-    dhda      = 1/sqrt(1+ly*ly)
-    dlndhdyda = -ly/(1+ly*ly)
-    gra       = nry*ncy/ssq*res*t(dhda) - t(dlndhdyda)
-    rv        = c(colSums(gra), colSums(gra*y) - nry/p[(ncy+1):(ncy*2)])
-  } )
-  return(get("rv", ws))
-}
 ##------------------------------------------------------------
 ## Some useful functions
 ## sqr   : square (sqr(x) is faster than x^2)
-## rowSds: row standard deviations, cf. rowMeans
 ## within: is x in the interval [x1, x2] ?
 ##------------------------------------------------------------
    sqr <- function(x) { x*x }
-rowSds <- function(x) { sqrt(rowSums(sqr(x-rowMeans(x)))/(ncol(x)-1)) }
-within <- function(x, x1, x2) { x>=x1 & x<=x2 }
 
 ##---------------------------------------------------------
 ## Enumerate all the subsets of size k of the integers 1:n.

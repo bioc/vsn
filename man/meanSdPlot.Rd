@@ -2,26 +2,31 @@
 \alias{meanSdPlot}
 \title{Plot row standard deviations versus row means}
 \description{Plot row standard deviations versus row means}
-\usage{meanSdPlot(x, ranks=TRUE,
-                     xlab = ifelse(ranks, "rank(mean)", "mean"),
-                     ylab = "sd",
-                     pch  = ".",
-                     ...)} 
+\usage{
+meanSdPlot(x, 
+           ranks = TRUE,
+           xlab  = ifelse(ranks, "rank(mean)", "mean"),
+           ylab  = "sd",
+           pch   = ".",
+           col   = NULL, ...)} 
 \arguments{
-  \item{x}{An object of class \code{link{exprSet-class}}}
-  \item{ranks}{Logical, indicating the x-axis (means) should be plotted
-    in original scale (FALSE) or on the rank scale (TRUE). The latter
+  \item{x}{An object of class \code{\link{exprSet-class}}}
+  \item{ranks}{Logical, indicating whether the x-axis (means) should be plotted
+    on the original scale (FALSE) or on the rank scale (TRUE). The latter
     distributes the data more evenly along the x-axis and allows a
-    better visual of the standard deviation as a function of the mean.}
+    better visual assessment of the standard deviation as a function of 
+    the mean.}
    \item{xlab}{Character, label for the x-axis.}
    \item{ylab}{Character, label for the y-axis.}
    \item{pch}{Plot symbol.}
+   \item{col}{Color of plotted points. See details.}
    \item{...}{Further arguments that get passed to plot.default.}
 }
 
 \details{Standard deviation and mean are calculated row-wise from the
-  matrix \code{exprs(x)}. This allows to verify whether there is
-  dependence of the standard deviation (or variance) on the mean.
+  matrix \code{exprs(x)}. The scatterplot of these versus each other
+  allows to visually verify whether there is
+  a dependence of the standard deviation (or variance) on the mean.
   The blue dots depict the running median estimator (window-width 10\%).
   If there is no variance-mean dependence, then the line formed by the
   blue dots should be approximately horizontal.
@@ -30,12 +35,10 @@
   \code{x} is a \code{\link{list}} and contains an element named
   \code{vsnTrimSelection}, then the coloring of the points reflects
   the trimming that was used in the least trimmed sum of squares (LTS)
-  estimation (see \code{\link{vsn}}).
-     If the \code{plot} routine is called with the argument
-   \code{what="offset"} or \code{what="factors"} or (see examples for
-   \code{\link{vsn}}), then the iteration trajectory of the parameters is
-   plotted. This helps in assessing whether the parameter estimation in
-   \code{\link{vsn}} was sufficiently converged.
+  estimation (see \code{\link{vsn}}). If the condition does not apply,
+  and \code{col} is \code{NULL}, the points are drawn in black. If
+  \code{col} is not \code{NULL}, its value is used for the coloring of
+  the points.
 }
 
 \value{
@@ -46,17 +49,13 @@
 \author{Wolfgang Huber \url{http://www.dkfz.de/abt0840/whuber}}
 \seealso{\code{\link{vsn}}}
 \examples{
-  data(lymphoma)
-
-  if(interactive)
+  if(interactive())
     x11()
+
+  data(lymphoma)
+  exprs(lymphoma) = log(exprs(lymphoma))
 
   meanSdPlot(lymphoma)
-
-  if(interactive)
-    x11()
-
-  meanSdPlot(log(lymphoma))
 }
 
 \keyword{hplot}

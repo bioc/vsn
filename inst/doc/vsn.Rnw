@@ -104,7 +104,7 @@ and verify the result simply by
 <<ny1-scp,include=FALSE,fig=TRUE>>=
 ny <- vsn(lymphoma[, 3:4])
 ny
-plot(ny@h, pch = ".")
+plot(exprs(ny), pch = ".")
 @
 \myincfig{vsn-ny1-scp}{85mm}
 The result is shown in Fig.~\ref{vsn-ny1-scp}.

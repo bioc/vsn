@@ -4,12 +4,13 @@
 \description{Robust estimation of variance-stabilizing and calibrating 
   transformations for microarray data. This is the main function of
   this package; see also the vignette vsn.pdf.}
-\usage{vsn(intensities,
-           lts.quantile = 0.5,
-           niter        = 10,
-           verbose      = TRUE,
-           pstart       = NULL,
-           describe.preprocessing=TRUE)}
+\usage{
+vsn(intensities,
+    lts.quantile = 0.5,
+    niter        = 10,
+    verbose      = TRUE,
+    pstart       = NULL,
+    describe.preprocessing=TRUE)}
 \arguments{
 \item{intensities}{An object of class \code{\link{exprSet-class}}
   with raw intensity values from a microarray experiment. Alternatively,
@@ -19,7 +20,7 @@
   scanner data, summarized over the spots by an image analysis program,
   and possibly "background" subtracted.
   The intensities must not be logarithmically or otherwise transformed,
-  and not thresholdes or "floored". NAs are not accepted.
+  and not thresholded or "floored". NAs are not accepted.
   See details.}
 \item{lts.quantile}{The quantile that is used for the resistant least
   trimmed sum of squares regression. Allowed values are between
@@ -42,7 +43,7 @@
   the variance is approximately independent of the mean intensity.
   The variance stabilizing transformation is equivalent to the
   natural logarithm in the high-intensity range, and to a
-  linear transformation in the low-intensity range . In an intermediate
+  linear transformation in the low-intensity range. In an intermediate
   range, the \emph{arsinh} function interpolates smoothly between the
   two. The calibration consists of estimating an offset \code{offs[i]}
   and a scale factor \code{fac[i]} for each column \code{i} of the matrix
@@ -133,9 +134,9 @@ if(interactive()) {
 }
 
 ry = lymphoma[, 3:4]  ## raw intensities
-ny = vsn(exprs(y))    ## transformed and calibrated
+ny = vsn(exprs(ry))   ## transformed and calibrated
 
-plot(exprs(y)+50, pch=".", main="log-log", log="xy")
+plot(exprs(ry)+5, pch=".", main="log-log", log="xy")
 plot(exprs(ny),   pch=".", main="h-h")
 
 if (interactive()) {
@@ -148,7 +149,8 @@ vsnPlotPar(ny, "factors")
 vsnPlotPar(ny, "offsets")
 
 ## this should always hold true
-stopifnot(all(vsnh(exprs(y), preproc(description(ny))$vsnParams) == exprs(ny))) 
+params = preproc(description(ny))$vsnParams
+stopifnot(all(vsnh(exprs(ry), params) == exprs(ny))) 
 }
 
 \keyword{robust}
