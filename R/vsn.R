@@ -423,7 +423,17 @@ normalize.Plob.vsn <- function(x, ...) {
   mm(x) = tmp@h[(1:nrow(x@pm))+nrow(x@pm),]
   return(x)
 }
- 
+
+## could also write "both" instead of "pm" if so desired
+normalize.AffyBatch.vsn <- function(abatch, ...) {
+   if(!exists("indexProbes"))
+     stop("Package affy must be loaded before calling normalize.AffyBatch.vsn")
+   ind    <- unlist(indexProbes(abatch,"pm"))
+   vsnres <- vsn(intensity(abatch)[ind,], ...)
+   intensity(abatch) <- vsnh(intensity(abatch), params(vsnres))
+   return(abatch)
+}
+
 ##------------------------------------------------------------
 ## Some useful functions
 ## sqr   : square (ca. 10 times faster than ^2 !)

@@ -303,13 +303,36 @@ legend(10, max(fdr), c("vsn", "global median"), lty=1:ncol(fdr))
 %---------------------------------------------------------
 \section{Running vsn on Affymetrix data} \label{affy}
 %---------------------------------------------------------
-<<affy,eval=FALSE>>=
-library(affy)
-data(Dilution)
-normalize.Plob.methods <- c(normalize.Plob.methods, "vsn")
-e <- express(Dilution[,c(4,7)], bg = subtractmm, normalize.method = "vsn", summary.stat=avdiff)
-plot(exprs(e))
+The package \code{affy} provides excellent functionality for reading and 
+processing Affymetrix genechip data. To use \code{vsn} for the 
+calibration and transformation of the probe intensities, a wrapper 
+for \code{vsn} is provided that can be used as module within the 
+data processing routines of \code{affy}. 
+Note that the runtime of \code{vsn} is approximately proportional 
+to the number of chips times the number of probes, and may be large.
+
+The following example should work with \code{affy} <= 1.2.2.
+<<affy1,eval=FALSE>>=
+## library(affy)
+## data(Dilution)
+## normalize.Plob.methods <- c(normalize.Plob.methods, "vsn")
+## e <- express(Dilution[,c(4,7)], bg = subtractmm, normalize.method = "vsn", summary.stat=avdiff)
+## plot(exprs(e))
 @
+
+\code{affy} > 1.2.2 uses the class \code{AffyBatch} to store probe 
+intensities. At the time of writing of this document (5 Nov 2002), I have not yet 
+been able to test this, but a suitable wrapper should roughly look like this:
+<<affy2>>=
+normalize.AffyBatch.vsn <- function(abatch, ...) {
+   ind    <- unlist(indexProbes(abatch,"pm"))
+   vsnres <- vsn(intensity(abatch)[ind,], ...)
+   intensity(abatch) <- vsnh(intensity(abatch), params(vsnres))
+   return(abatch)
+}
+@
+
+This information may change, please check for updates.
 
 %---------------------------------------------------------
 \section{Quality control}\label{sec.qc}
