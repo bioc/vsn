@@ -7,39 +7,39 @@
 \usage{
 vsn(intensities,
     lts.quantile = 0.5,
-    niter        = 10,
     verbose      = TRUE,
+    niter        = 10,
+    cvg.check    = NULL,
     pstart       = NULL,
-    describe.preprocessing=TRUE)}
+    describe.preprocessing = TRUE)
+}
 \arguments{
-\item{intensities}{An object of class
-  \code{\link[Biobase:exprSet-class]{exprSet}}
-  with raw intensity values from a microarray experiment. Alternatively,
-  this may be a \code{\link{matrix}}, a \code{\link{data.frame}} with
-  all numeric columns or an
-  \code{\link[marray-Classes:marrayRaw-class]{marrayRaw}} object.
+\item{intensities}{An object that contains intensity values from
+  a microarray experiment. See
+  \code{\link[vsn:getIntensityMatrix]{getIntensityMatrix}} for details.
   The intensities are assumed to be the raw
   scanner data, summarized over the spots by an image analysis program,
   and possibly "background" subtracted.
   The intensities must not be logarithmically or otherwise transformed,
   and not thresholded or "floored". NAs are not accepted.
   See details.}
-\item{lts.quantile}{The quantile that is used for the resistant least
-  trimmed sum of squares regression. Allowed values are between
+\item{lts.quantile}{Numeric. The quantile that is used for the resistant
+  least trimmed sum of squares regression. Allowed values are between
   0.5 and 1, corresponding to least median sum of squares regression,
   and to ordinary least sum of squares regression, respectively.}
-\item{niter}{The number of iterations used in the least trimmed sum of
-  squares regression.}
-\item{verbose}{If TRUE, some messages are printed.}
-\item{pstart}{Starting values for the model parameters in the iterative
-  parameter estimation algorithm. If NULL, the function tries to determine
-  reasonable starting values from the distribution of
+\item{niter}{Integer. The number of iterations to be used in the least
+  trimmed sum of squares regression.}
+\item{verbose}{Logical. If TRUE, some messages are printed.}
+\item{pstart}{Numeric vector. Starting values for the model parameters
+  in the iterative parameter estimation algorithm. If NULL, the function
+  tries to determine reasonable starting values from the distribution of
   \code{intensities}.}
-\item{describe.preprocessing}{If TRUE, calibration and transformation
-  parameters, plus some other information are stored in the
-  \code{preprocessing} slot of the returned object. See details.}
+\item{describe.preprocessing}{Logical. If TRUE, calibration and
+  transformation parameters, plus some other information are stored in
+  the \code{preprocessing} slot of the returned object. See details.}
+\item{cvg.check}{List. If non-NULL, this allows finer control of the
+  iterative least trimmed sum of squares regression. See details.}
 }
-
 \details{The function calibrates for sample-to-sample variations through
   shifting and scaling, and transforms the intensities to a scale where
   the variance is approximately independent of the mean intensity.
@@ -49,7 +49,7 @@ vsn(intensities,
   range, the \emph{arsinh} function interpolates smoothly between the
   two. The calibration consists of estimating an offset \code{offs[i]}
   and a scale factor \code{fac[i]} for each column \code{i} of the matrix
-  \code{intensities}. Thus, the calibration mapping is:
+  \code{intensities}. Thus, the calibration is:
   
   \code{intensities[k,i] <- intensities[k,i] * fac[i] + offs[i]}
 
@@ -59,8 +59,8 @@ vsn(intensities,
   across the samples, i.e., that only a minority of genes (less than
   a fraction of \code{lts.quantile}) is differentially expressed.
 
-  The format of the matrix of intensities is as follows:
-  For the \bold{two-color printed array technology}, each row
+  \bold{Format:} The format of the matrix of intensities is as follows:
+  for the \bold{two-color printed array technology}, each row
   corresponds to one spot, and the columns to the different arrays
   and wave-lengths (usually red and green, but could be any number).
   For example, if there are 10 arrays, the matrix would have 20 columns,
@@ -103,6 +103,13 @@ vsn(intensities,
   list is appended to any existing entries in the \code{preprocessing}
   slot. Otherwise, the \code{description} object and its
   \code{preprocessing} slot are created.
+
+  By default, if \code{cvg.check} is \code{NULL}, the function will run
+  the fixed number \code{niter} of iterations in the least trimmed sum
+  of squares regression. More fine-grained control can be obtained by
+  passing a list with elements \code{eps} and \code{n}. If the maximum
+  change between transformed data values is smaller than \code{eps} for
+  \code{n} subsequent iterations, then the iteration terminates.
 }
 
 \value{An object of class \code{\link[Biobase:exprSet-class]{exprSet}}.

@@ -39,29 +39,33 @@ es1 = expresso(Dilution[1:2],
                pmcorrect.method = "pmonly", 
                summary.method   = "medianpolish")
 
-es2 = expresso(Dilution[1:2], 
-               bgcorrect.method = "rma",
-               normalize.method = "quantiles", 
-               pmcorrect.method = "pmonly",
-               summary.method   = "medianpolish")
+##  this doesn't work any more these days...
+##
+## es2 = expresso(Dilution[1:2], 
+##               bgcorrect.method = "rma",
+##               normalize.method = "quantiles", 
+##               pmcorrect.method = "pmonly",
+##               summary.method   = "medianpolish")
 
 ## graphics output
 if(interactive()) x11()
 oldpar = par(mfrow=c(2,2), pch=".")
 
 ## extract expression values
-x1 = exprs(es1); x2 = exprs(es2) 
+x1 = exprs(es1)
+## x2 = exprs(es2) 
  
 ## scatter plot
 plot(x1, main="vsn: chip 3 vs 4")
-plot(x2, main="rma: chip 3 vs 4")
+## plot(x2, main="rma: chip 3 vs 4")
 
 ## rank(mean) - difference plot
 ylim = c(-0.7, 0.7)
 plot(rank(rowSums(x1)), diff(t(x1)), ylim=ylim, main="rank(mean) vs differences")
 abline(h=0, col="red")
-plot(rank(rowSums(x2)), diff(t(x2)), ylim=ylim, main="rank(mean) vs differences")
-abline(h=0, col="red")
+
+##plot(rank(rowSums(x2)), diff(t(x2)), ylim=ylim, main="rank(mean) vs differences")
+##abline(h=0, col="red")
 
 ## reset old plotting parameters 
 par(oldpar)

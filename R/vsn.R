@@ -3,20 +3,21 @@
 ## (C) Wolfgang Huber 2002-2003
 ## w.huber@dkfz.de
 ##-----------------------------------------------------------------
-
-##------------------------------------------------------------
+##----------------------------------------------------------------------
 ## vsn: the main function of this library
-## This is one big chunk of a function, but I haven't yet seen
-## how to improve it by splitting it up into smaller pieces.
-##------------------------------------------------------------
+## This is one big chunk of a function - but lots of screen space are
+## comments, and if you have suggestions on how to improve this function
+## by splitting it up into smaller pieces, please come forward!
+##----------------------------------------------------------------------
 vsn = function(intensities,
                lts.quantile = 0.5,
-               niter        = 10,
                verbose      = TRUE,
+               niter        = 10,
+               cvg.check    = NULL,
                pstart       = NULL,
-               describe.preprocessing=TRUE) {
-  
-  ## Bureaucracy step 1: make sure are the arguments are valid and plausible
+               describe.preprocessing = TRUE)
+{
+  ## Bureaucracy: make sure are the arguments are valid and plausible
   mess =  badarg = NULL
   if (!is.numeric(lts.quantile) || (length(lts.quantile)!=1) ||
      (lts.quantile<0.5) || (lts.quantile>1)) {
@@ -25,87 +26,31 @@ vsn = function(intensities,
   }
   if (!is.numeric(niter) || (length(niter)!=1) || (niter<1)) {
     badarg = "niter"
-    mess   = "Please specify a number >=1"
+    mess   = "Please specify a number >=1."
   }
-  if (!is.null(pstart))
+  if (!is.null(pstart)) {
     if (!is.numeric(pstart) || length(pstart) != 2*d || any(is.na(pstart)) ||
         any(pstart[(ncol(intensities)+1):(2*ncol(intensities))]<=0)) {
       badarg = "pstart"
       mess   = paste("Please specify a numeric vector of length", 2*ncol(intensities))
     }
+  }
   if (!is.logical(verbose)) {
     badarg = "verbose"
-    mess   = "Please specify a logical value"
+    mess   = "Please specify a logical value."
   }
-
-  ## Bureaucracy step 2: extract the intensity matrix from the argument "intensities"
-  ## Probably this should, and will (in a future version) be done via S3- or S4
-  ## method dispatching.
-  y = switch(class(intensities),
-     matrix     = {  if (!is.numeric(intensities)) {
-                       badarg = "intensities"
-                       mess   = "Please specify a numeric matrix"
-                     }
-                     intensities
-                   },
-     data.frame = {  if (!all(sapply(intensities, is.numeric))) {
-                       badarg = "intensities"
-                       mess   = "Please specify a data.frame that has only numeric columns"
-                     }
-                     as.matrix(intensities)
-                  },
-     exprSet    = { exprs(intensities)
-                  },
-     marrayRaw  = { nrslides = ncol(intensities@maRf)
-                    nrspots  = nrow(intensities@maRf)
-                    if (verbose)
-                      cat(sprintf("Converting marrayRaw (%d spots, %d slides) to %dx%d matrix.\n",
-                                  as.integer(nrspots), as.integer(nrslides),
-                                  as.integer(nrspots), as.integer(2*nrslides)),
-                          "Gf-Gb in odd columns, Rf-Rb in even columns.\n")
-                    tmp = matrix(NA, nrow=nrspots, ncol=2*nrslides)
-                    tmp[, (1:nrslides)*2-1 ] = intensities@maGf - intensities@maGb
-                    tmp[, (1:nrslides)*2   ] = intensities@maRf - intensities@maRb
-                    tmp
-                   },
-    { badarg = "intensities"
-      mess   = paste("It has class ", class(intensities),
-                      ". Permitted are: matrix, data.frame, exprSet, marrayRaw", sep="")
-    }
-    )  ## end of switch statement
-
-  if (any(is.na(y))) {
-    badarg = "intensities"
-    mess   = paste("It must not contain NA values.\n",
-             "This could indicate that the input data has already undergone some\n",
-             "thresholding or transformation (log?), and may not satisfy the\n",
-             "requirements of the multiplicative-additive noise model.\n",
-             "If you are sure that it is meaningful to proceed, please\n",
-             "consider calling vsn on a subset of data where all values\n",
-             "are defined, and then use vsnh on the full set of data.\n")
-  }
-
-  if (ncol(y)<=1) {
-    badarg = "intensities"
-    mess   = paste("It must be a matrix with at least two columns. Please read the documentation\n",
-            "and the paper (Huber et al., Bioinformatics 18 (2002) S96-S104).\n")
-  }
-     
   ## Error handling
   if(!is.null(mess)) {
-    if(badarg=="intensities") {
-      mess = paste("The argument ", badarg, " has an invalid value.\n", mess, "\n", sep="")
-    } else {
-      mess = paste("The argument ", badarg, " has an invalid value:", get(badarg), "\n", mess, "\n", sep="")
-    }
+    mess = paste("The argument ", badarg, " has an invalid value:", get(badarg), "\n", mess, "\n", sep="")
     stop(mess)
   }
 
+  y = getIntensityMatrix(intensities, verbose)
+
   ## Print welcome message
   if (verbose)
-    cat("vsn is working on a ", nrow(y), " x ", ncol(y), 
-        " matrix, with lts.quantile=", signif(lts.quantile, 2),
-        "; please wait for ", niter+1, " dots:\n.", sep="")
+    cat("vsn: ", nrow(y), " x ", ncol(y), "matrix (lts.quantile=", 
+        signif(lts.quantile, 2), "). Please wait for ", niter+1, " dots:\n.", sep="")
 
   ##----------------------------------------------------------------------
   ## guess a parameter scale, set boundaries for optimization,
@@ -180,11 +125,11 @@ vsn = function(intensities,
   ll = function(p) {
     assign("p", p, envir=ws)
     with(ws, {
-      offs = offsfun(p)
-      facs = facsfun(p)
+      offs = matrix(p[     1:ncy ], ncol=ncy, nrow=nry, byrow=TRUE)
+      facs = matrix(p[ncy+(1:ncy)], ncol=ncy, nrow=nry, byrow=TRUE)
       ly   = offs + facs * y
       asly = asinh(ly)
-      res  = asly - rowMeans(asly)              ## residuals
+      res  = asly - rowMeans(asly) ## residuals
       ssq  = sum(res*res)
       rv   = nry*ncy/2*log(ssq) - sum(log(facs/sqrt(1+ly*ly)))
     } )
@@ -201,31 +146,30 @@ vsn = function(intensities,
       mess = paste(
         "\n\n\The function grll (likelihood-gradient) was called with different\n",
         "parameters than the previous call of ll (likelihood-value).\n",
-        "This should never happen. Please contact package maintainer at\n",
+        "This should never happen. Please contact the package maintainer:\n",
         "w.huber@dkfz.de\n\n")
       error(mess)
     }
     with(ws, {
       dhda      = 1/sqrt(1+ly*ly)
       dlndhdyda = -ly/(1+ly*ly)
-      gra       = nry*ncy/ssq*res*t(dhda) - t(dlndhdyda) ## d*n matrix
+      gra       = nry*ncy/ssq*res*dhda - dlndhdyda
       rv        = c(colSums(gra), colSums(gra*y) - nry/p[(ncy+1):(ncy*2)])
     } )
     return(get("rv", ws))
   }
-
+  
+  sel     = rep(TRUE, nrow(y))   ## trimmed data points (LTS regression)
+  oldh    = Inf  ## for calculating a convergence criterion: earlier result
+  cvgcCnt = 0    ## counts the number of iterations that have already met the convergence criterion
+  
   ##--------------------------------------------------
   ## begin of the outer LL iteration loop
   ##--------------------------------------------------
-  sel = rep(TRUE, nrow(y))
   for(lts.iter in 1:niter) {
     assign("y",   y[sel,],            envir=ws)
     assign("nry", length(which(sel)), envir=ws)
     assign("ncy", ncol(y),            envir=ws)
-    assign("offsfun", function(p) matrix(p[1:ncy], ncol=ncy,
-                                         nrow=nry, byrow=TRUE))
-    assign("facsfun", function(p) matrix(p[ncy+(1:ncy)], ncol=ncy,
-                                         nrow=nry, byrow=TRUE))
 
     p0 = pstart
     for (optim.iter in 1:optim.niter) {
@@ -254,19 +198,13 @@ vsn = function(intensities,
       }
     }
 
-    mess = NULL
     if (o$convergence!=0)
-      mess = paste("Likelihood optimization did not converge even after", optim.niter, "calls to optim().",
+      stop(paste("Likelihood optimization did not converge even after", optim.niter, "calls to optim().",
                    "\nPlease make sure your data is good. If the problem persists,",
-                   "\nplease contact the package maintainer.\n")
-
+                   "\nplease contact the package maintainer.\n"))
     if (any(o$par[(ncol(y)+1):(2*ncol(y))]<0))
-      mess = paste("Likelihood optimization produced negative parameter estimates in spite of constraints.",
-                   "\nPlease contact the package maintainer.\n")
-
-    if(!is.null(mess))
-      stop(mess)
-
+      stop(paste("Likelihood optimization produced negative parameter estimates in spite of constraints.",
+                 "\nPlease contact the package maintainer.\n"))
     if(verbose)
       cat(".")
 
@@ -286,10 +224,25 @@ vsn = function(intensities,
     nrslice = 5
     group   = ceiling(rank(hmean)/length(hmean)*nrslice)
     grmed   = tapply(rsqres, group, quantile, probs=lts.quantile)
-    sel     = rsqres <= grmed[group]
+    sel     = (rsqres <= grmed[group])
 
-    params[,lts.iter] = pstart = o$par
-  }
+    params[, lts.iter] = pstart = o$par
+    h = vsnh(y, o$par)
+
+    ## Convergence check
+    ## after a suggestion from D Kreil 2003, UCgenetics@Kreil.Org
+    if(!is.null(cvg.check)) {
+      cvgc    = max(abs((h - oldh)/range(h)))
+      cvgcCnt = ifelse( cvgc < cvg.check$eps, cvgcCnt + 1, 0 )
+      if (verbose)
+        cat(sprintf("iter %2d: cvgc=%.5f%%, par=", as.integer(lts.iter), cvgc),
+            sapply(o$par, function(x) sprintf("%9.3g",x)),"\n")
+      if (cvgcCnt >= cvg.check$n)
+        break
+      oldh = h
+    }
+    
+  } ## end of for-loop (iter)
   if(verbose)
     cat("\n")
 
@@ -314,66 +267,6 @@ vsn = function(intensities,
                       list(vsnParams        = params[,ncol(params)],
                            vsnParamsIter    = params,
                            vsnTrimSelection = sel))
-  return(res)
-}
-
-##---------------------------------------------------------------------
-## The "arsinh" transformation
-## note: the constant -log(2*facs[1]) is added to the transformed data
-## in order to achieve h_1(y) \approx log(y) for y\to\infty, that is,
-## better comparability to the log transformation.
-## It has no effect on the generalized log-ratios.
-##---------------------------------------------------------------------
-vsnh = function(y, p) {
-  if (!is.matrix(y) || !is.numeric(y))
-    stop("vsnh: argument y must be a numeric matrix.\n")
-  if (!is.vector(p) || !is.numeric(p) || any(is.na(p)))
-    stop("vsnh: argument p must be a numeric vector with no NAs.\n")
-  if (2*ncol(y) != length(p))
-    stop("vsnh: argument p must be a vector of length 2*ncol(y).\n")
-
-  offs = matrix(p[         1  :  ncol(y) ], nrow=nrow(y), ncol=ncol(y), byrow=TRUE)
-  facs = matrix(p[(ncol(y)+1):(2*ncol(y))], nrow=nrow(y), ncol=ncol(y), byrow=TRUE)
-  hy   = asinh(offs + facs * y) - log(2*facs[1])
-  dimnames(hy) = dimnames(y)
-  return(hy)
-}
-##---------------------------------------------------------
-## Enumerate all the subsets of size k of the integers 1:n.
-## The result is returned in a matrix with k rows and
-## (n choose k) columns
-## This function is not needed for VSN, but it is nice to
-## have it for the examples / the vignette and I haven't
-## yet found it anywhere else.
-##---------------------------------------------------------
-nchoosek = function(n, k) {
-  if (!is.numeric(n)||!is.numeric(k)||is.na(n)||is.na(k)||length(n)!=1||length(k)!=1)
-    stop("arguments must be non-NA numeric scalars.")
-  if (k>n||k<0)
-    stop("Arguments must satisfy 0 <= k <= n.")
-
-  nck = choose(n, k)
-  res = matrix(NA, nrow=k, ncol = nck)
-  res[, 1] = 1:k
-  j = 2
-  repeat {
-    res[, j] = res[, j-1]
-    i = k
-    repeat {
-      res[i,j] = res[i,j]+1
-      if(res[i,j] <= n-(k-i))
-        break
-      i = i-1
-      stopifnot(i>=1)
-    }
-    if (i<k)
-       res[(i+1):k,j] = res[i,j] + 1:(k-i)
-    j = j+1
-    if (j>nck) break
-  }
-  ## plausibility tests
-  stopifnot(all(res[, nck]==(n-k+1):n))
-  stopifnot(all(res<=n) && all(res>=1))
   return(res)
 }
 

@@ -1,5 +1,5 @@
 %\VignetteIndexEntry{vsn}
-%\VignetteDepends{Biobase,vsn,multtest,marrayNorm}
+%\VignetteDepends{Biobase,vsn,affy,marrayNorm,multtest}
 %\VignetteKeywords{Expression Analysis}
 %\VignettePackage{vsn}
 
@@ -17,6 +17,8 @@
 % newcommand
 %------------------------------------------------------------
 \newcommand{\code}[1]{{\tt #1}}
+\newcommand{\Rfunc}[1]{{\tt #1}}
+
 \newcommand{\myincfig}[3]{%
   \begin{figure}[htbp]
     \begin{center}
@@ -342,9 +344,9 @@ of the resulting log-ratios.
 Ms <- array(NA, dim=c(dim(M), 2))
 Ms[,,1] <- M
 library(marrayNorm)
-mr <- new('marrayRaw', maGf=exprs(lymphoma)[,refrs], maRf=exprs(lymphoma)[,samps])
-mn <- maNorm(mr, norm="median", echo=T)
-Ms[,,2] <- mn@maM
+## mr <- new('marrayRaw', maGf=exprs(lymphoma)[,refrs], maRf=exprs(lymphoma)[,samps])
+## mn <- maNorm(mr, norm="median", echo=T)
+## Ms[,,2] <- mn@maM
 plot(Ms[,1,], xlab="vsn", ylab="global median", main="M (array 1)", pch=".")
 @
 \myincfig{vsn-Ms-plot}{80mm}{Generalized log-ratio from \code{vsn} ($x$-axis)
@@ -355,7 +357,7 @@ implementation of the estimation of the false discovery rate from
 the permutation distribution of the sorted test statistics. 
 The result is shown in Fig.~\ref{vsn-fdr3}.
 \myincfig{vsn-fdr3}{80mm}{False Discovery Rate}
-<<fdr1,results=hide>>==
+<<fdr1,results=hide>>=
 library(multtest)
 calc.t <- function(classlabel, M) {
   t <- mt.teststat(M, classlabel) 
@@ -363,7 +365,7 @@ calc.t <- function(classlabel, M) {
   return(t)
 }
 @
-<<fdr2,results=hide>>==
+<<fdr2,results=hide>>=
 calc.fdr <- function(M, classlabel, nrgeneselect) {
   t <- calc.t(classlabel, M)
   st <- sort(abs(t), decreasing=TRUE)
@@ -387,7 +389,7 @@ calc.fdr <- function(M, classlabel, nrgeneselect) {
   return(fdr)
 }
 @
-<<fdr3,fig=TRUE,include=FALSE,results=hide>>==
+<<fdr3,fig=TRUE,include=FALSE,results=hide>>=
 classlabel <- regexpr("CLL",colnames(M)) > 0
 nrgeneselect <- c(10, 20, 50, 100, 200, 500, 1000)  
 fdr <- apply(Ms, 3, calc.fdr, classlabel, nrgeneselect) 
@@ -411,11 +413,53 @@ and other available methods. There are different ways to treat the
 mismatch (MM) intensities, to adjust for background, and summarize 
 the probe sets. See the example for \code{normalize.AffyBatch.vsn}.
 The resulting plot is shown in Fig.~\ref{vsn-affy}.
-<<affy,include=FALSE,results=hide,fig=TRUE,width=7,height=7>>==
+<<affy,include=FALSE,results=hide,fig=TRUE,width=7,height=7>>=
 example(normalize.AffyBatch.vsn)
 @
 \myincfig{vsn-affy}{0.75\textwidth}{\code{normalize.AffyBatch.vsn} 
 example}
+
+
+%---------------------------------------------------------
+\section{Verifying and assessing the performance of vsn with 
+simulated data}
+\label{sagmb}
+%---------------------------------------------------------
+There are two functions \Rfunc{sagmbSimulateData} and \Rfunc{sagmbAssess}
+that can be used to generate simulated data and assess the difference between 
+the 'true' and 'estimated' data calibration and transformation by vsn. An 
+example is shown in the code chunk below. Reference~\cite{HuberSAGMB2003} 
+describes in more detail
+\begin{itemize}
+\item the simulation model
+\item the assessment strategy
+\item a comprehensive suite of assessments with respect to the number
+of probes $n$, the number of arrays $d$, the fraction of
+differentially expressed genes $de$, and the fraction of up-regulated
+genes $up$.
+\end{itemize}
+<<sagmb,include=FALSE,results=hide,fig=TRUE,width=7,height=4>>=
+par(mfrow=c(1,2))
+
+n     <- c(500, 1000, 2000, 4000, 8000)
+d     <- 2
+de    <- c(0, 0.4)
+up    <- 0.5
+nrrep <- 4
+
+for (i in seq(along=de)) {
+  res <- matrix(NA, ncol=nrrep, nrow=length(n))
+  for (k in seq(along=n)) {
+    for (r in 1:nrrep) {
+      sim       <- sagmbSimulateData(n[k], d, de=de[i], up=0.5)
+      ny        <- vsn(sim$y)  
+      res[k, r] <- sagmbAssess(exprs(ny), sim)
+    }
+  }
+  matplot(n, res, pch=20, log="xy", col="#909090", main=paste("de=", de[i]))
+  lines(n, rowMeans(res), col="blue")
+}
+@
 
 %---------------------------------------------------------
 \section{Quality control}\label{sec.qc}
@@ -517,8 +561,10 @@ W. Huber, A. von Heydebreck, H. {S\"ultmann}, A. Poustka, and M. Vingron.
 
 \bibitem{HuberSAGMB2003}
 W. Huber, A. von Heydebreck, H. {S\"ultmann}, A. Poustka, and M. Vingron.
-\newblock Parameter estimation for the calibration and variance stabilization of microarray data.
-\newblock {\em Statistical Applications in Genetics and Molecular Biology}, Vol. 2: No. 1, Article 3, 2003. 
+\newblock Parameter estimation for the calibration and variance stabilization 
+of microarray data.
+\newblock {\em Statistical Applications in Genetics and Molecular Biology}, 
+Vol. 2: No. 1, Article 3, 2003. 
 http://www.bepress.com/sagmb/vol2/iss1/art3
 
 \bibitem{HSG2002}
