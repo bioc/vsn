@@ -22,13 +22,23 @@
   The transformation is:
   
   vsnh(y, p, s)[k, i] = asinh( p[s[k], i, 1] + p[s[k], i, 2] * y[k, i] )
+                        - log(2*p[s[1], 1, 2])
   
   where k=1:nrow(y) counts over the probes, 
   i=1:ncol(y) counts over the samples,
   p[s[k], i, 1] is the calibration offset for stratum s[k] in sample i,
   p[s[k], i, 2] is the calibration factor for stratum s[k] in sample i,
   and s[k] is the stratum of the the k-th probe.
+
+  The constant offset - log(2*p[s[1], 1, 2]) is there to make sure that
+  for large y, vsnh(y) for the first stratum on the first chip is
+  approximately the same as log(y). This has no effect on
+  the generalized log-ratios (glog-ratios), which are differences between
+  transformed intensities, but some users are more comfortable with the
+  absolute values that are obtained this way, since they are more
+  comparable to the log scale.
 }
+
 \references{Variance stabilization applied to microarray data
 calibration and to the quantification of differential expression,
 Wolfgang Huber, Anja von Heydebreck, Holger Sueltmann, Annemarie
