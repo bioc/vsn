@@ -1,0 +1,29 @@
+\name{vsnPlotPar}
+\alias{vsnPlotPar}
+\title{Plot trajectory of calibration and transformation parameters for
+  a vsn fit}
+\description{Plot trajectory of calibration and transformation parameters for
+  a vsn fit}
+\usage{vsnPlotPar(x, what, ylab=what, ...)} 
+\arguments{
+  \item{x}{An object of class \code{\link{exprSet-class}} which has been
+    created by the function \code{\link{vsn}}.}
+  \item{what}{Character, should either be "factors" or "offsets".}
+  \item{ylab}{Character, label for the y-axis.}
+  \item{...}{Further arguments that get passed to plot.default.}
+}
+\details{The plot that is created by this function may help in assessing
+  whether the parameter estimation in \code{\link{vsn}} was sufficiently
+  converged.}
+\value{
+  The function is called for its side effect, creating a plot on the
+  active graphics device.
+}
+\author{Wolfgang Huber \url{http://www.dkfz.de/abt0840/whuber}}
+\seealso{\code{\link{vsn}}}
+\examples{
+  ## see example for vsn
+}
+\keyword{hplot}
+
+

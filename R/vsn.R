@@ -8,7 +8,13 @@ require(Biobase) || stop("Cannot load without package \"Biobase\"")
 ##------------------------------------------------------------
 ## vsn: the main function of this library
 ##------------------------------------------------------------
-vsn = function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=NULL) {
+vsn = function(intensities,
+               lts.quantile = 0.5,
+               niter        = 10,
+               verbose      = TRUE,
+               pstart       = NULL,
+               describe.preprocessing=TRUE) {
+  
   ## Bureaucracy step 1: make sure are the arguments are valid and plausible
   mess =  badarg = NULL
   if (!is.numeric(lts.quantile) || (length(lts.quantile)!=1) ||
@@ -17,7 +23,7 @@ vsn = function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=NUL
     mess   = "Please specify a scalar between 0.5 and 1."
   }
   if (!is.numeric(niter) || (length(niter)!=1) || (niter<1)) {
-    badarg = niter
+    badarg = "niter"
     mess   = "Please specify a number >=1"
   }
   if (!is.null(pstart))
@@ -45,9 +51,7 @@ vsn = function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=NUL
                      }
                      as.matrix(intensities)
                   },
-     exprSet    = { tmp <- exprs(intensities)
-                    colnames(tmp) <- rownames(pData(intensities))
-                    tmp
+     exprSet    = { exprs(intensities)
                   },
      marrayRaw  = { nrslides <- ncol(intensities@maRf)
                     nrspots  <- nrow(intensities@maRf)
@@ -73,8 +77,9 @@ vsn = function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=NUL
              "This could indicate that the input data has already undergone some\n",
              "thresholding or transformation (log?), and may not satisfy the\n",
              "requirements of the multiplicative-additive noise model.\n",
-             "Otherwise, consider calling vsn on a subset of data where all values\n",
-             "are defined, and then use vsnh.\n")
+             "If you are sure that it is meaningful to proceed, please\n",
+             "consider calling vsn on a subset of data where all values\n",
+             "are defined, and then use vsnh on the full set of data.\n")
   }
 
   ## Error handling
@@ -92,76 +97,6 @@ vsn = function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=NUL
     cat("vsn is working on a ", nrow(y), " x ", ncol(y), " matrix, with lts.quantile=", signif(lts.quantile, 2),
         "; please wait for ", niter+1, " dots:\n.", sep="")
 
-  ##----------------------------------------------------------
-  ## Profile log likelihood of the model
-  ##
-  ##    asinh(a_i + b_i * y_ki) = m_k + epsilon_ki
-  ##
-  ## where k=1..n, i=1..d, y is a n-by-d matrix,
-  ## (a_i, b_i) are real parameters to be estimated
-  ## epsilon_ki are i.i.d N(0, sigma^2)
-  ## and sigma, and all m_k are estimated from the data
-  ## ("profiling")
-  ##
-  ## Argments:
-  ## p numeric vector of length 2*d, with elements a_1,...,a_d, b_1,...,b_d
-  ##
-  ## Variables stored in environment "ws":
-  ## sy     the matrix of the y_ki
-  ## ly     the matrix of the a_i + b_i * y_ki
-  ## asly   the matrix of the asinh(a_i + b_i * y_ki)
-  ## res    the matrix of the residuals epsilon_ki
-  ## nrs    number of rows of the above matrices
-  ## ncs    number of columns of the above matrices
-  ## ssq    sum of squared residuals sum(res^2)
-  ## p      a place where ll() stores its call arguments. From this, when grll()
-  ##        is called it can double-check whether it is indeed also called
-  ##        with the same arguments (see below for details)
-  ##
-  ## Return value:
-  ## Profile Log-Likelihood
-  ##----------------------------------------------------------
-  ll = function(p) {
-    assign("p", p, envir=ws)
-    with(ws, {
-      offs = p[ 1:ncs     ]
-      facs = p[(1:ncs)+ncs]
-
-      ## sy is an nxd matrix, offs and facs are d-vectors
-      ## the cycling goes column-wise, hence transpose!
-      ly   = offs + facs * t(sy)
-      asly = t(asinh(ly))
-
-      ## residuals
-      res = asly - rowMeans(asly)
-      ssq = sum(res*res)
-      rv  = nrs*ncs/2*log(ssq) - sum(log(facs/sqrt(1+ly*ly)))
-    } )
-    return(get("rv", ws))
-  }
-  ##--------------------------------------------------------------
-  ## Gradient of the profile log likelihood
-  ##--------------------------------------------------------------
-  grll <- function(p) {
-    ## Generally, optim() will call the gradient of the objective function (gr)
-    ## immediately after a call to the objective (fn) at the same parameter values.
-    ## Anyway, we like to doublecheck
-    if(any(p!=get("p", ws))) {
-      mess = paste(
-        "\n\n\The function grll (likelihood-gradient) was called with different\n",
-        "parameters than the previous call of ll (likelihood-value).\n",
-        "This should never happen. Please contact package maintainer at\n",
-        "w.huber@dkfz.de\n\n")
-      error(mess)
-    }
-    with(ws, {
-      dhda      = 1/sqrt(1+ly*ly)
-      dlndhdyda = -ly/(1+ly*ly)
-      gra       = nrs*ncs/ssq*res*t(dhda) - t(dlndhdyda)
-      rv        = c(colSums(gra), colSums(gra*sy) - nrs/p[(ncs+1):(ncs*2)])
-    } )
-    return(get("rv", ws))
-  }
   ##----------------------------------------------------------------------
   ## guess a parameter scale, set boundaries for optimization,
   ## and, if they are not user-supplied, set the start parameters
@@ -185,23 +120,25 @@ vsn = function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=NUL
   optim.niter <- 10
 
   ## a place to save the trajectory of estimated parameters along the iterations:
-  params  <- matrix(NA, nrow=length(pscale), ncol=niter)
-
-  ## Workspace. This has two purposes: 1. we don't need to pass y or sy around,
-  ## 2. the intermediate results of "ll" can be used by "grll"
+  params  = matrix(NA, nrow=length(pscale), ncol=niter)
+  rownames(params) = c(paste("offs", 1:d, sep=""), paste("fac", 1:d, sep=""))
+    
+  ## Workspace. This has two purposes: 1. we do not need to pass y around,
+  ## 2. the intermediate results of "ll" can be used by "grll" (see functions
+  ## vsnll, vsngrll)
   ws = new.env(hash=TRUE)
   assign("timell",   numeric(0), envir=ws)
   assign("timegrll", numeric(0), envir=ws)
 
   sel <- rep(TRUE, nrow(y))
   for(lts.iter in 1:niter) {
-    assign("sy",  y[sel,],            envir=ws)
-    assign("nrs", length(which(sel)), envir=ws)
-    assign("ncs", ncol(y),            envir=ws)
+    assign("y",   y[sel,],            envir=ws)
+    assign("nry", length(which(sel)), envir=ws)
+    assign("ncy", ncol(y),            envir=ws)
 
     p0 <- pstart
     for (optim.iter in 1:optim.niter) {
-      o  <- optim(par=p0, fn=ll, gr=grll, method="L-BFGS-B",
+      o  <- optim(par=p0, fn=vsnll, gr=vsngrll, method="L-BFGS-B",
                   control=control, lower=plower)
       if (o$convergence==0) next
 
@@ -246,188 +183,152 @@ vsn = function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=NUL
     # selection of points in a LTS fashion
     # 1. calculate residuals; cf. ll()
     # ----------------------------------------
-    offs <- matrix(o$par[    1      :   ncol(y) ], nrow=nrow(y), ncol=ncol(y), byrow=TRUE)
-    facs <- matrix(o$par[(ncol(y)+1):(2*ncol(y))], nrow=nrow(y), ncol=ncol(y), byrow=TRUE)
-    asly <- asinh(offs + facs * y)
-    res  <- asly - rowMeans(asly)
+    offs   <- matrix(o$par[    1      :   ncol(y) ], nrow=nrow(y), ncol=ncol(y), byrow=TRUE)
+    facs   <- matrix(o$par[(ncol(y)+1):(2*ncol(y))], nrow=nrow(y), ncol=ncol(y), byrow=TRUE)
+    asly   <- asinh(offs + facs * y)
+    res    <- asly - rowMeans(asly)
     rsqres <- rowSums(res*res)
     hmean  <- rowSums(asly)
 
     # 2. select those data points within lts.quantile; do this separately for
     # each of nrslice slices along hmean
-    nrslice  <- 5
-    group    <- ceiling(rank(hmean)/length(hmean)*nrslice)
-    grmed    <- tapply(rsqres, group, quantile, probs=lts.quantile)
-    sel      <- rsqres <= grmed[group]
+    nrslice <- 5
+    group   <- ceiling(rank(hmean)/length(hmean)*nrslice)
+    grmed   <- tapply(rsqres, group, quantile, probs=lts.quantile)
+    sel     <- rsqres <= grmed[group]
 
     params[,lts.iter] <- pstart <- o$par
   }
   if(verbose)
     cat("\n")
 
-  ## Profiling results:
-  ##  cat3 = function(x)
-  ##    paste(length(x), " calls, min time=", min(x), "  max time=", max(x),
-  ##          "  mean=", signif(mean(x),3), "\n", sep="")
-  ##  cat("  ll:", cat3(get("timell",   ws)))
-  ##  cat("grll:", cat3(get("timegrll", ws)))
+  ## Prepare the return result: an exprSet
+  ## The transformed data goes into slot exprs.
+  ## If input was allready an exprSet, pass on the values all the other slots.
+  ## To the slot description@preprocessing, append the parameters and the
+  ##    trimming selection.  
+  res = descr = NULL
+  if (class(intensities)=="exprSet") {
+    res = intensities
+    if (class(description(intensities))=="MIAME") {
+      descr = description(intensities)
+    }
+  }
+  if(is.null(descr))   descr = new("MIAME")
+  if(is.null(res))     res   = new("exprSet", description=descr)
 
-  return(new("vsn.result", h=vsnh(y, o$par), params=params, sel=sel))
+  exprs(res) = vsnh(y, o$par)
+  if (describe.preprocessing)
+    res@description@preprocessing = append(res@description@preprocessing,
+                      list(vsnParams        = params[,ncol(params)],
+                           vsnParamsIter    = params,
+                           vsnTrimSelection = sel))
+  return(res)
 }
 
-##-----------------------------------------------------------------
-## .initvsn is called by .First.lib
-##-----------------------------------------------------------------
-.initvsn <- function(where) {
-  ##------------------------------------------------------------
-  ## define the class "vsn.result"
-  ##------------------------------------------------------------
-  setClass("vsn.result", where=where,
-           representation(              ## its slots
-                          h       = "matrix",
-                          params  = "matrix",
-                          sel     = "vector"),
-           prototype = list(            ## and default values
-             h       = matrix(nrow=0, ncol=0),
-             params  = matrix(nrow=0, ncol=0),
-             sel     = logical(0)
-             )
-           )
-  ##------------------------------------------------------------------
-  ## params(vsn.result): will return the last column of matrix params
-  ## i.e. the model parameters at the end of the iterations
-  ##------------------------------------------------------------------
-  if (!isGeneric("params"))
-     setGeneric("params", function(object) standardGeneric("params"), where=where)
+##---------------------------------------------------------------------
+## The "arsinh" transformation
+## note: the constant -log(2*facs[1]) is added to the transformed data
+## in order to achieve h_1(y) \approx log(y) for y\to\infty, that is,
+## better comparability to the log transformation.
+## It has no effect on the generalized log-ratios.
+##---------------------------------------------------------------------
+vsnh <- function(y, p) {
+  if (!is.matrix(y) || !is.numeric(y))
+    stop("vsnh: argument y must be a numeric matrix.\n")
+  if (!is.vector(p) || !is.numeric(p) || any(is.na(p)))
+    stop("vsnh: argument p must be a numeric vector with no NAs.\n")
+  if (2*ncol(y) != length(p))
+    stop("vsnh: argument p must be a vector of length 2*ncol(y).\n")
 
-  setMethod("params", "vsn.result",
-             function(object) object@params[,ncol(object@params)],
-             where=where)
-
-  ##------------------------------------------------------------
-  ## plot method for vsn.result objects
-  ##------------------------------------------------------------
-
-  setMethod("plot", signature=c("vsn.result", "missing"), where=where,
-     definition=function(x, ...) {
-       if (ncol(x@h)<2 || ncol(x@h)*2 != nrow(x@params))
-         stop("argument x is inconsistent")
-
-       dots <- list(...)
-       ind <- match("what", names(dots))
-       if(!is.na(ind)) {
-         what = dots$what
-         dots <- dots[-ind]
-       } else {
-         what = "sdmean"
-       }
-       ind <- match("ranks", names(dots))
-       if(!is.na(ind)) {
-         ranks = dots$ranks
-         dots <- dots[-ind]
-       } else {
-         ranks = TRUE
-       }
-       xlab <- ylab <- main <- ""
-       ind <- match("xlab", names(dots))
-       if(!is.na(ind)) {
-         xlab <- dots$xlab
-         dots <- dots[-ind]
-       }
-       ind <- match("ylab", names(dots))
-       if(!is.na(ind)) {
-         ylab = dots$ylab
-         dots <- dots[-ind]
-       }
-       ind <- match("main", names(dots))
-       if(!is.na(ind)) {
-         main = dots$main
-         dots <- dots[-ind]
-       }
-
-       switch(what,
-        sdmean = {
-          cols <- c("black", "red")[as.numeric(x@sel)+1]
-          n    <- length(x@sel)
-          rkm  <- rank(rowMeans(x@h))
-          sds  <- rowSds(x@h)
-          ltsq <- length(which(x@sel))/n
-          ## running quantile of width 2*dm
-          dm        <- 0.1
-          midpoints <- seq(dm, 1-dm, by=dm)
-          rq.sds <- lapply(midpoints, function(mp) {
-             median(sds[within(rkm/n, mp-dm, mp+dm)])
-           })
-
-          if(!is.logical(ranks))
-            stop("argument ranks must be logical")
-          if(ranks){
-            px1 <- rkm; px2 <- midpoints*n
-            if(xlab=="") xlab <- "rank of average intensity"
-          } else {
-            px1 <- rowMeans(x@h); px2 <- quantile(px1, probs=midpoints)
-            if(xlab=="") xlab <- "average intensity"
-          }
-          if(ylab=="") ylab <- "standard deviation"
-
-          args <- list(x=px1, y=sds, pch=".", col=cols, xlab=xlab, ylab=ylab)
-          do.call("plot.default", append(args, dots))
-          lines(px2, rq.sds, col="blue", type="b", pch=19)
-        },
-       ##
-       offsets = {
-         d <- ncol(x@h)
-         if(main=="") main <- what
-         args <- list(x    = x@params[1,],
-                      ylim = range(x@params[1:d,], na.rm=TRUE),
-                      type = "b", pch=19, main=main, xlab=xlab, ylab=ylab)
-         do.call("plot.default", append(args, dots))
-         for (j in 2:d)
-           lines(x@params[j,], type="b")
-       },
-       factors = {
-         d <- ncol(x@h)
-         if(main=="") main <- what
-         args <- list(x    = x@params[d+1,],
-                      ylim = range(x@params[d+(1:d),], na.rm=TRUE),
-                      type = "b", pch=19, main=main, xlab=xlab, ylab=ylab)
-         do.call("plot.default", append(args, dots))
-         for (j in 2:d)
-           lines(x@params[d+j,], type="b")
-       },
-       ##
-       stop(paste("Unknown what=", what))
-     ) ## end switch
-   } ## end of function definition for "plot"
-  )  ## end of setMethod("plot",...)
-
-  ##------------------------------------------------------------
-  ## print method for vsn.result objects
-  ##------------------------------------------------------------
-
-  setMethod("print", signature=c("vsn.result"), where=where,
-     definition=function(x) {
-       cat("vsn.result object\n",
-         sprintf("%dx%d-matrix of transformed intensities\n", as.integer(nrow(x@h)), as.integer(ncol(x@h))),
-         sprintf("%d-vector of transformation parameters\n", as.integer(nrow(x@params))))
-     }
-  )  ## end of setMethod("print")
-
-  ##------------------------------------------------------------
-  ## show method for vsn.result objects
-  ##------------------------------------------------------------
-
-  setMethod("show", signature=c("vsn.result"), where=where,
-     definition=function(object) print(object) )
-
-} ## end of .initvsn
-
-
+  offs <- matrix(p[         1  :  ncol(y) ], nrow=nrow(y), ncol=ncol(y), byrow=TRUE)
+  facs <- matrix(p[(ncol(y)+1):(2*ncol(y))], nrow=nrow(y), ncol=ncol(y), byrow=TRUE)
+  hy   <- asinh(offs + facs * y) - log(2*facs[1])
+  dimnames(hy) = dimnames(y)
+  return(hy)
+}
+##----------------------------------------------------------
+## Profile log likelihood of the model
+##
+##    asinh(a_i + b_i * y_ki) = m_k + epsilon_ki
+##
+## where k=1..n, i=1..d, y is a n-by-d matrix,
+## (a_i, b_i) are real parameters to be estimated
+## epsilon_ki are i.i.d N(0, sigma^2)
+## and sigma, and all m_k are estimated from the data
+## ("profiling")
+##
+## Argments:
+## p numeric vector of length 2*d, with elements a_1,...,a_d, b_1,...,b_d
+##
+## Return value:
+## Profile Log-Likelihood
+##
+## Side effects:
+## 1. The function expects the matrix of input data y_ki in the environment ws.
+## Since the matrix can be large (O(10^4) x O(10^2)), we want to avoid passing
+## around this matrix by value.
+## 2. The function stores intermediate results in that environment, too.
+## They can then be re-used by vsngrll.
+##
+## The variables stored in environment ws are
+## y      the matrix of the y_ki
+## nry    number of rows of y
+## ncy    number of columns of y
+## ly     the matrix of the a_i + b_i * y_ki
+## asly   the matrix of the asinh(a_i + b_i * y_ki)
+## res    the matrix of the residuals epsilon_ki
+## ssq    sum of squared residuals sum(res^2)
+## p      the call arguments of ll() . With this, when grll()
+##        is called it can double-check whether it is indeed called
+##        with the same arguments (see below for details)
+##----------------------------------------------------------
+vsnll = function(p) {
+  assign("p", p, envir=ws)
+  with(ws, {
+    offs = p[ 1:ncy     ]
+    facs = p[(1:ncy)+ncy]
+    
+    ## y is an nxd matrix, offs and facs are d-vectors
+    ## the cycling goes column-wise, hence transpose!
+    ly   = offs + facs * t(y)
+    asly = t(asinh(ly))
+    
+    ## residuals
+    res = asly - rowMeans(asly)
+    ssq = sum(res*res)
+    rv  = nry*ncy/2*log(ssq) - sum(log(facs/sqrt(1+ly*ly)))
+  } )
+  return(get("rv", ws))
+}
+##--------------------------------------------------------------
+## Gradient of the profile log likelihood
+##--------------------------------------------------------------
+vsngrll <- function(p) {
+  ## Generally, optim() will call the gradient of the objective function (gr)
+  ## immediately after a call to the objective (fn) at the same parameter values.
+  ## Anyway, we like to doublecheck
+  if(any(p!=get("p", ws))) {
+    mess = paste(
+      "\n\n\The function grll (likelihood-gradient) was called with different\n",
+      "parameters than the previous call of ll (likelihood-value).\n",
+      "This should never happen. Please contact package maintainer at\n",
+      "w.huber@dkfz.de\n\n")
+    error(mess)
+  }
+  with(ws, {
+    dhda      = 1/sqrt(1+ly*ly)
+    dlndhdyda = -ly/(1+ly*ly)
+    gra       = nry*ncy/ssq*res*t(dhda) - t(dlndhdyda)
+    rv        = c(colSums(gra), colSums(gra*y) - nry/p[(ncy+1):(ncy*2)])
+  } )
+  return(get("rv", ws))
+}
 ##------------------------------------------------------------
 ## Some useful functions
-## sqr   : square (ca. 10 times faster than ^2 !)
+## sqr   : square (sqr(x) is faster than x^2)
 ## rowSds: row standard deviations, cf. rowMeans
-## within: is x in interval [x1,x2] ?
+## within: is x in the interval [x1, x2] ?
 ##------------------------------------------------------------
    sqr <- function(x) { x*x }
 rowSds <- function(x) { sqrt(rowSums(sqr(x-rowMeans(x)))/(ncol(x)-1)) }
@@ -472,23 +373,3 @@ nchoosek <- function(n, k) {
   return(res)
 }
 
-##---------------------------------------------------------------------
-## the "arsinh" transformation
-## Note: an overall additive constant has no effect on the Delta-h, i.e.
-## on the differences between transformed intensities. We choose the
-## additive constant such that h_1(y) \approx log(y) for y\to\infty.
-##---------------------------------------------------------------------
-vsnh <- function(y, p) {
-  if (!is.matrix(y) || !is.numeric(y))
-    stop("vsnh: argument y must be a numeric matrix.\n")
-  if (!is.vector(p) || !is.numeric(p) || any(is.na(p)))
-    stop("vsnh: argument p must be a numeric vector with no NAs.\n")
-  if (2*ncol(y) != length(p))
-    stop("vsnh: argument p must be a vector of length 2*ncol(y).\n")
-
-  offs <- matrix(p[         1  :  ncol(y) ], nrow=nrow(y), ncol=ncol(y), byrow=TRUE)
-  facs <- matrix(p[(ncol(y)+1):(2*ncol(y))], nrow=nrow(y), ncol=ncol(y), byrow=TRUE)
-  hy   <- asinh(offs + facs * y) - log(2*facs[1])
-  dimnames(hy) = dimnames(y)
-  return(hy)
-}

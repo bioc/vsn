@@ -5,7 +5,7 @@
 
 normalize.AffyBatch.vsn = function (abatch, subsample = 20000, niter = 4, ...) 
 {
-  if (!exists("indexProbes")) 
+  if (!("package:affy" %in% search())) 
     stop("Please load the package affy before calling normalize.AffyBatch.vsn")
 
   ## ind = the perfect match probes. If more than subsample, then only use
