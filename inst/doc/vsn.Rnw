@@ -440,7 +440,7 @@ for (i in seq(along=de)) {
   }
 }
 } else {
-  res <- array(0, dim=c(length(n), nrrep, length(de)))
+  res <- array(1, dim=c(length(n), nrrep, length(de)))
 }
 @
 <<sagmb-show,include=FALSE,fig=TRUE,width=7,height=4>>=
