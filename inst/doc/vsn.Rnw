@@ -1,5 +1,5 @@
 %\VignetteIndexEntry{vsn - introduction}
-%\VignetteDepends{Biobase,vsn,affy,marrayNorm,multtest}
+%\VignetteDepends{Biobase,vsn,affy,marray,multtest}
 %\VignetteKeywords{Expression Analysis}
 %\VignettePackage{vsn}
 
@@ -12,7 +12,6 @@
 \newcommand{\arsinh}{\mathop{\mathgroup\symoperators arsinh}\nolimits}
 \newcommand{\Rfunction}[1]{\texttt{#1}}
 \newcommand{\Rexpression}[1]{\texttt{#1}}
-
 \newcommand{\Rpackage}[1]{\textit{#1}}
 \newcommand{\Rclass}[1]{\textit{#1}}
 
@@ -26,18 +25,21 @@
 }
 
 \begin{document}
-\SweaveOpts{eps=false}
+
 %------------------------------------------------------------
 \title{Robust calibration and variance stabilization with VSN}
 %------------------------------------------------------------
 \author{Wolfgang Huber}
 \maketitle
+\tableofcontents
+
 <<no.nonsense,eval=FALSE,echo=FALSE,results=hide>>=
 q(save="no")
 @
+
 <<setup,echo=FALSE,results=hide>>=
 library(affy)
-library(marrayNorm)
+library(marray)
 library(multtest)
 oldopt <- options(digits=3)
 on.exit( {options(oldopt)} )
@@ -46,44 +48,45 @@ on.exit( {options(oldopt)} )
 %------------------------------------------------------------
 \section*{Introduction}
 %------------------------------------------------------------ 
-\Rpackage{vsn} is a method to preprocess DNA microarray intensity data. As
-input, the function \Rpackage{vsn} takes the raw intensity measurements from
-the DNA probes on a series of microarrays. The data are calibrated by a
-suitable set of affine transformations, then the whole data are transformed by
-a variance-stabilizing transformation.  After this, systematic array- or
-dye-biases should be removed, and the variance should be approximately
-independent of the mean intensity.  Many statistical methods such as
-hypothesis tests, ANOVA modeling, clustering, or classification work better,
-or are easier to use, if the variance of the data is (roughly) the same for
-all observations\footnote{Note that \Rpackage{vsn} only addresses the
-dependence of the variance on the mean intensity. There may be other factors
-influencing the variance, such as gene-inherent properties, or changes of the
-tightness of transcriptional control in different conditions.  If necessary,
-these need to be addressed by other methods.}.  Differences between the
-transformed values are the so-called "generalized log-ratios".  If both
-numerator and denominator are well above background, generalized log-ratios
-coincide with the usual log-ratios:
-$h(x_i)-h(x_j)\approx\log(x_i)-\log(x_j)=\log(x_i/x_j)$ if $x_i,
-x_j\gg0$~\cite{HuberISMB2002,HSG2002}. In contrast to log-ratios, they remain
-well-defined and statistically meaningful if $x_i$ or $x_j$ are close to zero.
+\Rpackage{vsn} is a method to preprocess DNA microarray intensity data.
+Calling \Rpackage{vsn} can be as simple as
+
+<<dummyex,eval=FALSE>>=
+e2 <- vsn(e1)
+@
+
+where \Rexpression{e1} is an \Rexpression{exprSet} with raw data and
+\Rexpression{e2} one with normalized and transformed data.  \Rexpression{e1}
+can also be a matrix, a data frame with numeric columns only, or an object of
+class \Rclass{marrayRaw}.
+
+\Rexpression{e1} contains the raw intensity measurements from the DNA probes
+on a series of microarrays (with rows corresponding to probes, columns to
+arrays and/or dyes).  Each column is calibrated by an affine
+transformation\footnote{It is possible to stratify the transformations within
+columns; this is discussed in Section~\ref{sec.strata}}, then the whole data
+are transformed by a variance-stabilizing transformation.
+After this, systematic array- or dye-biases should be removed, and the
+variance should be approximately independent of the mean intensity.  Many
+statistical methods such as hypothesis tests, ANOVA modeling, clustering, or
+classification work better or are easier to use if the variance of the data
+is roughly the same for all observations\footnote{Note that \Rpackage{vsn}
+only addresses the dependence of the variance on the mean intensity. There may
+be other factors influencing the variance, such as gene-inherent properties,
+or changes of the tightness of transcriptional control in different
+conditions.  If necessary, these need to be addressed by other methods.}.
+
+Differences between the transformed values are the so-called
+\textit{\textbf{generalized log-ratios}}.  If both numerator and denominator
+are well above background, generalized log-ratios coincide with the usual
+log-ratios: $h(x_i)-h(x_j)\approx\log(x_i)-\log(x_j)=\log(x_i/x_j)$ if $x_i,
+x_j\gg0$ . In contrast to log-ratios, they remain well-defined and
+statistically meaningful if $x_i$ or $x_j$ are close to zero.  Please consult
+the paper in the references for more on the mathematical-methodical background
+~\cite{HuberISMB2002,HSG2002,HuberSAGMB2003}.
 
 %------------------------------------------------------------
-\section{The data}
-%------------------------------------------------------------ 
-The prefered input type for \Rpackage{vsn} are objects of class
-\Rclass{exprSet}. It is also possible to pass matrices, data frames
-with numeric columns only, and objects of class \Rclass{marrayRaw}.
-Furthermore, \Rpackage{vsn} can be used as a normalization method in
-the function \Rfunction{expresso} in the package \Rpackage{affy}
-(cf.~Section~\ref{affy}).
-
-To load intensity data from your own experiments, you can use the
-function \Rfunction{read.table}, the \Rfunction{read}-functions from
-the package \Rpackage{marrayInput}, or \Rfunction{ReadAffy} from the
-package \Rpackage{affy}.
-
-%------------------------------------------------------------
-\section{Running vsn on the data from a single cDNA array} 
+\section{Running vsn on data from a single two-color array} 
 %------------------------------------------------------------
 The package includes example data from a cDNA array on which two
 biologically very similar samples, one labeled in green (Cy3), one
@@ -159,8 +162,8 @@ plateau before the last iteration. If this is not the case, the number of
 iterations may be increased through the parameter \Rexpression{iter}.  It
 could also indicate a data quality problem, see Section~\ref{sec.qc}.
 
-The "generalized log-ratios"~\cite{HuberISMB2002} for this experiment
-may be obtained for further processing through
+The generalized log-ratios for this experiment
+can be obtained for further processing through
 <<nkid-histM,include=FALSE,fig=TRUE,results=hide>>=
 M <- exprs(nkid)[,2] - exprs(nkid)[,1] 
 hist(M, breaks=50, col="#d95f0e")
@@ -169,8 +172,128 @@ hist(M, breaks=50, col="#d95f0e")
 log-ratios for the kidney example data}
 The histogram is shown in Fig.~\ref{vsn-nkid-iter}.
 
+%------------------------------------------------------------
+\section{Running vsn on data from multiple arrays 
+(``single color normalization'')} 
+%------------------------------------------------------------
+The package includes example data from a series of 8 cDNA arrays 
+on which different lymphoma were hybridized together with a reference 
+cDNA~\cite{Alizadeh}.
+<<lymphoma>>=
+data(lymphoma)
+dim(exprs(lymphoma))
+pData(lymphoma)
+@
+The 16 columns of the \Rexpression{lymphoma} object contain the red and
+green intensities, respectively, from the 8 slides, as shown in the
+table. Thus, the CH1 intensities are in columns $1, 3, \ldots, 15$,
+the CH2 intensities in columns $2, 4, \ldots, 16$.  We can call
+\Rfunction{vsn} on all of them at once:
+<<lym-sdmean1,results=hide>>=
+lym <- vsn(lymphoma)
+@
+This calculation may take a while. 
+<<lym-sdmean2,include=FALSE,fig=TRUE>>=
+meanSdPlot(lym)
+@
+\myincfig{vsn-lym-sdmean2}{0.5\textwidth}{Standard deviation 
+versus rank of the mean for the lymphoma example data}
+Again, Fig.~\ref{vsn-lym-sdmean2} helps to visually verify that the
+variance stabilization worked.  As above, we can obtain the
+generalized log-ratios for each slide, by subtracting the common
+reference intensities from those for the 8 samples:
+<<lym-M,include=FALSE,fig=TRUE,width=8,height=4,results=hide>>=
+refrs <- (1:8)*2-1
+samps <- (1:8)*2
+M <- exprs(lym)[,samps] - exprs(lym)[,refrs] 
+colnames(M) <-  pData(lymphoma)[samps, "sample"]
+A <- rowMeans(exprs(lym))
+par(mfrow=c(1,2))
+plot(A, M[,"CLL-13"], pch=".")
+abline(h=0, col="red")
+plot(A, M[,"DLCL-0032"], pch=".")
+abline(h=0, col="red")
+@
+\myincfig{vsn-lym-M}{\textwidth}{Mean-difference plots for two slides 
+from the lymphoma example data}
+Fig.~\ref{vsn-lym-M} shows the analagon to the $M$-vs-$A$-plots
+as described in reference~\cite{Dudoit578}. Note that in the left
+scatterplot, there is a cloud of points at low intensities that is
+concentrated slightly off the line $M=0$.  In the right scatterplot, a
+similar cloud sits right on the $M=0$ line. This could be related to a
+quality problem with the left slide (e.\,g. related to the PCR
+amplification or the printing, see Section~\ref{sec.qc}).
+
+%---------------------------------------------------------
+\section{Running vsn on Affymetrix data} \label{affy}
+%---------------------------------------------------------
+The package \Rpackage{affy} provides excellent functionality for
+reading and processing Affymetrix genechip data. To use
+\Rfunction{vsn} for the calibration and transformation of the probe
+intensities, a wrapper is provided that can be used within the data
+processing routines of \Rpackage{affy}. See the documentation for the
+package \Rpackage{affy} for more information about data structures and
+other available methods. Affymetrix genechips preprocessing involves
+the following steps:
+(i) combining the perfect match (PM) and mismatch 
+(MM) intensities into one number per probe,
+(ii) calibrating,
+(iii) transforming, and
+(iv) summarizing.
+\Rfunction{vsn} addresses the calibration and transformation. We can use 
+the function \Rfunction{expresso} to run the whole process in one go:
+
+<<affy1,results=hide>>=
+library(affy)
+library(affydata)
+data(Dilution)
+## let affy know about vsn
+normalize.AffyBatch.methods <- c(normalize.AffyBatch.methods, "vsn")
+es1 = expresso(Dilution[, 1:2], 
+               bg.correct       = FALSE,   ## bg correction is done by vsn
+               normalize.method = "vsn",
+               pmcorrect.method = "pmonly", 
+               summary.method   = "medianpolish")
+@
+
+Here, we have ignored the MM values and used \Rfunction{medianpolish} for
+summarization, as in the RMA method~\cite{RMA}. For comparison, let's 
+calculate expression values using another normalization method:
+
+<<affy2,results=hide>>=
+es2 = expresso(Dilution[, 1:2], 
+               bgcorrect.method = "rma",
+               normalize.method = "quantiles", 
+               pmcorrect.method = "pmonly",
+               summary.method   = "medianpolish")
+## extract expression values
+x1 = exprs(es1)
+x2 = exprs(es2) 
+@ 
+
+<<affy3,include=FALSE,fig=TRUE,width=7,height=7>>=
+## graphics output
+par(mfrow=c(2,2), pch=".")
+
+## scatter plot
+plot(x1, main="vsn: chip 3 vs 4")
+plot(x2, main="rma: chip 3 vs 4")
+
+## rank(mean) - difference plot
+ylim = c(-0.7, 0.7)
+plot(rank(rowSums(x1)), diff(t(x1)), ylim=ylim, main="rank(mean) vs differences")
+abline(h=0, col="red")
+
+plot(rank(rowSums(x2)), diff(t(x2)), ylim=ylim, main="rank(mean) vs differences")
+abline(h=0, col="red")
+@
+
+The resulting plots are shown in Fig.~\ref{vsn-affy3}.
+
+\myincfig{vsn-affy3}{\textwidth}{\Rfunction{normalize.AffyBatch.vsn} example}
+
 %---------------------------------------------------------------------
-\section{Calibration} 
+\section{The calibration parameters} 
 %---------------------------------------------------------------------
 If $y_{ki}$ is the matrix of uncalibrated data, with $k$ indexing the
 rows and $i$ the columns, then the calibrated data $y_{ki}'$ is
@@ -264,68 +387,25 @@ rm(oldwarn)
 The factor for the red channel is now about four times as large as
 before.  The result is shown in Fig.~\ref{vsn-nkid-calib4}.
 
-%------------------------------------------------------------
-\section{Running vsn on the data from multiple cDNA arrays} 
-%------------------------------------------------------------
-The package includes example data from a series of 8 cDNA arrays 
-on which different lymphoma were hybridized together with a reference 
-cDNA~\cite{Alizadeh}.
-<<lymphoma>>=
-data(lymphoma)
-dim(exprs(lymphoma))
-pData(lymphoma)
-@
-The 16 columns of the \Rexpression{lymphoma} object contain the red and
-green intensities, respectively, from the 8 slides, as shown in the
-table. Thus, the CH1 intensities are in columns $1, 3, \ldots, 15$,
-the CH2 intensities in columns $2, 4, \ldots, 16$.  We can call
-\Rfunction{vsn} on all of them at once:
-<<lym-sdmean1,results=hide>>=
-lym <- vsn(lymphoma, verbose=FALSE)
-@
-This calculation may take a while. 
-<<lym-sdmean2,include=FALSE,fig=TRUE>>=
-meanSdPlot(lym)
-@
-\myincfig{vsn-lym-sdmean2}{0.5\textwidth}{Standard deviation 
-versus rank of the mean for the lymphoma example data}
-Again, Fig.~\ref{vsn-lym-sdmean2} helps to visually verify that the
-variance stabilization worked.  As above, we can obtain the
-"generalized log-ratios" for each slide, by subtracting the common
-reference intensities from those for the 8 samples:
-<<lym-M,include=FALSE,fig=TRUE,width=8,height=4,results=hide>>=
-refrs <- (1:8)*2-1
-samps <- (1:8)*2
-M <- exprs(lym)[,samps] - exprs(lym)[,refrs] 
-colnames(M) <-  pData(lymphoma)[samps, "sample"]
-A <- rowMeans(exprs(lym))
-par(mfrow=c(1,2))
-plot(A, M[,"CLL-13"], pch=".")
-abline(h=0, col="red")
-plot(A, M[,"DLCL-0032"], pch=".")
-abline(h=0, col="red")
-@
-\myincfig{vsn-lym-M}{\textwidth}{Mean-difference plots for two slides 
-from the lymphoma example data}
-Fig.~\ref{vsn-lym-M} shows the analagon to the $M$-vs-$A$-plots
-as described in reference~\cite{Dudoit578}. Note that in the left
-scatterplot, there is a cloud of points at low intensities that is
-concentrated slightly off the line $M=0$.  In the right scatterplot, a
-similar cloud sits right on the $M=0$ line. This could be related to a
-quality problem with the left slide (e.\,g. related to the PCR
-amplification or the printing, see Section~\ref{sec.qc}).
 
 %-------------------------------------------------------------------
-\section{Comparing calibration and data transformation methods}
+\section{Assessing vsn}
 %-------------------------------------------------------------------
-To compare different microarray calibration and data transformation
-methods one needs to specify a measure of goodness. One approach is to
-compare the obtained values against a known truth. This can be done in
-controlled spike-in experiments and in dilution series, which allow to
-systematically assess the performance of the methods at different
-biologically relevant spike-in concentrations. Like any statistical
-method, one can make different choices with respect to the trade-off
-between bias and variance~\cite{Affycomp}.
+The function \Rfunction{vsn} is a parameter estimation algorithm that fits the
+parameters for a certain model. In order to see how good the estimator is, we
+can look at bias, variance, sample size dependence, robustness against model
+misspecificaton and outliers. This is done in the document
+\texttt{convergence.pdf}, which can be found in the \texttt{doc} subdirectory
+of the package.
+
+Practically, the more interesting question is how different microarray
+calibration and data transformation methods compare to each other. For this,
+one needs to specify a measure of goodness. One approach is to compare the
+obtained values against a known truth. This can be done in controlled spike-in
+experiments and in dilution series, which allow to systematically assess the
+performance of the methods at different biologically relevant spike-in
+concentrations. Like any statistical method, one can make different choices
+with respect to the trade-off between bias and variance~\cite{Affycomp}.
 
 Here, we focus on one particular aspect: the overall sensitivity and
 specificity in detecting differential transcription. The following
@@ -364,7 +444,7 @@ of between- and within-group variability.}
 \end{figure}
 
 <<marraynorm,results=hide>>=
-library(marrayNorm)
+library(marray)
 mr <- new('marrayRaw', maGf=exprs(lymphoma)[,refrs], maRf=exprs(lymphoma)[,samps])
 mn <- maNorm(mr, norm="median", echo=T)
 @
@@ -379,74 +459,6 @@ t2 <- mt.teststat(mn@maM, classlabel)
 qqplot(t1, t2, xlab="t (vsn)", ylab="t (global median)", main="QQ plot", pch=".")
 abline(a=0,b=1,col="blue")
 @
-
-%---------------------------------------------------------
-\section{Running vsn on Affymetrix data} \label{affy}
-%---------------------------------------------------------
-The package \Rpackage{affy} provides excellent functionality for
-reading and processing Affymetrix genechip data. To use
-\Rfunction{vsn} for the calibration and transformation of the probe
-intensities, a wrapper is provided that can be used within the data
-processing routines of \Rpackage{affy}. See the documentation for the
-package \Rpackage{affy} for more information about data structures and
-other available methods. Affymetrix genechips preprocessing involves
-the following steps:
-(i) combining the perfect match (PM) and mismatch 
-(MM) intensities into one number per probe,
-(ii) calibrating,
-(iii) transforming, and
-(iv) summarizing.
-\Rfunction{vsn} addresses the calibration and transformation. We can use 
-the function \Rfunction{expresso} to run the whole process in one go:
-
-<<affy1,results=hide>>=
-library(affy)
-library(affydata)
-data(Dilution)
-## let affy know about vsn
-normalize.AffyBatch.methods <- c(normalize.AffyBatch.methods, "vsn")
-es1 = expresso(Dilution[1:2], 
-               bg.correct       = FALSE,   ## bg correction is done by vsn
-               normalize.method = "vsn",
-               pmcorrect.method = "pmonly", 
-               summary.method   = "medianpolish")
-@
-
-Here, we have ignored the MM values and used \Rfunction{medianpolish} for
-summarization, as in the RMA method~\cite{RMA}. For comparison, let's 
-calculate expression values using another normalization method:
-
-<<affy2,results=hide>>=
-es2 = expresso(Dilution[1:2], 
-               bgcorrect.method = "rma",
-               normalize.method = "quantiles", 
-               pmcorrect.method = "pmonly",
-               summary.method   = "medianpolish")
-## extract expression values
-x1 = exprs(es1)
-x2 = exprs(es2) 
-@ 
-
-<<affy3,include=FALSE,fig=TRUE,width=7,height=7>>=
-## graphics output
-par(mfrow=c(2,2), pch=".")
-
-## scatter plot
-plot(x1, main="vsn: chip 3 vs 4")
-plot(x2, main="rma: chip 3 vs 4")
-
-## rank(mean) - difference plot
-ylim = c(-0.7, 0.7)
-plot(rank(rowSums(x1)), diff(t(x1)), ylim=ylim, main="rank(mean) vs differences")
-abline(h=0, col="red")
-
-plot(rank(rowSums(x2)), diff(t(x2)), ylim=ylim, main="rank(mean) vs differences")
-abline(h=0, col="red")
-@
-
-The resulting plots are shown in Fig.~\ref{vsn-affy3}.
-
-\myincfig{vsn-affy3}{\textwidth}{\Rfunction{normalize.AffyBatch.vsn} example}
 
 %---------------------------------------------------------
 \section{Quality control}\label{sec.qc}
