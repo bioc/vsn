@@ -1,6 +1,6 @@
 Package: vsn
-Version: 1.4.8
-Date: 3 Feb 2004
+Version: 1.4.9
+Date: 9 Mar 2004
 Title: Variance stabilization and calibration for microarray data
 Author: Wolfgang Huber <w.huber@dkfz.de>, contributions from A. von Heydebreck <heydebre@molgen.mpg.de>, Markus Ruschhaupt <m.ruschhaupt@dkfz-heidelberg.de>, D. Kostka <dennis.kostka@molgen.mpg.de>
 Maintainer: Wolfgang Huber <w.huber@dkfz.de>

@@ -456,7 +456,7 @@ First, \Rfunction{vsn} assumes that the measured signal $y_{ik}$
 increases, to sufficient approximation, proportionally to the mRNA
 abundance $c_{ik}$ of gene $k$ on the $i$-th array, or on the $i$-th
 color channel:
-\begin{equation}\label{assumption} 
+\begin{equation}\label{assumption.1} 
 y_{ik}\approx a_i + b_i b_k c_{ik}.  
 \end{equation} 
 For a series of $d$ single-color arrays such as Affymetrix arrays
@@ -472,27 +472,36 @@ For a two-color cDNA array, $i=1,2$, and the $b_i$ take into account
 the different overall efficiencies of the two dyes\footnote{% 
 It has been reported that for some genes the dye bias is different from 
 gene to gene, such that the proportionality factor does not simply factorize 
-as in~(\ref{assumption}). As long as this only occurs sporadically, this 
+as in~(\ref{assumption.1}). As long as this only occurs sporadically, this 
 should not have much effect on the estimation of the calibration and 
 variance stabilization parameters. Further, by using an appropriate 
 experimental design such as color-swap or reference design, the effects of 
 gene-specific dye-biases to subsequent analyses can also be reduced.}.
 
-Situations in which the assumption~(\ref{assumption}) is violated include:
+\paragraph{Systematic effects associated with print-tip, PCR, or 
+probe-sequence} 
+Equation~\ref{assumption.1} can be generalized to
+\begin{equation}\label{assumption.2} 
+y_{ik}\approx a_{is} + b_{is} b_k c_{ik}.  
+\end{equation} 
+that is, the background term $a_{is}$ and the gain factor $b_{is}$ can
+be different for different groups $s$ of probes on an array. For example,
+with cDNA microarray data, it could be advantageous to fit different parameters 
+for each print-tip group of spots, or for groups of spots whose DNA was 
+PCR--amplified and stored in the same microtitre plate. For Affymetrix chips, 
+one can find systematic dependences of the affinities $b_{is}$ or the 
+background terms $a_{is}$ on the probe sequence.
+This can be addressed by using the \Rexpression{strata} argument of 
+the function \Rfunction{vsn}.
+
+Situations in which the assumptions~(\ref{assumption.1}) or ~(\ref{assumption.2}) 
+are violated include:
 
 \paragraph{Saturation.} The biochemical reactions and/or the photodetection 
 can be run in such a manner that saturation effects occur.
 It may be possible to rescue such data by using non-linear transformations. 
 Alternatively, it is recommended that the experimental parameters are 
 chosen to avoid saturation.
-
-\paragraph{Print-tip and PCR effects.} In cDNA microarray data, systematic
-patterns have been observed that are associated with the print-tips
-used for the spotting of DNA, and with the microtitre plates used to
-store and amplify the DNA. Possibly, these effects could be included
-in~(\ref{assumption}) by replacing $a_i$ and $b_i$ by print-tip and/or
-plate specific coefficients, but presently \Rfunction{vsn} does not
-include this option.
 
 \paragraph{Batch effects.} The probe affinities $b_k$ may differ between
 different manufacturing batches of arrays due, e.g., to different
