@@ -26,11 +26,14 @@ An object of class \code{AffyBatch}.
 
   data(affybatch.example)
   es = expresso(affybatch.example,
-  	pmcorrect.method = "subtractmm",
+  	pmcorrect.method = "pmonly",
         bgcorrect.method = "none",
         normalize.method = "vsn",
-        normalize.param  = list(lts.quantile=0.55, niter=4),
+        normalize.param  = list(lts.quantile=0.5, niter=4),
         summary.method   = "avgdiff", verbose = TRUE)
+
+  ## note: if you want to use another summary method, please make 
+  ## sure that it does not take the logarithm!
 
   plot(exprs(es))
 }

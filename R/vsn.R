@@ -8,13 +8,13 @@ require(Biobase) || stop("can't load without package \"Biobase\"")
 ##------------------------------------------------------------
 ## vsn: the main function of this library
 ##------------------------------------------------------------
-vsn <-  function(intensities, lts.quantile=0.75, niter=10, verbose=TRUE, pstart=NULL) {
+vsn <-  function(intensities, lts.quantile=0.5, niter=8, verbose=TRUE, pstart=NULL) {
   ## check lts.quantile for plausibility
-  if (!is.numeric(lts.quantile) || (length(lts.quantile)!=1) || (lts.quantile<=0.5) || lts.quantile>1)
+  if (!is.numeric(lts.quantile) || (length(lts.quantile)!=1) || (lts.quantile<0.5) || lts.quantile>1)
     stop(paste("invalid argument lts.quantile, expecting scalar between 0.5 and 1, but found", lts.quantile))
   ## check niter for plausibility
-  if (!is.numeric(niter) || (length(niter)!=1) || (niter<4))
-    stop(paste("invalid argument niter, expecting a single positive integer >=4 but found", niter))
+  if (!is.numeric(niter) || (length(niter)!=1) || (niter<1))
+    stop(paste("invalid argument niter, expecting a single positive integer >=1 but found", niter))
   ## check pstart for plausibility
   if (!is.null(pstart))
     if (!is.numeric(pstart) || length(pstart) != 2*d || any(is.na(pstart)) ||
@@ -29,15 +29,15 @@ vsn <-  function(intensities, lts.quantile=0.75, niter=10, verbose=TRUE, pstart=
                         stop("argument intensities must be numeric")
                      intensities
                    },
-    data.frame  = {  if (!all(sapply(intensities, is.numeric)))
+     data.frame = {  if (!all(sapply(intensities, is.numeric)))
                        stop("argument intensities has non-numeric columns")
                      as.matrix(intensities)
                   },
-    exprSet     = { tmp <- exprs(intensities)
+     exprSet    = { tmp <- exprs(intensities)
                     colnames(tmp) <- rownames(pData(intensities))
                     tmp
                   },
-    marrayRaw   = { nrslides <- ncol(intensities@maRf)
+     marrayRaw  = { nrslides <- ncol(intensities@maRf)
                     nrspots  <- nrow(intensities@maRf)
                     if (verbose)
                       cat(sprintf("Converting marrayRaw (%d spots, %d slides) to %dx%d matrix.\n",
@@ -64,17 +64,6 @@ vsn <-  function(intensities, lts.quantile=0.75, niter=10, verbose=TRUE, pstart=
   nrs <- ncs <- as.integer(0)   
   ssq    <- 0.0
   last.p <- numeric(2*ncol(y))
-  
-  #----------------------------------------------------------
-  # affine linear transformation according to p
-  # output: transformed data, same size as y
-  #----------------------------------------------------------
-  at <- function(p) {
-    stopifnot(all(!is.na(p)) & 2*ncol(y)==length(p))   # be paranoid
-    offs <- matrix(p[         1  :  ncol(y) ], nrow=nrow(y), ncol=ncol(y), byrow=TRUE)
-    facs <- matrix(p[(ncol(y)+1):(2*ncol(y))], nrow=nrow(y), ncol=ncol(y), byrow=TRUE)
-    return(asinh(offs + facs * y))
-  }
   
   #----------------------------------------------------------
   # Profile log likelihood of the model
@@ -138,7 +127,8 @@ vsn <-  function(intensities, lts.quantile=0.75, niter=10, verbose=TRUE, pstart=
     ## immediately after a call to the objective (fn) at the same parameter values.
     ## Anyway, we like to doublecheck
     if(any(p!=last.p)) {
-	cat("Sanity checks for parameters p failed at entry of function grllat()!\n")
+	cat("Error: function grllat (likelihood-gradient) was called with different\n")
+        cat("parameters than the previous call of llat (likelihood-value).\n")
 	cat("Starting browser() to enable debugging!\n")
         browser()
     }
@@ -165,44 +155,37 @@ vsn <-  function(intensities, lts.quantile=0.75, niter=10, verbose=TRUE, pstart=
   if (is.null(pstart))
     pstart <- c(rep(0,ncol(y)), pscale[(ncol(y)+1):(2*ncol(y))])
 
-  # if(verbose) 
-  #   cat("pscale:", pscale, "\npstart:", pstart, "\nplower:", plower, "\n", sep="\t")
+  ## if(verbose) 
+  ##   cat("pscale:", pscale, "\npstart:", pstart, "\nplower:", plower, "\n", sep="\t")
   
-  control  <- list(trace=0, maxit=4000, parscale=pscale)
+  control     <- list(trace=0, maxit=4000, parscale=pscale)
   optim.niter <- 10
 
-  # a place to save the trajectory of estimated parameters along the iterations:
+  ## a place to save the trajectory of estimated parameters along the iterations:
   params  <- matrix(NA, nrow=length(pscale), ncol=niter)
 
   sel <- rep(TRUE, nrow(y))
   for(lts.iter in 1:niter) {
-    ## To save time, do in the beginning not fit with the full data set, but only
-    ## with smaller random subsets. Later, go up to use full data.
-    nrsel <- length(which(sel))
-    nrsub <- max(1000, nrsel*lts.iter/niter) ## at least 1000
-    if (nrsub < nrsel)
-      sel[sel][runif(nrsel) > (nrsub/nrsel)] <- FALSE
-    ## cat("lts.iter=", lts.iter, "nsel=", length(which(sel)), "\n")
-    
     sy <- y[sel,]
     p0 <- pstart
     for (optim.iter in 1:optim.niter) {
       o  <- optim(par=p0, fn=llat, gr=grllat, method="L-BFGS-B",
                 control=control, lower=plower)
       if (o$convergence==0) next
-      
-      cat("o$convergence=", o$convergence, ": ", o$message, "\n", sep="")
+
+      if (verbose)
+        cat("o$convergence=", o$convergence, ": ", o$message, "\n", sep="")
       if(o$convergence==52) {
-        # ABNORMAL_TERMINATION_IN_LNSRCH
-        # This seems to indicate that a stepwidth to go along the gradient could not be found,
-        # probably because the start point p0 was already right at the optimum. Hence, try
-        # again from a slightly different start point
+        ## ABNORMAL_TERMINATION_IN_LNSRCH
+        ## This seems to indicate that a stepwidth to go along the gradient could not be found,
+        ## probably because the start point p0 was already right at the optimum. Hence, try
+        ## again from a slightly different start point
         cat("lts.iter=", lts.iter, "optim.iter=", optim.iter, "pstart was", p0, "now trying ")
         p0 <- p0 + runif(length(pstart), min=0, max=0.01) * pscale 
         cat(p0, "\n")
       } else if(o$convergence==1) {
-        # This seems to indicate that the max. number of iterations has been exceeded. Try again
-        # with more
+        ## This seems to indicate that the max. number of iterations has been exceeded. Try again
+        ## with more
         cat("lts.iter=", lts.iter, "optim.iter=", optim.iter, "maxit was", control$maxit, "now trying ")
         control$maxit <- control$maxit*2
         cat(control$maxit, "\n")
@@ -238,9 +221,8 @@ vsn <-  function(intensities, lts.quantile=0.75, niter=10, verbose=TRUE, pstart=
     
     params[,lts.iter] <- pstart <- o$par
   }
-  hy = at(o$par)
-  dimnames(hy) = dimnames(y)
-  return(new("vsn.result", h=hy, params=params, sel=sel))
+
+  return(new("vsn.result", h=vsnh(y, o$par), params=params, sel=sel))
 }
 
 ##-----------------------------------------------------------------
@@ -483,9 +465,12 @@ nchoosek <- function(n, k) {
   return(res)
 }
 
-#-----------------------------------------------------------
-# the "arsinh" transformation
-#-----------------------------------------------------------
+##---------------------------------------------------------------------
+## the "arsinh" transformation
+## Note: an overall additive constant has no effect on the Delta-h, i.e.
+## on the differences between transformed intensities. We choose the 
+## additive constant such that h_1(y) \approx log(y) for y\to\infty.
+##---------------------------------------------------------------------
 vsnh <- function(y, p) {
   if (!is.matrix(y) || !is.numeric(y))
     stop("vsnh: argument y must be a numeric matrix.\n")
@@ -496,7 +481,9 @@ vsnh <- function(y, p) {
 
   offs <- matrix(p[         1  :  ncol(y) ], nrow=nrow(y), ncol=ncol(y), byrow=TRUE)
   facs <- matrix(p[(ncol(y)+1):(2*ncol(y))], nrow=nrow(y), ncol=ncol(y), byrow=TRUE)
-  return(asinh(offs + facs * y))
+  hy   <- asinh(offs + facs * y) - log(2*facs[1])
+  dimnames(hy) = dimnames(y)
+  return(hy)
 }
 
 #----------------------------------------------------------------------------------------
