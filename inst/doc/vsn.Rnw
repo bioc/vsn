@@ -475,7 +475,7 @@ for (i in seq(along=de)) {
 par(mfrow=c(1,2))
 for (i in seq(along=de)) {
   matplot(n, res[,,i], pch=20, log="xy", col="#909090", main=paste("de=", de[i]))
-  lines(n, rowMeans(res), col="blue")
+  lines(n, rowMeans(res[,,i]), col="blue")
 }
 @
 \myincfig{vsn-sagmb-show}{\textwidth}{Estimation error for the transformation:
