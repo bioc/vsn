@@ -69,9 +69,7 @@ vsn <- function(intensities,
   ## Print welcome message
   if (verbose)
     cat("vsn: ", nrow(y), " x ", d, " matrix (", nrstrata, " strat",
-        ifelse(nrstrata==1, "um", "a"), "). Please wait for ",
-        niter, " dots: ", sep="")
-
+        ifelse(nrstrata==1, "um", "a"), ").  0% done.", sep="")
 
   ##---------------------------
   succeed <- FALSE
@@ -198,7 +196,8 @@ vsn <- function(intensities,
            "\nPlease contact the package maintainer.\n"))
 
     if(verbose)
-      cat(".")
+      cat("\b\b\b\b\b\b\b\b\b", sprintf("%2d", as.integer(round((1-((lts.iter-niter)/niter)^2)*100))),
+          "% done.", sep="")
 
     ## selection of points in a LTS fashion:
     ## calculate residuals

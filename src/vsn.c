@@ -11,6 +11,7 @@
 #include <Rdefines.h>
 
 #include <R_ext/Applic.h>         /* for lbfgsb */
+#include <R_ext/Utils.h>          /* for R_CheckUserInterrupt */
 extern double asinh(double);
 
 /* #define VSN_DEBUG */
@@ -50,6 +51,8 @@ double optfn(int n, double *par, void *ex)
   int i, j;
   int nr, nc;
   vsn_data *px;
+
+  R_CheckUserInterrupt();
 
   px   = (vsn_data*) ex;
   offs = par;
