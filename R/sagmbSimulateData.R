@@ -4,7 +4,7 @@
 ## shape parameter a=1, scale theta=1
 ## see also view.gammadistr.R
 ##------------------------------------------------------------
-sagmbSimulateData <- function(n=8064, d=2, de=0, up=0.5) {
+sagmbSimulateData <- function(n=2304, d=2, de=0, up=0.5) {
   stopifnot(is.numeric(n),  length(n)==1,
             is.numeric(d),  length(d)==1,
             is.numeric(de), length(de)==1,

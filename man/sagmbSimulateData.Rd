@@ -5,7 +5,7 @@
 \description{Functions to validate and assess the performance of vsn
   through simulation of data.}
 \usage{
-sagmbSimulateData(n=8064, d=2, de=0, up=0.5)
+sagmbSimulateData(n=2304, d=2, de=0, up=0.5)
 sagmbAssess(h1, sim)
 }
 \arguments{
