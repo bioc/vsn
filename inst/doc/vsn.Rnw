@@ -1,4 +1,7 @@
 %\VignetteIndexEntry{vsn}
+%\VignetteDepends{Biobase,vsn,multtest,marrayNorm}
+%\VignetteKeywords{Expression Analysis}
+
 \documentclass{article}
 
 \usepackage{hyperref}
