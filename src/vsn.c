@@ -13,7 +13,6 @@
 #include <R.h>
 #include <Rdefines.h>
 #include <math.h>
-#include <values.h>
 
 /* #define VSN_DEBUG */
 #undef VSN_DEBUG 
