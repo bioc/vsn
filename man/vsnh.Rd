@@ -1,8 +1,8 @@
 \name{vsnh}
 \alias{vsnh}
-\title{Variance stabilizing transformation for microarray data.}
+\title{A function that transforms a matrix y of microarray intensities according to h_i(y_ki)=asinh(a_i+b_i*y_ki).}
 \description{
-  Returns h(y), where h is a calibration and variance stabilization transformation with parameters p.
+  Returns h(y), where h is a calibration and variance stabilization transformation
 }
 \usage{
 vsnh(y, p)

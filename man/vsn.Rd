@@ -1,6 +1,6 @@
 \name{vsn}
 \alias{vsn}
-\title{Variance stabilization and calibration for microarray data}
+\title{Variance stabilization and calibration for microarray data. This is the main function of this package; see also the vignette vsn.pdf.}
 \description{Robust estimation of variance-stabilizing and calibrating transformations for microarray data}
 \usage{vsn(intensities, lts.quantile=0.75, niter=10, verbose=TRUE, pstart=NULL)}
 \arguments{
