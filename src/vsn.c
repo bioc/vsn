@@ -11,7 +11,6 @@
 #include <Rdefines.h>
 
 #include <R_ext/Applic.h>         /* for lbfgsb */
-#include <../src/include/Defn.h>  /* for asinh  */
 
 /* #define VSN_DEBUG */
 #undef VSN_DEBUG
