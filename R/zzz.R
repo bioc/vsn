@@ -3,6 +3,6 @@
   library.dynam(pkgname, pkgname, lib)
   if(.Platform$OS.type == "windows" && require(Biobase) && interactive()
         && .Platform$GUI ==  "Rgui"){
-        addPDF2Vig("vsn")
+        addVigs2WinMenu("vsn")
     }
 }
