@@ -1,8 +1,8 @@
 \name{log.na}
 \alias{log.na}
-\title{Wrapper around the log function from base that avoids warnings
+\title{Wrapper around the log() function that avoids warnings
   when negative values are presented}
-\description{Wrapper around the log function from base that avoids warnings
+\description{Wrapper around the log() function that avoids warnings
   when negative values are presented}
 \usage{
 log.na(x, ...)

@@ -1,12 +1,8 @@
 \name{vsnh}
 \alias{vsnh}
-\title{A function that transforms a matrix y of microarray intensities}
-\description{
-  Returns h(y), where h is a calibration and variance stabilization transformation
-}
-\usage{
-vsnh(y, p)
-}
+\title{A function that transforms a matrix of microarray intensities}
+\description{A function that transforms a matrix of microarray intensities}
+\usage{vsnh(y, p)}
 \arguments{
   \item{y}{A numeric matrix containing intensity values from an array experiment. 
     It may contain NA values.}
@@ -34,7 +30,7 @@ calibration and to the quantification of differential expression,
 Wolfgang Huber, Anja von Heydebreck, Holger Sueltmann, Annemarie
 Poustka, Martin Vingron; Bioinformatics (2002) 18 Suppl.1 S96-S104.}
 
-\author{Wolfgang Huber \url{http://www.dkfz.de/abt0840/whuber}}
+\author{Wolfgang Huber \url{http://www.dkfz.de/mga/whuber}}
 \seealso{ \code{\link{vsn}} }
 
 \examples{
