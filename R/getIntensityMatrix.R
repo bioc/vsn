@@ -43,7 +43,7 @@ getIntensityMatrix = function(intensities, verbose) {
                "(Huber et al., Bioinformatics 18 (2002) S96-S104).\n"))
 
   if(is.integer(y))
-    y <- matrix(as.double(y), nrow=nrow(y), ncol=ncol(y))
+    y <- y+0.0 ## convert to double
 
   return(y)
 }
