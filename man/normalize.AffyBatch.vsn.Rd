@@ -4,7 +4,7 @@
 \description{Wrapper for \code{\link{vsn}} to be used as a normalization method in the package affy}
 \usage{normalize.AffyBatch.vsn(abatch, subsample=20000, niter = 4, ...)}
 \arguments{
-  \item{abatch}{An \code{\link{AffyBatch}} (see documentation of package \code{affy}).}
+  \item{abatch}{An object of type \code{\link[affy:AffyBatch-class]{AffyBatch}}.}
   \item{subsample}{The number of probes to be sampled for the fit of the transformation parameters.}
   \item{niter}{Parameter passed on to \code{\link{vsn}}.}
   \item{...}{Further parameters for \code{\link{vsn}}.}
@@ -21,12 +21,13 @@
   base 2 needs to be taken.
 }
 
-\value{An object of class \code{\link{AffyBatch}}.}
+\value{An object of class \code{\link[affy:AffyBatch-class]{AffyBatch}}.}
 \author{Wolfgang Huber \url{mailto:w.huber@dkfz.de}}
 
 \seealso{\code{\link{vsn}}}
 \examples{
 library(affy)
+library(affydata)
 data(Dilution)
 
 ## let affy know about vsn

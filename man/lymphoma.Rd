@@ -17,19 +17,20 @@
 
 \details{
 The following chip intensity files were downloaded from the Stanford
-microarray database (see link below), and following the links
+microarray database. Starting from the link below, follow the links
 \emph{Published Data}, \emph{Alizadeh AA, et al. (2000) Nature
-  403(6769):503-11}
-\verbatim{
--rw-r--r--    1 whuber    599246 Oct 23 13:01 lc7b019rex.DAT.gz
--rw-r--r--    1 whuber    625496 Oct 23 13:01 lc7b047rex.DAT.gz
--rw-r--r--    1 whuber    616576 Oct 23 13:01 lc7b048rex.DAT.gz
--rw-r--r--    1 whuber    611138 Oct 23 13:01 lc7b056rex.DAT.gz
--rw-r--r--    1 whuber    606123 Oct 23 13:01 lc7b057rex.DAT.gz
--rw-r--r--    1 whuber    608323 Oct 23 13:01 lc7b058rex.DAT.gz
--rw-r--r--    1 whuber    607160 Oct 23 13:01 lc7b069rex.DAT.gz
--rw-r--r--    1 whuber    598929 Oct 23 13:01 lc7b070rex.DAT.gz
+  403(6769):503-11}, \emph{Raw Data}. Then unpack to obtain
+\tabular{l}{
+lc7b019rex.DAT\cr
+lc7b047rex.DAT\cr
+lc7b048rex.DAT\cr
+lc7b056rex.DAT\cr
+lc7b057rex.DAT\cr
+lc7b058rex.DAT\cr
+lc7b069rex.DAT\cr
+lc7b070rex.DAT
 }}
+
 \references{A. Alizadeh et al., Distinct types of diffuse large B-cell lymphoma 
 identified by gene expression profiling. Nature 403(6769):503-11, Feb 3, 2000.}
 
