@@ -16,7 +16,7 @@
     Intensities may be "background" subtracted.
     For one-color arrays, each row corresponds to a probe, and each
     column to an array. The statistical model 
-    implemented by this function expects the "raw" intensity data, 
+    implemented by this function expects the raw intensity data, 
     not logarithmically or otherwise transformed, and not thresholded
     or "floored". NAs are not accepted.}
   \item{lts.quantile}{The quantile that is used for the resistant least
@@ -27,13 +27,13 @@
     iterative algorithm is printed.}
   \item{pstart}{Initial values for the model parameters in the iterative
     parameter estimation algorithm. If NULL, the function tries to determine
-    reasonable values from the distribution of y.}
+    reasonable values from the distribution of \code{intensities}.}
 }
 
 \details{
 The fit algorithm assumes that after a suitable affine-linear
 transformation ("calibration") of each column, for the majority of rows
-it holds true that the intensities from a row can be considered
+it holds true that the intensities within a row can be considered
 replicate measurements of each other. The parameters of the calibration
 as well as those of the variance stabilizing transformation are fitted
 by maximum likelihood to these data.
@@ -50,12 +50,16 @@ Allowed values for lts.quantile are between 0.5 and 1, corresponding to
 least median sum of squares regression, and to ordinary least sum of
 squares regression, respectively.
 
-This function is slow! This is due to the nested iteration loops of
-numerical optimization of the likelihood function, and heuristic
-determination of the non-outlying data points in the least trimmed
-squares regression. You may want to try it out using only a subset of
-the data (subset of spots, or arrays), and then let it run over the full
-data set once it is reasonable to expect that it is worth the while.
+\bold{Performance:} This function is slow. That is due to the nested
+iteration loops of numerical optimization of the likelihood function,
+and the heuristic that identifies the non-outlying data points in the
+least trimmed squares regression. For large arrays with many tens of
+thousands of spots, you may want to consider random subsetting: that is,
+only use a subset of the e.g. 10-20,000 rows of the data matrix
+\code{intensities} to fit the parameters, then apply the transformation
+to all the data, using \code{\link{vsnh}}. An example for this can be
+seen in the function \code{\link{normalize.AffyBatch.vsn}}, whose code
+you can inspect by typing \code{\link{normalize.AffyBatch.vsn}}.
 }
 
 \value{  
