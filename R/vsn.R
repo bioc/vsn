@@ -9,7 +9,7 @@ require(Biobase) || stop("Cannot load without package \"Biobase\"")
 ## vsn: the main function of this library
 ##------------------------------------------------------------
 vsn = function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=NULL) {
-  ## Bureaucracy step 1: make sure are the arguments are valid plausible
+  ## Bureaucracy step 1: make sure are the arguments are valid and plausible
   mess =  badarg = NULL
   if (!is.numeric(lts.quantile) || (length(lts.quantile)!=1) ||
      (lts.quantile<0.5) || (lts.quantile>1)) {
@@ -70,16 +70,19 @@ vsn = function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=NUL
   if (any(is.na(y))) {
     badarg = "intensities"
     mess   = paste("It must not contain NA values.\n",
-             "Consider calling vsn on a subset of data where all values are defined,\n",
-             "and then use vsnh.\n")
+             "This could indicate that the input data has already undergone some\n",
+             "thresholding or transformation (log?), and may not satisfy the\n",
+             "requirements of the multiplicative-additive noise model.\n",
+             "Otherwise, consider calling vsn on a subset of data where all values\n",
+             "are defined, and then use vsnh.\n")
   }
 
   ## Error handling
   if(!is.null(mess)) {
     if(badarg=="intensities") {
-      mess = paste("The argument", badarg, "has an invalid value.\n", mess, "\n", sep="")
+      mess = paste("The argument ", badarg, " has an invalid value.\n", mess, "\n", sep="")
     } else {
-      mess = paste("The argument", badarg, "has an invalid value:", get(badarg), "\n", mess, "\n", sep="")
+      mess = paste("The argument ", badarg, " has an invalid value:", get(badarg), "\n", mess, "\n", sep="")
     }
     stop(mess)
   }
@@ -119,32 +122,27 @@ vsn = function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=NUL
   ## Profile Log-Likelihood
   ##----------------------------------------------------------
   ll = function(p) {
-    ## st = system.time( {
-    
-    assign("p",     p,                        envir=ws)
-    assign("offs",  with(ws, p[ 1:ncs     ]), envir=ws)
-    assign("facs",  with(ws, p[(1:ncs)+ncs]), envir=ws)
+    assign("p", p, envir=ws)
+    with(ws, {
+      offs = p[ 1:ncs     ]
+      facs = p[(1:ncs)+ncs]
 
-    ## sy is an nxd matrix, offs and facs are d-vectors
-    ## the cycling goes column-wise, hence transpose!
-    assign("ly",    with(ws, offs + facs * t(sy)), envir=ws)
-    assign("asly",  with(ws, t(asinh(ly))),        envir=ws)
+      ## sy is an nxd matrix, offs and facs are d-vectors
+      ## the cycling goes column-wise, hence transpose!
+      ly   = offs + facs * t(sy)
+      asly = t(asinh(ly))
     
-    ## residuals
-    assign("res",  with(ws, asly - rowMeans(asly)), envir=ws)
-    assign("ssq",  with(ws, sum(res*res)),          envir=ws)
-    rv  =  with(ws, nrs*ncs/2*log(ssq) - sum(log(facs/sqrt(1+ly*ly))))
-
-    ## } )
-    ## assign("timell", c(get("timell", ws), st[1]), envir=ws)
-    return(rv)
+      ## residuals
+      res = asly - rowMeans(asly)
+      ssq = sum(res*res)
+      rv  = nrs*ncs/2*log(ssq) - sum(log(facs/sqrt(1+ly*ly)))
+    } )
+    return(get("rv", ws))
   }
   ##--------------------------------------------------------------
   ## Gradient of the profile log likelihood
   ##--------------------------------------------------------------
   grll <- function(p) {
-    ## st = system.time( {
-      
     ## Generally, optim() will call the gradient of the objective function (gr)
     ## immediately after a call to the objective (fn) at the same parameter values.
     ## Anyway, we like to doublecheck
@@ -152,19 +150,18 @@ vsn = function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=NUL
       mess = paste(
         "\n\n\The function grll (likelihood-gradient) was called with different\n",
         "parameters than the previous call of ll (likelihood-value).\n",
-        "This should never happen. Please contact package maintainer.\n\n\n")
+        "This should never happen. Please contact package maintainer at\n",
+        "w.huber@dkfz.de\n\n")
       error(mess)
     }
-    assign("dhda",      with(ws, 1/sqrt(1+ly*ly)),                        envir=ws)
-    assign("dlndhdyda", with(ws, -ly/(1+ly*ly)),                          envir=ws)
-    assign("gra",       with(ws, nrs*ncs/ssq*res*t(dhda) - t(dlndhdyda)), envir=ws)
-    rv = with(ws, c(colSums(gra), colSums(gra*sy) - nrs/p[(ncs+1):(ncs*2)]))
-    
-    ## } )
-    ## assign("timegrll", c(get("timegrll", ws), st[1]), envir=ws)
-    return(rv)
+    with(ws, {
+      dhda      = 1/sqrt(1+ly*ly)
+      dlndhdyda = -ly/(1+ly*ly)
+      gra       = nrs*ncs/ssq*res*t(dhda) - t(dlndhdyda)
+      rv        = c(colSums(gra), colSums(gra*sy) - nrs/p[(ncs+1):(ncs*2)])
+    } )
+    return(get("rv", ws))
   }
-
   ##----------------------------------------------------------------------
   ## guess a parameter scale, set boundaries for optimization,
   ## and, if they are not user-supplied, set the start parameters
