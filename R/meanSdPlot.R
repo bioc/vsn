@@ -28,8 +28,8 @@ meanSdPlot = function(x, ranks=TRUE,
   rpx  = rank(px, na.last=FALSE)
   
   ltsq = length(which(sel))/length(sel)
-  ## running quantile of width 2*dm
-  dm        = 0.1
+  ## running median with centers at dm, 2*dm, 3*dm, ... and width 2*dm
+  dm        = 0.05
   midpoints = seq(dm, 1-dm, by=dm)
   within    = function(x, x1, x2) { x>=x1 & x<=x2 }
   rq.sds    = lapply(midpoints, function(mp) median(py[within(rpx/n, mp-dm, mp+dm)]))

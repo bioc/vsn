@@ -133,7 +133,7 @@ if(interactive()) {
   par(mfrow=c(1,2))
 }
 
-ry = lymphoma[, 3:4]  ## raw intensities
+ry = lymphoma[, 3:4]  ## raw intensities of 1st slide
 ny = vsn(exprs(ry))   ## transformed and calibrated
 
 plot(exprs(ry)+5, pch=".", main="log-log", log="xy")

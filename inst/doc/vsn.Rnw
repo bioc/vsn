@@ -37,26 +37,28 @@
 \section*{Introduction}
 %------------------------------------------------------------
 \code{vsn} is a method to preprocess DNA microarray intensity data. As
-input, the function \code{vsn} takes the net intensity measurements
+input, the function \code{vsn} takes the raw intensity measurements
 from the DNA probes on a series of microarrays. The intensities from
-each array are calibrated by a suitable affine transformation. After
-this, the whole data are subject to a variance-stabilizing
-transformation $h$. On the transformed scale, the variance of the data
-is approximately independent of the mean intensity. This is useful for
-subsequent analyses such as $t$- or related tests or for ANOVA
-analyses that assume that the variance is the same for all
-observations\footnote{% 
-Note that \code{vsn} only addresses the dependence of the variance 
-on the mean intensity. There may be other factors influencing the 
-variance, such as gene-inherent properties, or changes of the 
-tightness of transcriptional control in different conditions. 
-If they are non-negligible, they need to be addressed by other 
-methods.}.
-The function returns the transformed intensities in a matrix of the
-same size as the input data. Differences between the transformed 
-values may be considered "generalized log-ratios"
-in the following sense: for high intensities, 
-$h(x_i)-h(x_j)\approx\log(x_i)-\log(x_j)=\log(x_i/x_j)$~\cite{HuberISMB2002,HSG2002}. 
+each array are calibrated by a suitable affine transformation, then
+transformed by a variance-stabilizing transformation.  After this,
+systematic array- or dye-biases should be removed, and the variance
+should be approximately independent of the mean intensity.  This is
+useful for subsequent analyses such as hypothesis tests, ANOVA
+modeling, clustering or classification that assume that the variance
+is the same for all observations\footnote{% 
+  Note that \code{vsn} only addresses the dependence of the variance
+  on the mean intensity. There may be other factors influencing the
+  variance, such as gene-inherent properties, or changes of the
+  tightness of transcriptional control in different conditions.  If
+  necessary, these need to be addressed by other methods.}.  
+Differences between the transformed values are the
+so-called "generalized log-ratios".  If both numerator and denominator
+are well above background, generalized log-ratios coincide with the
+usual log-ratios:
+$h(x_i)-h(x_j)\approx\log(x_i)-\log(x_j)=\log(x_i/x_j)$ if $x_i,
+x_j\gg0$~\cite{HuberISMB2002,HSG2002}. In contrast to log-ratios,
+they remain well-defined and statistically meaningful if $x_i$ or
+$x_j$ are close to zero.
 
 %------------------------------------------------------------
 \section{Example data} 
@@ -99,113 +101,128 @@ in the function \code{expresso} in the package
 Let's try out \code{vsn} on this example data.
 To save time, we run it on the intensities from one slide only, 
 say lc7b048:
-<<ny1-scp,include=FALSE,fig=TRUE>>=
-ny = vsn(lymphoma[, 3:4])
-plot(exprs(ny), pch = ".")
+%------------------------------------------------------------
+<<a-scp,echo=FALSE,results=hide,include=FALSE,fig=TRUE>>=
+if(!exists("a")) 
+  a = vsn(lymphoma[, 3:4])
+plot(exprs(a), pch = ".")
 @
-\myincfig{vsn-ny1-scp}{85mm}
-The result is shown in Fig.~\ref{vsn-ny1-scp}.
-The slot \code{h} of the returned object \code{ny} is an $n\times d$ 
-matrix $h_{ki}$ with the calibrated and transformed data. Note that 
-the plot shows the complete set of $n=9216$ red and green intensities, 
-without any thresholding or deletion of data points.
-To verify the variance stabilization, there is a plot method for 
-\code{vsn} objects, which for each probe $k$ shows the estimated 
-standard deviation $\hat{\sigma}_k$ on the $y$-axis versus the 
-rank of the average $\hat{\mu}_k$ on the $x$-axis,
+<<a-scp-show,eval=FALSE>>=
+a = vsn(lymphoma[, 3:4])
+plot(exprs(a), pch = ".")
+@
+\myincfig{vsn-a-scp}{85mm}
+%------------------------------------------------------------
+The function returns the transformed intensities in an object of class
+\code{exprSet}. Its slot \code{exprs} is a matrix of the same size as
+the input data.  The plot in Fig.~\ref{vsn-a-scp} shows the complete
+set of $n=9216$ red and green intensities, without any thresholding or
+masking of data points.  To verify the variance stabilization, there
+is the function \code{meanSdPlot}. For each probe $k=1,\ldots,n$
+it shows the estimated standard deviation $\hat{\sigma}_k$ on the
+$y$-axis versus the rank of the average $\hat{\mu}_k$ on the $x$-axis,
 \begin{equation}
 \hat{\mu}_k   =\frac{1}{d}  \sum_{i=1}^d h_{ki}\quad\quad
 \hat{\sigma}_k=\frac{1}{d-1}\sum_{i=1}^d (h_{ki}-\hat{\mu}_k)^2.
 \end{equation}
-<<ny1-sdmean,include=FALSE,fig=TRUE,width=8,height=4,results=hide>>=
+%------------------------------------------------------------
+<<a-sdmean,include=FALSE,fig=TRUE,width=8,height=4,results=hide>>=
 par(mfrow=c(1,2))
-plot(ny, ranks=TRUE)
-plot(ny, ranks=FALSE)
+meanSdPlot(a, ranks=TRUE)
+meanSdPlot(a, ranks=FALSE)
 @
-\myincfig{vsn-ny1-sdmean}{\textwidth}
-Such a plot is shown in Fig.~\ref{vsn-ny1-sdmean}.
+\myincfig{vsn-a-sdmean}{\textwidth}
+%------------------------------------------------------------
+Such a plot is shown in Fig.~\ref{vsn-a-sdmean}.
 The blue dots, connected by lines, show the running median of the standard 
-deviation\footnote{Windows width: 20\%, window midpoints 10\%, 20\%, \ldots.}.
+deviation\footnote{Window width: 10\%, window midpoints 5\%, 10\%, 15\%, \ldots.}.
 Within each window, the median may be considered a pooled estimator of the standard 
 deviation, and the curve given by the blue lines is an estimate
 of the systematic dependence of the standard deviation on the mean. After 
-variance stabilization, this should simply be a horizontal line.
+variance stabilization, this should be approximately a horizontal line.
+It may have some random fluctuations, but should not show an overall trend. 
 If this is not the case, that probably indicates a data quality 
 problem, see Section~\ref{sec.qc}. The rank ordering distributes the data 
 evenly along the $x$-axis, which is in many cases useful for the visualization. 
 A plot in which the $x$-axis shows the average intensities themselves is 
 obtained by calling the \code{plot} command with the argument \code{ranks=FALSE}.
 
-The parameter estimation in \code{vsn} works in an iterative manner. 
-To verify that the iterations have converged, you can call the plot 
-method with the option \code{what}.
-%%%--------iterations
-<<ny1-iter,include=FALSE,fig=TRUE,width=8,height=4,results=hide>>=
+The parameter estimation in \code{vsn} works in an iterative manner.
+To verify that the iterations have converged, you can call the
+function \code{vsnPlotPar}.
+%------------------------------------------------------------
+<<a-iter,include=FALSE,fig=TRUE,width=8,height=4,results=hide>>=
 par(mfrow=c(1,2))
-plot(ny, what="offsets")
-plot(ny, what="factors")
+vsnPlotPar(a, "offsets")
+vsnPlotPar(a, "factors")
 @
-\myincfig{vsn-ny1-iter}{0.75\textwidth}
-The plots in Fig.~\ref{vsn-ny1-iter}
-show the values of the estimated calibration and variance 
-stabilization parameters on the $y$-axis as a function of the iteration index. All 
-curves should reach a plateau well before the last iteration. If this 
-is not the case, the number of iterations may be increased through 
-the parameter \code{iter}, and/or \code{lts.quantile} may be decreased,
-but more likely, it indicates a data quality problem, see 
-Section~\ref{sec.qc}.
+\myincfig{vsn-a-iter}{0.75\textwidth}
+%------------------------------------------------------------
+The plots in Fig.~\ref{vsn-a-iter} show the values of the estimated
+calibration and variance stabilization parameters on the $y$-axis as a
+function of the iteration index. All curves should reach a plateau
+well before the last iteration. If this is not the case, the number of
+iterations may be increased through the parameter \code{iter}, and/or
+\code{lts.quantile} may be decreased, but more likely, it indicates a
+data quality problem, see Section~\ref{sec.qc}.
 
 The "generalized log-ratios"~\cite{HuberISMB2002} for this experiment
 may be obtained for further processing through
-The histogram is shown in the left panel of Fig.~\ref{vsn-ny1}.
-%%%-------histogram of M
-<<ny1-M,include=FALSE,fig=TRUE,results=hide>>=
-M <- ny@h[,2] - ny@h[,1] 
+%------------------------------------------------------------
+<<a-histM,include=FALSE,fig=TRUE,results=hide>>=
+M <- exprs(a)[,2] - exprs(a)[,1] 
 hist(M, breaks=50)
 @
-\begin{figure}[htbp]
-  \begin{center}
-    \includegraphics[width=0.45\textwidth]{vsn-ny1-M}
-    \includegraphics[width=0.45\textwidth]{vsn-ny2-sdmean}
-     \caption{\label{vsn-ny1}}
-   \end{center}
-\end{figure}
+\begin{figure}[htbp]\begin{center}
+  \includegraphics[width=0.45\textwidth]{vsn-a-histM}
+  \includegraphics[width=0.45\textwidth]{vsn-b-sdmean}
+  \caption{\label{vsn-histandsdmean}}
+\end{center}\end{figure}
+%------------------------------------------------------------
+The histogram is shown in the left panel of Fig.~\ref{vsn-a}.
 
 To process multiple slides, \code{vsn} can be called for each slide in turn,
 as described above. If there is reason to believe that the slides are 
 of similar quality, it can also be called on all of them at once:
-%%------run vsn on all slides at once
-<<ny2-sdmean,include=FALSE,fig=TRUE,results=hide>>=
-ny <- vsn(lymphoma,verbose=FALSE)
-plot(ny)
+%------------------------------------------------------------
+<<b-sdmean,echo=FALSE,results=hide,include=FALSE,fig=TRUE>>=
+if(!exists("b")) 
+  b = vsn(lymphoma, verbose=FALSE)
+meanSdPlot(b)
 @
+<<b-sdmean-show,eval=FALSE>>=
+b = vsn(lymphoma, verbose=FALSE)
+meanSdPlot(b)
+@
+%------------------------------------------------------------
 This calculation may take a while. Again, the \code{plot} 
 command helps to visually verify that the variance stabilization worked
-(see the right panel of Fig.~\ref{vsn-ny1}). 
+(see the right panel of Fig.~\ref{vsn-histandsdmean}). 
 As above, we can obtain the "generalized log-ratios" for each slide,
 by subtracting the common reference intensities from those for the 
 8 samples:
-<<ny2-M,include=FALSE,fig=TRUE,width=8,height=4,results=hide>>=
+%------------------------------------------------------------
+<<b-M,include=FALSE,fig=TRUE,width=8,height=4,results=hide>>=
 refrs <- (1:8)*2-1
 samps <- (1:8)*2
-M <- ny@h[,samps] - ny@h[,refrs] 
+M <- exprs(b)[,samps] - exprs(b)[,refrs] 
 colnames(M) <-  pData(lymphoma)[samps, "sample"]
-A <- rowMeans(ny@h)
+A <- rowMeans(exprs(b))
 par(mfrow=c(1,2))
 plot(A, M[,"CLL-13"], pch=".")
 abline(h=0, col="red")
 plot(A, M[,"DLCL-0032"], pch=".")
 abline(h=0, col="red")
 @
-\myincfig{vsn-ny2-M}{\textwidth}
-Fig.~\ref{vsn-ny2-M} shows the analagon to the $M$-vs-$A$-plots described in 
-reference~\cite{Dudoit578}. Note that in the left scatterplot, 
-there is a cloud of points at low intensities 
-that is concentrated slightly off the line $M=0$.
-In the right scatterplot, a similar cloud sits right on the $M=0$
-line. This could be related to a quality problem with the left 
-slide (e.\,g. related to the PCR amplification or the printing, see 
-Section~\ref{sec.qc}).
+\myincfig{vsn-b-M}{\textwidth}
+%------------------------------------------------------------
+Fig.~\ref{vsn-b-M} shows the analagon to the $M$-vs-$A$-plots
+described in reference~\cite{Dudoit578}. Note that in the left
+scatterplot, there is a cloud of points at low intensities that is
+concentrated slightly off the line $M=0$.  In the right scatterplot, a
+similar cloud sits right on the $M=0$ line. This could be related to a
+quality problem with the left slide (e.\,g. related to the PCR
+amplification or the printing, see Section~\ref{sec.qc}).
 
 %-------------------------------------------------------------------
 \section{Comparing calibration and data transformation methods}
@@ -409,8 +426,6 @@ data, we recommend to use only background adjustment procedures that
 estimate the background independent of the observed foreground
 intensity.
 
-
-
 \begin{thebibliography}{10}
 
 \bibitem{HuberISMB2002}
@@ -419,10 +434,18 @@ W. Huber, A. von Heydebreck, H. {S\"ultmann}, A. Poustka, and M. Vingron.
   quantification of differential expression.
 \newblock {\em Bioinformatics}, 18:S96--S104, 2002.
 
+\bibitem{HuberSAGMB2003}
+W. Huber, A. von Heydebreck, H. {S\"ultmann}, A. Poustka, and M. Vingron.
+\newblock Parameter estimation for the calibration and variance stabilization of microarray data.
+\newblock {\em Statistical Applications in Genetics and Molecular Biology}, Vol. 2: No. 1, Article 3, 2003. 
+http://www.bepress.com/sagmb/vol2/iss1/art3
+
 \bibitem{HSG2002}
 W. Huber, A. von Heydebreck, and M. Vingron.
 \newblock Analysis of microarray gene expression data.
-\newblock Manuscript, \code{http://www.dkfz.de/abt0840/whuber}, 2002.
+\newblock To appear in the {\em Handbook of Statistical Genetics}, 2003.
+Eds.: D. J. Balding, M. Bishop, C. Cannings. 
+John Wiley & Sons, Inc., 
 
 \bibitem{RockeDurbin2001}
 David~M. Rocke and Blythe Durbin.
@@ -448,9 +471,7 @@ A.~A. Alizadeh et al.
 \newblock Distinct types of diffuse large B-cell lymphoma identified by gene expression profiling.
 \newblock {\em Nature}, 403:503--511, 2000.
 
-
 \end{thebibliography}
-
 \end{document}
 
 
