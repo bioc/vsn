@@ -366,7 +366,7 @@ the probe sets.
 The following code is taken from the example in the man page for 
 \code{normalize.AffyBatch.vsn}. The resulting plot is shown in 
 Fig.~\ref{vsn-affy}.
-<<affy,include=FALSE,results=hide,fig=TRUE,width=7,height=7>>=
+<<affy-calc,results=hide>>=
 library(affy)
 library(affydata)
 data(Dilution)
@@ -389,9 +389,11 @@ es2 = expresso(Dilution[1:2],
 ## extract expression values
 x1 = exprs(es1)
 x2 = exprs(es2) 
- 
+@ 
+
+<<affy,include=FALSE,fig=TRUE,width=7,height=7>>=
 ## graphics output
-oldpar = par(mfrow=c(2,2), pch=".")
+par(mfrow=c(2,2), pch=".")
 
 ## scatter plot
 plot(x1, main="vsn: chip 3 vs 4")
@@ -404,15 +406,12 @@ abline(h=0, col="red")
 
 plot(rank(rowSums(x2)), diff(t(x2)), ylim=ylim, main="rank(mean) vs differences")
 abline(h=0, col="red")
-
-## reset old plotting parameters 
-par(oldpar)
 @
 \myincfig{vsn-affy}{\textwidth}{\code{normalize.AffyBatch.vsn} example}
 
 %------------------------------------------------------------------------
-\section{Verifying and assessing the performance of vsn with simulated
-data} \label{sagmb}
+\section{Verifying and assessing the performance of vsn with 
+   simulated data} \label{sagmb}
 %------------------------------------------------------------------------
 There are two functions \Rfunc{sagmbSimulateData} and
 \Rfunc{sagmbAssess} that can be used to generate simulated data and
@@ -424,6 +423,7 @@ comprehensive suite of assessments with respect to the number of
 probes $n$, the number of arrays $d$, the fraction of differentially
 expressed genes $de$, and the fraction of up-regulated genes $up$.
 <<sagmb-calc,results=hide>>=
+if(FALSE) {
 n     <- c(500, 1000, 2000, 4000, 8000)
 d     <- 2
 de    <- c(0, 0.2)
@@ -439,12 +439,15 @@ for (i in seq(along=de)) {
     }
   }
 }
+}
 @
 <<sagmb-show,include=FALSE,fig=TRUE,width=7,height=4>>=
+if(FALSE){
 par(mfrow=c(1,2))
 for (i in seq(along=de)) {
   matplot(n, res[,,i], pch=20, log="xy", col="#909090", main=paste("de=", de[i]))
   lines(n, rowMeans(res[,,i]), col="blue")
+}
 }
 @
 \myincfig{vsn-sagmb-show}{\textwidth}{Estimation error for the transformation:
