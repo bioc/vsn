@@ -242,7 +242,7 @@ plot(exprs(bkid),  main = "raw", pch = ".", log="xy")
 <<nkid-calibnowarn,echo=FALSE,results=hide>>=
 options(warn=vsnwarn)
 @
-The factor for the red channel is now twice as large as before.
+The factor for the red channel is now about four times as large as before.
 
 %------------------------------------------------------------
 \section{Running vsn on the data from multiple cDNA arrays} 
