@@ -1,6 +1,6 @@
 ##----------------------------------------------------------------------
 ## Robust calibration and variance stabilization
-## (C) Wolfgang Huber <w.huber@dkfz.de> 2002-2004 
+## (C) Wolfgang Huber <w.huber@dkfz.de> 2002-2004
 ## With contributions from Markus Ruschhaupt, Dennis Kostka, David Kreil
 ##----------------------------------------------------------------------
 ##----------------------------------------------------------------------
@@ -32,7 +32,7 @@ vsn <- function(intensities,
   if(missing(strata)) {
     strata <- rep(as.integer(1), nrow(y))
   } else {
-    if(!is.integer(strata) || !is.vector(strata) || 
+    if(!is.integer(strata) || !is.vector(strata) ||
        length(strata)!=nrow(y) || any(is.na(strata)))
       stop("'strata' must be an integer vector of length nrow(y) with no NAs.")
   }
@@ -46,7 +46,7 @@ vsn <- function(intensities,
     if(!is.array(pstart) || length(dim(pstart))!=3)
       stop("'pstart' must be a 3D array.")
     if(!all(dim(pstart)==c(nrstrata, d, 2)))
-      stop(paste("dimensions of 'pstart' do not match. They should be ", 
+      stop(paste("dimensions of 'pstart' do not match. They should be ",
         paste(nrstrata, d, 2, sep=" x "), ", but are ",
         paste(dim(pstart), collapse=" x "), ".", sep=""))
   }
@@ -54,7 +54,7 @@ vsn <- function(intensities,
   minperstratum <- as.integer(42/lts.quantile)
   sstr <- sum(table(strata) < minperstratum)
   if(sstr>0) {
-    mess <- paste("*** There are less than", minperstratum, "data points in", sstr, 
+    mess <- paste("*** There are less than", minperstratum, "data points in", sstr,
       "of the strata.\n*** The fitted parameters may be unreliable.\n")
     if(lts.quantile<0.9)
       mess <- paste(mess, "*** You could try to increase the value of 'lts.quantile'.\n", sep="")
@@ -69,7 +69,7 @@ vsn <- function(intensities,
   y         <- y[ordstrata,]
   strata    <- strata[ordstrata]
   optim.niter <- 10
-  
+
   ## Print welcome message
   if (verbose)
     cat("vsn: ", nrow(y), " x ", d, " matrix (", nrstrata, " strat",
@@ -104,11 +104,11 @@ vsn <- function(intensities,
     for(i in 1:d)
       istrat[(i-1)*nrstrata + (1:nrstrata)] <- ((i-1)*nrow(ysel) + istr)
     istrat <- as.integer(istrat)
-    
+
     p0 = pstart
     for (optim.iter in 1:optim.niter) {
       ## cat(lts.iter, ":", optim.iter, "\t", paste(signif(p0, 4), collapse=" "), "\n", sep="")
-      optres <- .Call("vsnc", ysel, as.vector(p0), istrat, TRUE, package="vsn")
+      optres <- .Call("vsnc", ysel, as.vector(p0), istrat, TRUE, PACKAGE="vsn")
       stopifnot(length(optres)==2*nrstrata*d+1)
       conv <- round(optres[length(optres)])
       par  <- array(optres[-length(optres)], dim=dim(p0))
@@ -146,7 +146,7 @@ vsn <- function(intensities,
     hmean  <- rowMeans(hy)
     sqres  <- rowSums(sqr(hy - hmean)) ## squared residuals
 
-    ## select those data points within lts.quantile; do this separately 
+    ## select those data points within lts.quantile; do this separately
     ## within each stratum, and also within strata defined by hmean
     ## (see the SAGMB 2003 paper for details)
     nrslice <- 5
@@ -158,7 +158,7 @@ vsn <- function(intensities,
     sel     <- (sqres <= meds)
 
     params[,,,lts.iter] <- pstart <- par
-  
+
     ## Convergence check
     ## after a suggestion from D Kreil 2003, UCgenetics@Kreil.Org
     if(!is.null(cvg.check)) {
@@ -171,7 +171,7 @@ vsn <- function(intensities,
         break
       oldhy <- hy
     }
-    
+
   } ## end of for-loop (iter)
   if(verbose)
     cat("\n")
@@ -181,7 +181,7 @@ vsn <- function(intensities,
   ## If input was allready an exprSet, pass on the values all the other slots.
   ## To the slot description@preprocessing, append the parameters and the
   ##    trimming selection.
-  
+
   res <- descr <- NULL
   if (class(intensities)=="exprSet") {
     res <- intensities
