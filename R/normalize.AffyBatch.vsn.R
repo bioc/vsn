@@ -7,8 +7,8 @@ normalize.AffyBatch.vsn = function (abatch, subsample = 20000, niter = 4, ...)
   if (!("package:affy" %in% search())) 
     stop("Please load the package affy before calling normalize.AffyBatch.vsn")
 
-  ## ind = the perfect match probes. If more than subsample, then only use
-  ## a random sample of size subsample from these
+  ## ind = the perfect match probes. If length(ind) is larger than the value in
+  ## subsample, then only use a random sample of size subsample from these
   ind = unlist(indexProbes(abatch, "pm"))
   if (!is.na(subsample)) {
     if (!is.numeric(subsample)) 
@@ -20,8 +20,12 @@ normalize.AffyBatch.vsn = function (abatch, subsample = 20000, niter = 4, ...)
   ## call parameter estimation (on subset of data)
   vsnres = vsn(intensity(abatch)[ind, ], niter=niter, ...)
 
+  ## add parameters to preprocessing slot
+  prpr = preproc(description(vsnres))
+  description(abatch)@preprocessing = c(description(abatch)@preprocessing, prpr)
+
   ## apply the transformation (to all data)
-  intensity(abatch) = exp(vsnh(intensity(abatch), preproc(description(vsnres))$vsnParams))
+  intensity(abatch) = exp(vsnh(intensity(abatch), prpr$vsnParams))
   return(abatch)
 }
 
