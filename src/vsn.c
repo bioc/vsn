@@ -91,11 +91,9 @@ double optfn(int n, double *par, void *ex)
   /* the negative profile log likelihood */
   res = nr*nc*log(px->ssq)/2. - jac;
 
-#ifdef VSN_DEBUG
-  Rprintf("optfn %g", res); 
-  for(j=0; j < px->npar; j++) Rprintf(" %g", par[j]); 
-  Rprintf("\n"); 
-#endif
+  #ifdef VSN_DEBUG
+  Rprintf("optfn %g", res); for(j=0; j < px->npar; j++) Rprintf(" %g", par[j]); Rprintf("\n"); 
+  #endif
 
   return(res);
 }
@@ -140,11 +138,9 @@ void optgr(int n, double *par, double *gr, void *ex)
     gr[px->nrstrat+j] = (nr*nc/px->ssq * s2 + s4) * exp(facs[j]); /* chain rule */
   }
 
-#ifdef VSN_DEBUG
-  Rprintf("optgr"); 
-  for(j=0; j < px->npar; j++) Rprintf(" %g", gr[j]); 
-  Rprintf("\n"); 
-#endif 
+  #ifdef VSN_DEBUG
+  Rprintf("optgr"); for(j=0; j < px->npar; j++) Rprintf(" %g", gr[j]); Rprintf("\n"); 
+  #endif 
   return;
 }
 
@@ -188,7 +184,7 @@ SEXP vsnc(SEXP e_y, SEXP e_par, SEXP e_strat, SEXP e_doopt)
   if(!isLogical(e_doopt))
     error("Invalid argument 'e_doopt', must be logical.");
 
-  if(fabs(asinh(1.5)-1.1947632172871)>1e-10)
+  if(abs(asinh(1.5)-1.1947632172871)>1e-10)
     error("Your 'asinh' function does not seem to work right.");
 
   /* assign length information and pointers to data areas into local caches */

@@ -183,9 +183,9 @@ vsn <- function(intensities,
   ##    trimming selection.
 
   res <- descr <- NULL
-  if (is(intensities, "exprSet")) {
+  if (class(intensities)=="exprSet") {
     res <- intensities
-    if (is(description(intensities), "MIAME")) {
+    if (class(description(intensities))=="MIAME") {
       descr <- description(intensities)
     }
   }
