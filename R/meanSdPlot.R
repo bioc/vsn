@@ -9,31 +9,31 @@ meanSdPlot = function(x,
   ## the coloring
   pcol <- "black"
   if(missing(col)) {
-    if(inherits(x, "exprSet")) {
-      sel <- preproc(description(x))$vsnTrimSelection
-      if(!is.null(sel)){
-        if(!is.logical(sel) || length(sel)!=nrow(exprs(x)) || any(is.na(sel))) 
-          stop(paste("The element \"vsnTrimSelection\" of the preprocessing",
-                     "slot of the description slot of \"x\" is not valid.",
-                     "You may remove it and try again.\n"))
-        pcol <- ifelse(sel, "blue", "black")
+      if (is(x, "exprSet")) {
+          sel <- preproc(description(x))$vsnTrimSelection
+          if(!is.null(sel)){
+              if(!is.logical(sel) || length(sel)!=nrow(exprs(x)) || any(is.na(sel)))
+                  stop(paste("The element \"vsnTrimSelection\" of the preprocessing",
+                             "slot of the description slot of \"x\" is not valid.",
+                             "You may remove it and try again.\n"))
+              pcol <- ifelse(sel, "blue", "black")
+          }
       }
-    }
   } else {
-    pcol <- col
+      pcol <- col
   }
-  
-  if(inherits(x, "exprSet"))
+
+  if (is(x, "exprSet"))
     x <- exprs(x)
-  
-  if(!inherits(x, "matrix"))
+
+  if (! is(x, "matrix"))
     stop("'x' must be a matrix or an exprSet (or it may inherit from these).")
-  
+
   n    <- nrow(x)
   px   <- rowMeans(x, na.rm=TRUE)
   py   <- rowSds(  x, na.rm=TRUE)
   rpx  <- rank(px, na.last=FALSE)
-  
+
   ## running median with centers at dm, 2*dm, 3*dm, ... and width 2*dm
   dm        <- 0.05
   midpoints <- seq(dm, 1-dm, by=dm)
@@ -51,4 +51,4 @@ meanSdPlot = function(x,
   lines(pxl, rq.sds, col="red", type="b", pch=19)
 }
 
-  
+
