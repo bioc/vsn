@@ -371,7 +371,7 @@ mn <- maNorm(mr, norm="median", echo=T)
 <<comp,results=hide,fig=TRUE,width=8,height=4,include=FALSE>>=
 par(mfrow=c(1,2))
 library(multtest)
-plot(M[,1], mn@maM[,1], xlab="M (vsn)", ylab="M (global median)", main="slide 1", pch=".")
+plot(M[,1], mn@maM[,1]*log(2), xlab="M (vsn)", ylab="M (global median)", main="slide 1", pch=".")
 abline(a=0,b=1,col="blue")
 classlabel <- regexpr("CLL",colnames(M)) > 0
 t1 <- mt.teststat(M, classlabel)
