@@ -96,7 +96,7 @@ y = exprs(lymphoma)[, 3:4]
 colnames(y) = pData(lymphoma)$sample[3:4]
 
 par(mfrow=c(1,2))
-plot(y, log="xy", pch=".", main="log-log")
+plot(y+50, log="xy", pch=".", main="log-log")
 
 ny = vsn(y)
 

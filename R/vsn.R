@@ -3,34 +3,46 @@
 ## (C) Wolfgang Huber 2002-2003
 ## w.huber@dkfz.de
 ##-----------------------------------------------------------------
-require(Biobase) || stop("can't load without package \"Biobase\"")
+require(Biobase) || stop("Cannot load without package \"Biobase\"")
 
 ##------------------------------------------------------------
 ## vsn: the main function of this library
 ##------------------------------------------------------------
-vsn <-  function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=NULL) {
-  ## check lts.quantile for plausibility
-  if (!is.numeric(lts.quantile) || (length(lts.quantile)!=1) || (lts.quantile<0.5) || lts.quantile>1)
-    stop(paste("invalid argument lts.quantile, expecting scalar between 0.5 and 1, but found", lts.quantile))
-  ## check niter for plausibility
-  if (!is.numeric(niter) || (length(niter)!=1) || (niter<1))
-    stop(paste("invalid argument niter, expecting a single positive integer >=1 but found", niter))
-  ## check pstart for plausibility
+vsn = function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=NULL) {
+  ## Bureaucracy step 1: make sure are the arguments are valid plausible
+  mess =  badarg = NULL
+  if (!is.numeric(lts.quantile) || (length(lts.quantile)!=1) ||
+     (lts.quantile<0.5) || (lts.quantile>1)) {
+    badarg = "lts.quantile"
+    mess   = "Please specify a scalar between 0.5 and 1."
+  }
+  if (!is.numeric(niter) || (length(niter)!=1) || (niter<1)) {
+    badarg = niter
+    mess   = "Please specify a number >=1"
+  }
   if (!is.null(pstart))
     if (!is.numeric(pstart) || length(pstart) != 2*d || any(is.na(pstart)) ||
-        any(pstart[(ncol(intensities)+1):(2*ncol(intensities))]<=0))
-      stop(paste("invalid argument pstart, expecting numeric vector of length", 2*ncol(intensities), "but found", pstart))
-  if (!is.logical(verbose))
-    stop("argument verbose must be of type logical.")
+        any(pstart[(ncol(intensities)+1):(2*ncol(intensities))]<=0)) {
+      badarg = "pstart"
+      mess   = paste("Please specify a numeric vector of length", 2*ncol(intensities))
+    }
+  if (!is.logical(verbose)) {
+    badarg = "verbose"
+    mess   = "Please specify a logical value"
+  }
   
-  ## coerce different possible objects that carry the intensity data into a matrix
+  ## Bureaucracy step 2: extract the intensity matrix from the argument "intensities"
   y = switch(class(intensities),
-     matrix     = {  if (!is.numeric(intensities))
-                        stop("argument intensities must be numeric")
+     matrix     = {  if (!is.numeric(intensities)) {
+                       badarg = "intensities"
+                       mess   = "Please specify a numeric matrix"
+                     }
                      intensities
                    },
-     data.frame = {  if (!all(sapply(intensities, is.numeric)))
-                       stop("argument intensities has non-numeric columns")
+     data.frame = {  if (!all(sapply(intensities, is.numeric))) {
+                       badarg = "intensities"
+                       mess   = "Please specify a data.frame that has only numeric columns"
+                     }
                      as.matrix(intensities)
                   },
      exprSet    = { tmp <- exprs(intensities)
@@ -49,169 +61,196 @@ vsn <-  function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=N
                     tmp[, (1:nrslides)*2   ] <- intensities@maRf - intensities@maRb
                     tmp
                    },
-    stop(paste("argument intensities has class ", class(intensities),
-               ". Permitted are: matrix, data.frame, exprSet, marrayRaw", sep=""))
-    )
+    { badarg = "intensities"
+      mess   = paste("It has class ", class(intensities),
+                      ". Permitted are: matrix, data.frame, exprSet, marrayRaw", sep="")
+    }
+    )  ## end of switch statement
   
-  if (any(is.na(y)) && !na.rm)
-    stop("argument intensities must not contain NAs.\n")
+  if (any(is.na(y))) {
+    badarg = "intensities"
+    mess   = paste("It must not contain NA values.\n",
+             "Consider calling vsn on a subset of data where all values are defined,\n",
+             "and then use vsnh.\n")
+  }
 
+  ## Error handling
+  if(!is.null(mess)) {
+    if(badarg=="intensities") {
+      mess = paste("The argument", badarg, "has an invalid value.\n", mess, "\n", sep="")
+    } else {
+      mess = paste("The argument", badarg, "has an invalid value:", get(badarg), "\n", mess, "\n", sep="")
+    }
+    stop(mess)
+  }
+
+  ## Print welcome message  
   if (verbose)
     cat("vsn is working on ", nrow(y), " x ", ncol(y), " matrix, with lts.quantile=", signif(lts.quantile, 2),
         "; please wait for ", niter+1, " dots:\n.", sep="")
-  
-  ly <- asly <- res <- array(NA, dim=dim(y))
-  nrs <- ncs <- as.integer(0)   
-  ssq    <- 0.0
-  last.p <- numeric(2*ncol(y))
-  
-  #----------------------------------------------------------
-  # Profile log likelihood of the model
-  #
-  #    asinh(a_i + b_i * y_ki) = m_k + epsilon_ki
-  #
-  # where k=1..n, i=1..d, y is a n-by-d matrix,
-  # (a_i, b_i) are real parameters to be estimated
-  # epsilon_ki are i.i.d N(0, sigma^2)
-  # and sigma, and all m_k are estimated from the data
-  # ("profiling")
-  #
-  # Argments:
-  # p numeric vector of length 2*d, with elements a_1,...,a_d, b_1,...,b_d
-  #
-  # Variables used from the enclosing environment:
-  # sy     the matrix of the y_ki
-  # ly     the matrix of the a_i + b_i * y_ki
-  # asly   the matrix of the asinh(a_i + b_i * y_ki) 
-  # res    the matrix of the residuals epsilon_ki
-  # nrs, ncs  number of rows and columns of the above matrices
-  # ssq    sum of squared residuals sum(res^2)
-  # last.p a place where llat() stores its call arguments. From this, when grllat() 
-  #        is called it can double-check whether it is indeed also called 
-  #        with the same arguments (see below for details)
-  # 
-  # Return value:
-  # Profile Log-Likelihood
-  #----------------------------------------------------------
-  llat <- function(p) {
-    ##if(any(is.na(p)) || any(is.na(sy)) || 2*ncol(sy)!=length(p)) {
-    ##	cat("Sanity checks for parameters p failed at entry of function llat()!\n")
-    ##	cat("Starting browser() to enable debugging!\n")
-    ##    browser()
-    ## }
+
+  ##----------------------------------------------------------
+  ## Profile log likelihood of the model
+  ##
+  ##    asinh(a_i + b_i * y_ki) = m_k + epsilon_ki
+  ##
+  ## where k=1..n, i=1..d, y is a n-by-d matrix,
+  ## (a_i, b_i) are real parameters to be estimated
+  ## epsilon_ki are i.i.d N(0, sigma^2)
+  ## and sigma, and all m_k are estimated from the data
+  ## ("profiling")
+  ##
+  ## Argments:
+  ## p numeric vector of length 2*d, with elements a_1,...,a_d, b_1,...,b_d
+  ##
+  ## Variables stored in environment "ws":
+  ## sy     the matrix of the y_ki
+  ## ly     the matrix of the a_i + b_i * y_ki
+  ## asly   the matrix of the asinh(a_i + b_i * y_ki) 
+  ## res    the matrix of the residuals epsilon_ki
+  ## nrs    number of rows of the above matrices
+  ## ncs    number of columns of the above matrices
+  ## ssq    sum of squared residuals sum(res^2)
+  ## p      a place where ll() stores its call arguments. From this, when grll() 
+  ##        is called it can double-check whether it is indeed also called 
+  ##        with the same arguments (see below for details)
+  ## 
+  ## Return value:
+  ## Profile Log-Likelihood
+  ##----------------------------------------------------------
+  ll = function(p) {
+    ## st = system.time( {
     
-    ## make sure the variables that are going to be assigned by "<<-" actually exist.
-    stopifnot(all(unlist(lapply(c("ly","asly","res","nrs", "ncs", "ssq","last.p"),
-                                exists, envir=parent.env(environment())))))
-    
-    nrs  <<- nrow(sy)    ## these asignments will be made in the enclosing
-    ncs  <<- ncol(sy)    ## environment, i.e. the one of vsn()
-    offs <- p[    1  :  ncs  ]
-    facs <- p[(ncs+1):(2*ncs)]
-    ly   <<- offs + facs * t(sy)    ## sy is an nxd matrix, offs and facs are d-vectors
-                                    ## the cycling goes column-wise, hence transpose!
-    
-    asly <<- t(asinh(ly))
-    last.p <<- p
+    assign("p",     p,                        envir=ws)
+    assign("offs",  with(ws, p[ 1:ncs     ]), envir=ws)
+    assign("facs",  with(ws, p[(1:ncs)+ncs]), envir=ws)
+
+    ## sy is an nxd matrix, offs and facs are d-vectors
+    ## the cycling goes column-wise, hence transpose!
+    assign("ly",    with(ws, offs + facs * t(sy)), envir=ws)
+    assign("asly",  with(ws, t(asinh(ly))),        envir=ws)
     
     ## residuals
-    res <<- asly - rowMeans(asly)
-    ssq <<- sum(res*res)
-    return( nrs*ncs/2*log(ssq) - sum(log(facs/sqrt(1+ly*ly))) )
+    assign("res",  with(ws, asly - rowMeans(asly)), envir=ws)
+    assign("ssq",  with(ws, sum(res*res)),          envir=ws)
+    rv  =  with(ws, nrs*ncs/2*log(ssq) - sum(log(facs/sqrt(1+ly*ly))))
+
+    ## } )
+    ## assign("timell", c(get("timell", ws), st[1]), envir=ws)
+    return(rv)
   }
-  #--------------------------------------------------------------
-  # Gradient of the profile log likelihood
-  #--------------------------------------------------------------
-  grllat <- function(p) {
+  ##--------------------------------------------------------------
+  ## Gradient of the profile log likelihood
+  ##--------------------------------------------------------------
+  grll <- function(p) {
+    ## st = system.time( {
+      
     ## Generally, optim() will call the gradient of the objective function (gr)
     ## immediately after a call to the objective (fn) at the same parameter values.
     ## Anyway, we like to doublecheck
-    if(any(p!=last.p)) {
-	cat("Error: function grllat (likelihood-gradient) was called with different\n")
-        cat("parameters than the previous call of llat (likelihood-value).\n")
-	cat("Starting browser() to enable debugging!\n")
-        browser()
+    if(any(p!=get("p", ws))) {
+      mess = paste(
+        "\n\n\The function grll (likelihood-gradient) was called with different\n",
+        "parameters than the previous call of ll (likelihood-value).\n",
+        "This should never happen. Please contact package maintainer.\n\n\n")
+      error(mess)
     }
-    dhda      <-   1/sqrt(1+ly*ly)
-    dlndhdyda <-   -ly/(1+ly*ly)
-    gra       <-   nrs*ncs/ssq*res*t(dhda) - t(dlndhdyda)
-    return(c(
-      colSums(gra), 
-      colSums(gra*sy) - nrs/p[(ncs+1):(ncs*2)]))
+    assign("dhda",      with(ws, 1/sqrt(1+ly*ly)),                        envir=ws)
+    assign("dlndhdyda", with(ws, -ly/(1+ly*ly)),                          envir=ws)
+    assign("gra",       with(ws, nrs*ncs/ssq*res*t(dhda) - t(dlndhdyda)), envir=ws)
+    rv = with(ws, c(colSums(gra), colSums(gra*sy) - nrs/p[(ncs+1):(ncs*2)]))
+    
+    ## } )
+    ## assign("timegrll", c(get("timegrll", ws), st[1]), envir=ws)
+    return(rv)
   }
 
-  #---------------------------------------------------------------------
-  # guess a parameter scale, and set boundaries for optimization,
-  # and if they are not supplied as arguments, set the start parameters
-  #---------------------------------------------------------------------
+  ##----------------------------------------------------------------------
+  ## guess a parameter scale, set boundaries for optimization,
+  ## and, if they are not user-supplied, set the start parameters
+  ##----------------------------------------------------------------------
   pscale  <- plower <- numeric(2*ncol(y))
   pscale[1:ncol(y)] <- 1
   for (j in 1:ncol(y)) {
     pscale[ncol(y)+j] <- 1/diff(quantile(y[,j], probs=c(0.25, 0.75)))
   }
-  # lower boundary for 'factors': a small positive value
-  # no boundary for 'offsets'
+  ## lower boundary for 'factors': a small positive value
+  ## no boundary for 'offsets'
   plower <- c(rep(-Inf,ncol(y)), pscale[(ncol(y)+1):(2*ncol(y))]/1e8) 
   if (is.null(pstart))
     pstart <- c(rep(0,ncol(y)), pscale[(ncol(y)+1):(2*ncol(y))])
-
-  ## if(verbose) 
-  ##   cat("pscale:", pscale, "\npstart:", pstart, "\nplower:", plower, "\n", sep="\t")
   
   ## factr controls the convergence of the "L-BFGS-B" method. Convergence 
   ## occurs when the reduction in the objective is within this factor of 
   ## the machine tolerance. Default is 1e7, that is a tolerance of about 
-  ## 1e-8. Here we use 5e8 to save time.
+  ## 1e-8. Here we use 5e8 to save a little time.
   control     <- list(trace=0, maxit=4000, parscale=pscale, factr=5e8)
   optim.niter <- 10
 
   ## a place to save the trajectory of estimated parameters along the iterations:
   params  <- matrix(NA, nrow=length(pscale), ncol=niter)
 
+  ## Workspace. This has two purposes: 1. we don't need to pass y or sy around,
+  ## 2. the intermediate results of "ll" can be used by "grll"
+  ws = new.env(hash=TRUE)
+  assign("timell",   numeric(0), envir=ws)
+  assign("timegrll", numeric(0), envir=ws)
+  
   sel <- rep(TRUE, nrow(y))
   for(lts.iter in 1:niter) {
-    sy <- y[sel,]
+    assign("sy",  y[sel,],            envir=ws)
+    assign("nrs", length(which(sel)), envir=ws)
+    assign("ncs", ncol(y),            envir=ws)
+
     p0 <- pstart
     for (optim.iter in 1:optim.niter) {
-      o  <- optim(par=p0, fn=llat, gr=grllat, method="L-BFGS-B",
-                control=control, lower=plower)
+      o  <- optim(par=p0, fn=ll, gr=grll, method="L-BFGS-B",
+                  control=control, lower=plower)
       if (o$convergence==0) next
 
-      if (verbose)
-        cat("o$convergence=", o$convergence, ": ", o$message, "\n", sep="")
       if(o$convergence==52) {
         ## ABNORMAL_TERMINATION_IN_LNSRCH
         ## This seems to indicate that a stepwidth to go along the gradient could not be found,
         ## probably because the start point p0 was already right at the optimum. Hence, try
         ## again from a slightly different start point
-        cat("lts.iter=", lts.iter, "optim.iter=", optim.iter, "pstart was", p0, "now trying ")
+        ## cat("lts.iter=", lts.iter, "optim.iter=", optim.iter, "pstart was", p0, "now trying ")
         p0 <- p0 + runif(length(pstart), min=0, max=0.01) * pscale 
-        cat(p0, "\n")
+        ## cat(p0, "\n")
       } else if(o$convergence==1) {
         ## This seems to indicate that the max. number of iterations has been exceeded. Try again
         ## with more
-        cat("lts.iter=", lts.iter, "optim.iter=", optim.iter, "maxit was", control$maxit, "now trying ")
+        ## cat("lts.iter=", lts.iter, "optim.iter=", optim.iter, "maxit was", control$maxit, "now trying ")
         control$maxit <- control$maxit*2
-        cat(control$maxit, "\n")
+        ## cat(control$maxit, "\n")
       } else {
-        stop(paste("Fatal error in optim, convergence=", o$convergence))  
+        stop(paste("Likelihood optimization: the function optim() returned the value convergence=",
+                   o$convergence, "\nPlease make sure your data is good.",
+                   "If so, contact the package maintainer.\n", sep=""))
       }
     }
-    if (o$convergence!=0) 
-      stop(paste("Fatal error in optim, not converged after", optim.niter, "times."))
-    if (any(o$par[(ncol(sy)+1):(2*ncol(sy))]<0))
-      stop(paste("Fatal error in optim, multiplicative normalization parameters have turned negative:", o$par))
+
+    mess = NULL
+    if (o$convergence!=0)
+      mess = paste("Likelihood optimization did not converge even after", optim.niter, "calls to optim().",
+                   "\nPlease make sure your data is good. If the problem persists,",
+                   "\nplease contact the package maintainer.\n")
     
-    if(verbose) cat(".")
-      ## cat(sprintf("iter %2d: par=", as.integer(lts.iter)),
-      ## sapply(o$par, function(x) sprintf("%9.3g",x)), "\n")
+    if (any(o$par[(ncol(y)+1):(2*ncol(y))]<0))
+      mess = paste("Likelihood optimization produced negative parameter estimates in spite of constraints.",
+                   "\nPlease contact the package maintainer.\n")
+
+    if(!is.null(mess))
+      stop(mess)
+    
+    if(verbose)
+      cat(".")
     
     # ----------------------------------------
     # selection of points in a LTS fashion
-    # 1. calculate residuals; cf. llat()
+    # 1. calculate residuals; cf. ll()
     # ----------------------------------------
-    offs <- matrix(o$par[    1  :  ncol(sy) ], nrow=nrow(y), ncol=ncol(sy), byrow=TRUE)
-    facs <- matrix(o$par[(ncol(sy)+1):(2*ncol(sy))], nrow=nrow(y), ncol=ncol(sy), byrow=TRUE)
+    offs <- matrix(o$par[    1      :   ncol(y) ], nrow=nrow(y), ncol=ncol(y), byrow=TRUE)
+    facs <- matrix(o$par[(ncol(y)+1):(2*ncol(y))], nrow=nrow(y), ncol=ncol(y), byrow=TRUE)
     asly <- asinh(offs + facs * y)         
     res  <- asly - rowMeans(asly)
     rsqres <- rowSums(res*res)
@@ -226,8 +265,16 @@ vsn <-  function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=N
     
     params[,lts.iter] <- pstart <- o$par
   }
-  if(verbose) cat("\n")
-  
+  if(verbose)
+    cat("\n")
+
+  ## Profiling results:
+  ##  cat3 = function(x)
+  ##    paste(length(x), " calls, min time=", min(x), "  max time=", max(x),
+  ##          "  mean=", signif(mean(x),3), "\n", sep="")
+  ##  cat("  ll:", cat3(get("timell",   ws)))
+  ##  cat("grll:", cat3(get("timegrll", ws)))
+
   return(new("vsn.result", h=vsnh(y, o$par), params=params, sel=sel))
 }
 

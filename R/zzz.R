@@ -2,6 +2,7 @@
 ## .First.lib: this function is called when the package is loaded
 ##-----------------------------------------------------------------
 .First.lib <- function(lib, pkgname, where) {
+  require(Biobase, quietly=TRUE) || stop("Cannot load without package \"Biobase\"")  
   
   if(missing(where)) {
     where <- match(paste("package:", pkgname, sep=""), search())
@@ -11,6 +12,7 @@
     }
     where <- pos.to.env(where)
   }
+
   .initvsn(where)
 }
 
