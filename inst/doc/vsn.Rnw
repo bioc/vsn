@@ -340,7 +340,7 @@ Similar results with test=wilcoxon. Or with permutation p. Or with SAM / siggene
 %implementation of the estimation of the false discovery rate from 
 %the permutation distribution of the sorted test statistics. 
 %The result is shown in Fig.~\ref{vsn-fdr3}.
-\myincfig{vsn-mt2}{0.5\textwidth}{Quantile-quantile plot}
+\myincfig{vsn-mt1}{0.5\textwidth}{Quantile-quantile plot}
 <<mt1,results=hide>>=
 library(multtest)
 classlabel <- regexpr("CLL",colnames(M)) > 0
@@ -423,13 +423,13 @@ comprehensive suite of assessments with respect to the number of
 probes $n$, the number of arrays $d$, the fraction of differentially
 expressed genes $de$, and the fraction of up-regulated genes $up$.
 <<sagmb-calc,results=hide>>=
-if(FALSE) {
 n     <- c(500, 1000, 2000, 4000, 8000)
 d     <- 2
 de    <- c(0, 0.2)
 up    <- 0.5
 nrrep <- 8
 res <- array(NA, dim=c(length(n), nrrep, length(de)))
+if(FALSE) {
 for (i in seq(along=de)) {
   for (k in seq(along=n)) {
     for (r in 1:nrrep) {
@@ -439,15 +439,12 @@ for (i in seq(along=de)) {
     }
   }
 }
-}
 @
 <<sagmb-show,include=FALSE,fig=TRUE,width=7,height=4>>=
-if(FALSE){
 par(mfrow=c(1,2))
 for (i in seq(along=de)) {
   matplot(n, res[,,i], pch=20, log="xy", col="#909090", main=paste("de=", de[i]))
   lines(n, rowMeans(res[,,i]), col="blue")
-}
 }
 @
 \myincfig{vsn-sagmb-show}{\textwidth}{Estimation error for the transformation:
