@@ -334,7 +334,7 @@ is never larger. This demonstrates the {\em ratio shrinkage} by the
 variance stabilization. Right hand side: quantile-quantile-plot of the
 $t$-statistic for the comparison between the 4 slides with CLL and the
 4 with DLCL. The $t$-statistics from \code{vsn} are larger, i.\,e.\ 
-it can be seen to compare more favorable with respect to the
+it compares more favorable with respect to the
 relative size of between- and within-group variability.
 }
 \end{center}
