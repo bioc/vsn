@@ -11,6 +11,7 @@
 #include <Rdefines.h>
 
 #include <R_ext/Applic.h>         /* for lbfgsb */
+extern double asinh(double);
 
 /* #define VSN_DEBUG */
 #undef VSN_DEBUG
