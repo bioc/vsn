@@ -1,6 +1,6 @@
 \name{vsnh}
 \alias{vsnh}
-\title{A function that transforms a matrix y of microarray intensities according to h_i(y_ki)=asinh(a_i+b_i*y_ki).}
+\title{A function that transforms a matrix y of microarray intensities}
 \description{
   Returns h(y), where h is a calibration and variance stabilization transformation
 }
@@ -31,7 +31,7 @@ vsnh(y, p)
 }
 \references{Variance stabilization applied to microarray data
 calibration and to the quantification of differential expression,
-Wolfgang Huber, Anja von Heydebreck, Holger S\"ultmann, Annemarie
+Wolfgang Huber, Anja von Heydebreck, Holger Sueltmann, Annemarie
 Poustka, Martin Vingron; Bioinformatics (2002) 18 Suppl.1 S96-S104.}
 
 \author{Wolfgang Huber \url{http://www.dkfz.de/abt0840/whuber}}

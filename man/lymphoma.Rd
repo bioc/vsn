@@ -1,7 +1,7 @@
 \name{lymphoma}
 \alias{lymphoma}
 \docType{data}
-\title{Intensity data for 8 cDNA chips with CLL and DLBL samples from the Alizadeh et al. paper in Nature 2000 }
+\title{Intensity data for 8 cDNA chips with CLL and DLBL samples from the Alizadeh et al. paper in Nature 2000}
 \description{8 cDNA chips from Alizadeh lymphoma paper}
 \usage{data(lymphoma)}
 

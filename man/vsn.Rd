@@ -1,7 +1,9 @@
 \name{vsn}
 \alias{vsn}
-\title{Variance stabilization and calibration for microarray data. This is the main function of this package; see also the vignette vsn.pdf.}
-\description{Robust estimation of variance-stabilizing and calibrating transformations for microarray data}
+\title{Variance stabilization and calibration for microarray data. This is 
+    the main function of this package; see also the vignette vsn.pdf.}
+\description{Robust estimation of variance-stabilizing and calibrating 
+    transformations for microarray data}
 \usage{vsn(intensities, lts.quantile=0.75, niter=10, verbose=TRUE, pstart=NULL)}
 \arguments{
   \item{intensities}{Intensity values from a microarray experiment. 
@@ -62,7 +64,7 @@ An object of class \link{vsn.result}.
 
 \references{Variance stabilization applied to microarray data
 calibration and to the quantification of differential expression,
-Wolfgang Huber, Anja von Heydebreck, Holger S\"ultmann, Annemarie
+Wolfgang Huber, Anja von Heydebreck, Holger Sueltmann, Annemarie
 Poustka, Martin Vingron; Bioinformatics (2002) 18 Suppl.1 S96-S104.}
 
 \author{Wolfgang Huber \url{http://www.dkfz.de/abt0840/whuber}}
