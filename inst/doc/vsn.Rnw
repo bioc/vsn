@@ -73,37 +73,34 @@ library(multtest)
 library(vsn)
 data(lymphoma)
 lymphoma
+@
+<<showpdata>>=
 pData(lymphoma)
 @
-\vspace*{-3ex}
-\begin{Soutput}
-Expression Set (exprSet) with 
-	9216 genes
-	16 samples
-		 phenoData object with 2 variables and 16 cases
-	 varLabels
-		name: Name of the Chip
-		sample: Sample
-\end{Soutput}
+The 16 colums of the \code{lymphoma} object contain the red 
+and green intensities, respectively, from the 8 slides, as shown 
+in the table. 
 
 To load intensity data from your own experiments,
 you can use the function \code{read.table}, the 
 \code{read}-functions from the package \code{marrayInput},
 or \code{ReadAffy} from the package \code{affy}. 
-\code{vsn} accepts matrices, data frames
-with all numeric columns, and objects of class \code{marrayRaw} as input, 
-and it can be used as one of the normalization methods in the package 
+
+The prefered input type for \code{vsn} are objects of class
+\code{exprSet}. It is also possible to pass matrices, data frames
+with numeric columns only, and objects of class \code{marrayRaw}.
+Furthermore, \code{vsn} can be used as a normalization methods 
+in the function \code{expresso} in the package 
 \code{affy} (cf.~Section~\ref{affy}).
 
 %------------------------------------------------------------
 \section{Running vsn on cDNA data} 
 %------------------------------------------------------------
-You can run \code{vsn} on the intensities from one first slide,
-and verify the result simply by
-%%-----scatterplot one slide
+Let's try out \code{vsn} on this example data.
+To save time, we run it on the intensities from one slide only, 
+say lc7b048:
 <<ny1-scp,include=FALSE,fig=TRUE>>=
-ny <- vsn(lymphoma[, 3:4])
-ny
+ny = vsn(lymphoma[, 3:4])
 plot(exprs(ny), pch = ".")
 @
 \myincfig{vsn-ny1-scp}{85mm}
