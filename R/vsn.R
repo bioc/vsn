@@ -108,7 +108,7 @@ vsn <- function(intensities,
     p0 = pstart
     for (optim.iter in 1:optim.niter) {
       ## cat(lts.iter, ":", optim.iter, "\t", paste(signif(p0, 4), collapse=" "), "\n", sep="")
-      optres <- .Call("vsnc", ysel, as.vector(p0), istrat, TRUE)
+      optres <- .Call("vsnc", ysel, as.vector(p0), istrat, TRUE, package="vsn")
       stopifnot(length(optres)==2*nrstrata*d+1)
       conv <- round(optres[length(optres)])
       par  <- array(optres[-length(optres)], dim=dim(p0))
