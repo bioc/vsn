@@ -1,5 +1,5 @@
 %\VignetteIndexEntry{vsn - introduction}
-%\VignetteDepends{Biobase,vsn,affy,marray,multtest}
+%\VignetteDepends{Biobase,vsn,affy,marray,multtest,limma}
 %\VignetteKeywords{Expression Analysis}
 %\VignettePackage{vsn}
 
@@ -10,8 +10,7 @@
 % newcommand
 %------------------------------------------------------------
 \newcommand{\arsinh}{\mathop{\mathgroup\symoperators arsinh}\nolimits}
-\newcommand{\Rfunction}[1]{\texttt{#1}}
-\newcommand{\Rexpression}[1]{\texttt{#1}}
+\newcommand{\Robject}[1]{\texttt{#1}}
 \newcommand{\Rpackage}[1]{\textit{#1}}
 \newcommand{\Rclass}[1]{\textit{#1}}
 
@@ -41,6 +40,7 @@ q(save="no")
 library(affy)
 library(marray)
 library(multtest)
+library(limma)
 oldopt <- options(digits=3)
 on.exit( {options(oldopt)} )
 @ 
@@ -55,9 +55,9 @@ Calling \Rpackage{vsn} can be as simple as
 e2 <- vsn(e1)
 @
 
-where \Rexpression{e1} is an \Rexpression{exprSet} with raw data and
-\Rexpression{e2} one with calibrated and \textit{glog}-transformed data.
-\Rexpression{e1} can also be a matrix, a data frame with numeric columns only,
+where \Robject{e1} is an \Robject{exprSet} with raw data and
+\Robject{e2} one with calibrated and \textit{glog}-transformed data.
+\Robject{e1} can also be a matrix, a data frame with numeric columns only,
 or an object of class \Rclass{marrayRaw}. It contains the raw intensity
 measurements from the DNA probes on a series of microarrays (with rows
 corresponding to probes, columns to arrays and/or dyes).
@@ -117,8 +117,8 @@ in red (Cy5), were hybridized.
 library(vsn) 
 data(kidney) 
 @ 
-The two columns of the matrix \Rexpression{exprs(kidney)} contain the
-green and red intensities, respectively. Let's try out \Rfunction{vsn} on
+The two columns of the matrix \Robject{exprs(kidney)} contain the
+green and red intensities, respectively. Let's try out \Robject{vsn} on
 these example data. In Fig.~\ref{vsn-nkid-scp} you can see the
 scatterplot of the calibrated and transformed data. For comparison,
 the scatterplot of the log-transformed raw intensities is also shown.
@@ -132,12 +132,12 @@ plot(log.na(exprs(kidney)), main = "raw", pch = ".")
 @
 \myincfig{vsn-nkid-scp}{\textwidth}{Scatterplots of the kidney example
 data}
-\Rfunction{vsn} returns the transformed intensities in an object of
-class \Rclass{exprSet}. Its slot \Rexpression{exprs} is a matrix of the
+\Robject{vsn} returns the transformed intensities in an object of
+class \Rclass{exprSet}. Its slot \Robject{exprs} is a matrix of the
 same size as the input data.  The plot in Fig.~\ref{vsn-nkid-scp}
 shows the complete set of $n=9216$ red and green intensities, without
 any thresholding or masking of data points.  To verify the variance
-stabilization, there is the function \Rfunction{meanSdPlot}. For each
+stabilization, there is the function \Robject{meanSdPlot}. For each
 probe $k=1,\ldots,n$ it shows the estimated standard deviation
 $\hat{\sigma}_k$ on the $y$-axis versus the rank of the average
 $\hat{\mu}_k$ on the $x$-axis,
@@ -165,12 +165,12 @@ the case, that usually indicates a data quality problem, or is a
 consequence of inadequate prior data preprocessing (see
 Section~\ref{sec.qc}). The rank ordering distributes the data evenly
 along the $x$-axis. A plot in which the $x$-axis shows the average
-intensities themselves is obtained by calling the \Rfunction{plot}
-command with the argument \Rexpression{ranks=FALSE}.
+intensities themselves is obtained by calling the \Robject{plot}
+command with the argument \Robject{ranks=FALSE}.
 
-The parameter estimation in \Rfunction{vsn} works in an iterative
+The parameter estimation in \Robject{vsn} works in an iterative
 manner.  To verify that the iterations have converged, you can call
-the function \Rfunction{vsnPlotPar}.
+the function \Robject{vsnPlotPar}.
 <<nkid-iter,include=FALSE,fig=TRUE,width=8,height=4,results=hide>>=
 par(mfrow=c(1,2))
 vsnPlotPar(nkid, "offsets")
@@ -181,7 +181,7 @@ and transformation parameters} The plots in Fig.~\ref{vsn-nkid-iter} show the
 values of the estimated calibration and variance stabilization parameters on
 the $y$-axis as a function of the iteration index. All curves should reach a
 plateau before the last iteration. If this is not the case, the number of
-iterations may be increased through the parameter \Rexpression{iter}.  It
+iterations may be increased through the parameter \Robject{iter}.  It
 could also indicate a data quality problem, see Section~\ref{sec.qc}.
 
 The generalized log-ratios for this experiment
@@ -206,11 +206,11 @@ data(lymphoma)
 dim(exprs(lymphoma))
 pData(lymphoma)
 @
-The 16 columns of the \Rexpression{lymphoma} object contain the red and
+The 16 columns of the \Robject{lymphoma} object contain the red and
 green intensities, respectively, from the 8 slides, as shown in the
 table. Thus, the CH1 intensities are in columns $1, 3, \ldots, 15$,
 the CH2 intensities in columns $2, 4, \ldots, 16$.  We can call
-\Rfunction{vsn} on all of them at once:
+\Robject{vsn} on all of them at once:
 <<lym-sdmean1,results=hide>>=
 lym <- vsn(lymphoma)
 @
@@ -251,7 +251,7 @@ amplification or the printing, see Section~\ref{sec.qc}).
 %---------------------------------------------------------
 The package \Rpackage{affy} provides excellent functionality for
 reading and processing Affymetrix genechip data. To use
-\Rfunction{vsn} for the calibration and transformation of the probe
+\Robject{vsn} for the calibration and transformation of the probe
 intensities, a wrapper is provided that can be used within the data
 processing routines of \Rpackage{affy}. See the documentation for the
 package \Rpackage{affy} for more information about data structures and
@@ -262,8 +262,8 @@ the following steps:
 (ii) calibrating,
 (iii) transforming, and
 (iv) summarizing.
-\Rfunction{vsn} addresses the calibration and transformation. We can use 
-the function \Rfunction{expresso} to run the whole process in one go:
+\Robject{vsn} addresses the calibration and transformation. We can use 
+the function \Robject{expresso} to run the whole process in one go:
 
 <<affy1,results=hide>>=
 library(affy)
@@ -278,7 +278,7 @@ es1 = expresso(Dilution[, 1:2],
                summary.method   = "medianpolish")
 @
 
-Here, we have ignored the MM values and used \Rfunction{medianpolish} for
+Here, we have ignored the MM values and used \Robject{medianpolish} for
 summarization, as in the RMA method~\cite{RMA}. For comparison, let's 
 calculate expression values using another normalization method:
 
@@ -312,7 +312,39 @@ abline(h=0, col="red")
 
 The resulting plots are shown in Fig.~\ref{vsn-affy3}.
 
-\myincfig{vsn-affy3}{\textwidth}{\Rfunction{normalize.AffyBatch.vsn} example}
+\myincfig{vsn-affy3}{\textwidth}{\Robject{normalize.AffyBatch.vsn} example}
+
+%---------------------------------------------------------
+\section{Running vsn from the limma package} \label{limma}
+%---------------------------------------------------------
+\Robject{vsn} can be called from the limma package through the
+function \Robject{normalizeBetweenArrays}:
+
+<<limma1,eval=FALSE>>= 
+library(limma)
+MA <- normalizeBetweenArrays(RG, method="vsn")
+@
+
+Note that \Robject{RG} should contain raw intensities, i.\,e., prior
+log-transformation or any normalization. The returned intensities and
+log-ratios in \Robject{MA} are on the $\log-2$ scale, not the $\log-e$
+scale as when \Robject{vsn} is called directly. Please see also the
+help page for \Robject{normalizeBetweenArrays}.
+
+For print-tip wise normalization, construct a function
+\Robject{pinId} that calculates the print-tip ID (1...16) for every
+spot:
+
+<<limma2,eval=FALSE>>=
+pinId <- function(x)
+  unlist(lapply(1:(x$ngrid.r*x$ngrid.c), rep, x$nspot.r*x$nspot.c))
+@
+
+and call
+
+<<limma3,eval=FALSE>>=
+MA <- normalizeBetweenArrays(RG, method="vsn", strata=pinId(thelayout))
+@
 
 %---------------------------------------------------------------------
 \section{The calibration parameters} 
@@ -359,14 +391,14 @@ names(prep)
 prep$vsnParams
 @
 % $ for ESS
-The \Rexpression{description} slot of an \Rclass{exprSet} is an object of
+The \Robject{description} slot of an \Rclass{exprSet} is an object of
 class \Rclass{MIAME}, and may contain annotation data pertinent to the
 experiment represented by the object. For an exprSet with $d$ sample 
 and $n_s$ probe strata (see Section~\ref{sec.strata}),
-\Rexpression{prep\$vsnParams} is a numeric array with dimensions $(n_s, d, 2)$. 
-\Rexpression{prep\$vsnParams[s, i, 1]} is what was called $a_{si}$ in
+\Robject{prep\$vsnParams} is a numeric array with dimensions $(n_s, d, 2)$. 
+\Robject{prep\$vsnParams[s, i, 1]} is what was called $a_{si}$ in
 Eqn.~(\ref{eq.transf}), and
-\Rexpression{prep\$vsnParams[s, i, 2]} is $b_{si}$. Compare the 
+\Robject{prep\$vsnParams[s, i, 2]} is $b_{si}$. Compare the 
 numbers printed above with the final values in Fig.~\ref{vsn-nkid-iter}.
 
 %---------------------------------------------------------------------
@@ -386,7 +418,7 @@ that differed by a factor of $0.25$:
 bkid <- kidney
 exprs(bkid)[,"red"] <- 0.25 * (500+exprs(bkid)[,"red"])
 @
-We can again call \Rfunction{vsn} on this data
+We can again call \Robject{vsn} on this data
 <<nkid-calib-warn1,echo=FALSE,results=hide>>=
 oldwarn <- options(warn=-1)
 @
@@ -413,7 +445,7 @@ before.  The result is shown in Fig.~\ref{vsn-nkid-calib4}.
 %-------------------------------------------------------------------
 \section{Assessing vsn}
 %-------------------------------------------------------------------
-The function \Rfunction{vsn} is a parameter estimation algorithm that fits the
+The function \Robject{vsn} is a parameter estimation algorithm that fits the
 parameters for a certain model. In order to see how good the estimator is, we
 can look at bias, variance, sample size dependence, robustness against model
 misspecificaton and outliers. This is done in the document
@@ -453,13 +485,13 @@ statistics. You are encouraged to try this out with your own data.
 \begin{center}
 \includegraphics[width=\textwidth]{vsn-comp}
 \caption{\label{fig-comp}Left hand side: $x$-axis -- generalized
-log-ratios for slide 1 from \Rfunction{vsn}, $y$-axis -- log-ratios
+log-ratios for slide 1 from \Robject{vsn}, $y$-axis -- log-ratios
 for slide 1 after global median normalization. For most genes, the two
 are the same, but in some cases the generalized log-ratio is smaller.
 It is never larger. This demonstrates the \textit{ratio shrinkage} by
 the variance stabilization. Right hand side: quantile-quantile-plot of
 the $t$-statistic for the comparison between the 4 slides with CLL and
-the 4 with DLCL. The $t$-statistics from \Rfunction{vsn} are larger,
+the 4 with DLCL. The $t$-statistics from \Robject{vsn} are larger,
 i.\,e.\ it compares more favorable with respect to the relative size
 of between- and within-group variability.}
 \end{center}
@@ -488,12 +520,12 @@ abline(a=0,b=1,col="blue")
 %---------------------------------------------------------
 \section{Quality control}\label{sec.qc}
 %---------------------------------------------------------
-\Rfunction{vsn} makes some assumptions about your data that need to
+\Robject{vsn} makes some assumptions about your data that need to
 hold if it is to produce meaningful results. We have found them
 appropriate for many microarray experiments, but it is your
 responsibility to make sure that they hold for your data.
 
-First, \Rfunction{vsn} assumes that the measured signal $y_{ik}$
+First, \Robject{vsn} assumes that the measured signal $y_{ik}$
 increases, to sufficient approximation, proportionally to the mRNA
 abundance $c_{ik}$ of gene $k$ on the $i$-th array, or on the $i$-th
 color channel:
@@ -532,8 +564,8 @@ for each print-tip group of spots, or for groups of spots whose DNA was
 PCR--amplified and stored in the same microtitre plate. For Affymetrix chips, 
 one can find systematic dependences of the affinities $b_{is}$ or the 
 background terms $a_{is}$ on the probe sequence.
-This can be addressed by using the \Rexpression{strata} argument of 
-the function \Rfunction{vsn}.
+This can be addressed by using the \Robject{strata} argument of 
+the function \Robject{vsn}.
 
 Situations in which the assumptions~(\ref{assumption.1}) or ~(\ref{assumption.2}) 
 are violated include:
@@ -546,14 +578,14 @@ chosen to avoid saturation.
 
 \paragraph{Batch effects.} The probe affinities $b_k$ may differ between
 different manufacturing batches of arrays due, e.g., to different
-qualities of DNA amplification or printing. \Rfunction{vsn} cannot be
+qualities of DNA amplification or printing. \Robject{vsn} cannot be
 used to simultaneously calibrate and transform data from different
 batches.
 
 How to reliably diagnose and deal with such violations is beyond the scope 
 of this vignette; see the references for more~\cite{Dudoit578,HSG2002}. 
 
-\paragraph{Variance.} A further assumption that \Rfunction{vsn} makes is that 
+\paragraph{Variance.} A further assumption that \Robject{vsn} makes is that 
 the measurement error (more exactly: the variance) is the sum of two
 contributions: an additive component that has roughly the same size
 for all probes on an array, and a multiplicative component that is
@@ -562,11 +594,11 @@ proportionality factor (called the \textit{coefficient of variation})
 that is the same for all genes~\cite{RockeDurbin2001}.
 
 \paragraph{Most genes unchanged assumption.} 
-\Rfunction{vsn} assumes that only a minority (less than half) of genes on the
+\Robject{vsn} assumes that only a minority (less than half) of genes on the
 arrays is detectably differentially transcribed across the experiments. If it
 is safe to assume that a smaller fraction of genes is non-negligibly
 differentially transcribed, the efficiency of the estimation can be improved
-by increasing the parameter \Rexpression{lts.quantile} from its default value
+by increasing the parameter \Robject{lts.quantile} from its default value
 of 0.5 to a value between 0.5 and 1.
 
 \paragraph{Processing biases.} 
@@ -581,8 +613,8 @@ Affymetrix' MAS 5.0 software uses the mismatch intensity only if it is
 smaller than the probe's intensity, and otherwise employs a heuristic
 to make sure that the net intensities always remain positive. As a
 consequence, the intensities are systematically over-estimated, and
-cannot be used with \Rfunction{vsn}. For Affymetrix data, we recommend
-to use \Rfunction{vsn} on the probe intensities from the "CEL
+cannot be used with \Robject{vsn}. For Affymetrix data, we recommend
+to use \Robject{vsn} on the probe intensities from the "CEL
 file". For cDNA data, we recommend to use only background adjustment
 procedures that estimate the background independent of the observed
 foreground intensity.
