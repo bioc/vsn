@@ -27,11 +27,13 @@
 \title{Robust calibration and variance stabilization with VSN}
 \author{Wolfgang Huber}
 \maketitle
-
-<<loadotherpackages,echo=FALSE,results=hide>>=
+<<setup,echo=FALSE,results=hide>>=
 library(affy)
 library(marrayNorm)
 library(multtest)
+oldopt <- options(digits=3)
+oldpar <- par(no.readonly=TRUE)
+on.exit( {options(oldopt); par(oldpar)} )
 @
 
 %------------------------------------------------------------
@@ -82,7 +84,7 @@ The package includes example data from a cDNA array on which two
 biologically highly similar samples, one labeled in green (Cy3), one in red
 (Cy5), were hybridized.
 % begin code ----------------------------------------
-<<loadpackage,results=hide>>= 
+<<lib,results=hide>>= 
 library(vsn) 
 data(kidney) 
 @ 
@@ -93,9 +95,11 @@ these example data. In Fig.~\ref{vsn-nkid-scp} you can see the
 scatterplot of the calibrated and transformed data. For comparison,
 the scatterplot of the log-transformed raw intensities is also shown.
 % begin code ------------------------------------------------------
+<<nkid-calc>>=
+nkid <- vsn(kidney)
+@
 <<nkid-scp,include=FALSE,fig=TRUE,width=8,height=4>>=
 par(mfrow=c(1,2))
-nkid <- vsn(kidney)
 plot(exprs(nkid), main = "vsn", pch = ".")
 plot(log.na(exprs(kidney)), main = "raw", pch = ".")
 @
@@ -154,9 +158,8 @@ The plots in Fig.~\ref{vsn-nkid-iter} show the values of the estimated
 calibration and variance stabilization parameters on the $y$-axis as a
 function of the iteration index. All curves should reach a plateau
 well before the last iteration. If this is not the case, the number of
-iterations may be increased through the parameter \code{iter}, and/or
-\code{lts.quantile} may be decreased. It could also indicate a
-data quality problem, see Section~\ref{sec.qc}.
+iterations may be increased through the parameter \code{iter}.
+It could also indicate a data quality problem, see Section~\ref{sec.qc}.
 
 The "generalized log-ratios"~\cite{HuberISMB2002} for this experiment
 may be obtained for further processing through
@@ -175,16 +178,12 @@ The histogram is shown in Fig.~\ref{vsn-nkid-iter}.
 %---------------------------------------------------------------------
 We can access the transformation and calibration parameters through
 % begin code ---------------------------------------------------------
-<<opts,echo=FALSE,results=hide>>=
-oopt <- options(digits=3)
-on.exit(options(oopt))
-@
 <<nkid-calib1>>=
 prep <- preproc(description(nkid))
 names(prep)
 prep$vsnParams
 @
-% end code -----------------------------------------------------------
+% end code $-----------------------------------------------------------
 The \code{description} slot of an \code{exprSet} is an object of class
 \code{MIAME}, and may contain annotation (or ``metadata'') pertinent
 to the experiment represented by the object. For an exprSet with $d$
@@ -209,6 +208,7 @@ bkid <- kidney
 exprs(bkid)[,"red"] <- 0.25 * (500+exprs(bkid)[,"red"])
 @
 We can again call \code{vsn} on this data
+%------------------------------------------------------------
 <<nkid-calib-warn1,echo=FALSE,results=hide>>=
 options(warn=-1)
 @
@@ -220,6 +220,7 @@ plot(exprs(bkid),  main = "raw", pch = ".", log="xy")
 plot(exprs(nbkid), main = "vsn", pch = ".")
 preproc(description(nbkid))$vsnParams
 @
+% $------------------------------------------------------------
 \myincfig{vsn-nkid-calib4}{\textwidth}{Scatterplots for badly biased 
 data. Left hand side: raw data on log-log scale, right hand side: after 
 calibration and transformation with vsn.}
@@ -237,6 +238,7 @@ on which different lymphoma were hybridized together with a reference
 cDNA~\cite{Alizadeh}.
 <<lymphoma>>=
 data(lymphoma)
+dim(exprs(lymphoma))
 pData(lymphoma)
 @
 The 16 columns of the \code{lymphoma} object contain the red 
@@ -308,77 +310,44 @@ samples from biologically clearly distinct, known
 groups (e.\,g.~\cite{HuberISMB2002}).
 
 We use the $t$-test to find genes that are differentially transcribed 
-between CLL and DLCL. The comparison relies on the idea that for 
-a given selection of genes we can estimate the {\em False Discovery 
-Rate} through a permutation method~\cite{StoreyTibshirani}.
-Thus, if a method consistently produces a smaller false discovery 
-rate for the same size gene list than another method, it may be 
-considered more specific.
+between CLL and DLCL. 
 
-In the following piece of code, data is transformed to log-ratios and 
-normalized by the global median. The result, together with that of 
-the previous section, is stored in the 3-dimensional array \code{Ms}. 
+{\bf FIXME: explanatory text about the comparison}
+%The comparison relies on the idea that for a given selection of genes
+%we can estimate the {\em False Discovery Rate} through a permutation
+%method~\cite{StoreyTibshirani}.  Thus, if a method consistently
+%produces a smaller false discovery rate for the same size gene list
+%than another method, it may be considered more specific.
+
 Fig.~\ref{vsn-Ms-plot} shows, for one of the arrays, a comparison 
 of the resulting log-ratios.
-<<Ms-plot,results=hide,fig=TRUE,include=FALSE>>=
+<<Ms-calc,results=hide>>=
 library(marrayNorm)
-Ms <- array(0, dim=c(dim(M), 2))
-Ms[,,1] <- M
 mr <- new('marrayRaw', maGf=exprs(lymphoma)[,refrs], maRf=exprs(lymphoma)[,samps])
 mn <- maNorm(mr, norm="median", echo=T)
-Ms[,,2] <- mn@maM
-plot(Ms[,1,], xlab="vsn", ylab="global median", main="M (array 1)", pch=".")
+@
+<<Ms-plot,fig=TRUE,include=FALSE>>=
+i <- 1
+plot(M[,i], mn@maM[,i], xlab="M (vsn)", ylab="M (global median)", main=paste(i), pch=".")
 @
 \myincfig{vsn-Ms-plot}{0.5\textwidth}{Generalized log-ratio from
 \code{vsn} ($x$-axis) versus the log-ratio after global median
 normalization ($y$-axis)}
 
-The function \code{calc.fdr} provides a very simple-minded 
-implementation of the estimation of the false discovery rate from 
-the permutation distribution of the sorted test statistics. 
-The result is shown in Fig.~\ref{vsn-fdr3}.
-\myincfig{vsn-fdr3}{0.5\textwidth}{False Discovery Rate}
-<<fdr1,results=hide>>=
+{\bf FIXME: explanatory text about the comparison}. 
+Similar results with test=wilcoxon. Or with permutation p. Or with SAM / siggenes.
+%The function \code{calc.fdr} provides a very simple-minded 
+%implementation of the estimation of the false discovery rate from 
+%the permutation distribution of the sorted test statistics. 
+%The result is shown in Fig.~\ref{vsn-fdr3}.
+\myincfig{vsn-mt2}{0.5\textwidth}{Quantile-quantile plot}
+<<mt1,results=hide>>=
 library(multtest)
-calc.t <- function(classlabel, M) {
-  t <- mt.teststat(M, classlabel) 
-  t[abs(t)>1e30] <- NA
-  return(t)
-}
-@
-<<fdr2,results=hide>>=
-calc.fdr <- function(M, classlabel, nrgeneselect) {
-  t <- calc.t(classlabel, M)
-  st <- sort(abs(t), decreasing=TRUE)
-  threshold <- st[nrgeneselect]
-
-  n <- length(classlabel)
-  grp2 <- which(classlabel)
-  nck <- nchoosek(n-1, length(grp2)-1)
-  permclasslabel <- matrix(0, nrow=n, ncol=ncol(nck))
-  for(p in 1:ncol(nck)) {
-   permclasslabel[      n, p] <- 1
-   permclasslabel[nck[,p], p] <- 1
-  }     
-
-  permt <- apply(permclasslabel, 2, calc.t, M)
-  fdr <- numeric(length(nrgeneselect))
-  for(j in 1:length(threshold)) {
-    pnrsel <- apply(permt, 2, function(pt) length(which(abs(pt)>=threshold[j])))
-    fdr[j] <- mean(pnrsel) / nrgeneselect[j]
-  }
-  return(fdr)
-}
-@
-<<fdr3,fig=TRUE,include=FALSE,results=hide>>=
 classlabel <- regexpr("CLL",colnames(M)) > 0
-nrgeneselect <- c(10, 20, 50, 100, 200, 500, 1000)  
-fdr <- apply(Ms, 3, calc.fdr, classlabel, nrgeneselect) 
-plot(range(nrgeneselect), range(fdr), type='n', log='x', 
-xlab='No. of genes selected', ylab='Estimated FDR')
-for(j in 1:ncol(fdr)) 
-  lines(nrgeneselect, fdr[,j], type='b', pch=19, lty=j)
-legend(10, max(fdr), c("vsn", "global median"), lty=1:ncol(fdr))
+t1 <- mt.teststat(M, classlabel)
+t2 <- mt.teststat(mn@maM, classlabel)
+t2[abs(t2)>1e30] <- NA
+qqplot(t1, t2, xlab="t (vsn)", ylab="t (global median)", main="QQ plot", pch=".")
 @
 
 %---------------------------------------------------------
@@ -550,11 +519,13 @@ the {\em coefficient of variation}) that is the same for all
 genes~\cite{RockeDurbin2001}.
 
 \paragraph{Most genes unchanged assumption.} 
-\code{vsn} assumes that only a minority of genes on the arrays is
-detectably differentially transcribed across the experiments. The
-allowed size of that minority is controlled by the parameter
-\code{lts.quantile} and must be less than or equal to $1/2$.  
-By default, \code{lts.quantile}=0.5, that is, the maximum.
+\code{vsn} assumes that only a minority (less than half) of genes on
+the arrays is detectably differentially transcribed across the
+experiments. If it is safe to assume that a smaller fraction of genes
+is non-negligibly differentially transcribed, the efficiency of the
+estimation can be improved by increasing the parameter
+\code{lts.quantile} from its default value of 0.5 to a value between
+0.5 and 1.
 
 \paragraph{Processing biases.} 
 Image analysis software for cDNA arrays typically estimates a {\em
@@ -573,6 +544,11 @@ use \code{vsn} on the probe intensities from the "CEL file". For cDNA
 data, we recommend to use only background adjustment procedures that
 estimate the background independent of the observed foreground
 intensity.
+
+<<setdown,echo=FALSE,results=hide>>=
+options(oldopt)
+par(oldpar)
+@
 
 \begin{thebibliography}{10}
 

@@ -25,8 +25,8 @@ vsn(intensities,
   See details.}
 \item{lts.quantile}{Numeric. The quantile that is used for the resistant
   least trimmed sum of squares regression. Allowed values are between
-  0.5 and 1, corresponding to least median sum of squares regression,
-  and to ordinary least sum of squares regression, respectively.}
+  0.5 and 1. A value of 1 corresponds to ordinary least sum of squares
+  regression.}
 \item{niter}{Integer. The number of iterations to be used in the least
   trimmed sum of squares regression.}
 \item{verbose}{Logical. If TRUE, some messages are printed.}
@@ -57,7 +57,7 @@ vsn(intensities,
   a robust variant of maximum likelihood. The model assumes that for
   the majority of genes the expression levels are not much different
   across the samples, i.e., that only a minority of genes (less than
-  a fraction of \code{lts.quantile}) is differentially expressed.
+  a fraction \code{1-lts.quantile}) is differentially expressed.
 
   \bold{Format:} The format of the matrix of intensities is as follows:
   for the \bold{two-color printed array technology}, each row

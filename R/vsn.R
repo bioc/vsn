@@ -9,7 +9,7 @@
 ## comments, and if you have suggestions on how to improve this function
 ## by splitting it up into smaller pieces, please come forward!
 ##----------------------------------------------------------------------
-vsn = function(intensities,
+vsn <- function(intensities,
                lts.quantile = 0.5,
                verbose      = TRUE,
                niter        = 10,
@@ -17,40 +17,42 @@ vsn = function(intensities,
                pstart       = NULL,
                describe.preprocessing = TRUE)
 {
+  y <- getIntensityMatrix(intensities, verbose)
+
   ## Bureaucracy: make sure are the arguments are valid and plausible
-  mess =  badarg = NULL
+  mess <- badarg <- NULL
   if (!is.numeric(lts.quantile) || (length(lts.quantile)!=1) ||
      (lts.quantile<0.5) || (lts.quantile>1)) {
-    badarg = "lts.quantile"
-    mess   = "Please specify a scalar between 0.5 and 1."
+    badarg <- "lts.quantile"
+    mess   <- "Please specify a scalar between 0.5 and 1."
   }
   if (!is.numeric(niter) || (length(niter)!=1) || (niter<1)) {
-    badarg = "niter"
-    mess   = "Please specify a number >=1."
+    badarg <- "niter"
+    mess   <- "Please specify a number >=1."
   }
   if (!is.null(pstart)) {
-    if (!is.numeric(pstart) || length(pstart) != 2*d || any(is.na(pstart)) ||
-        any(pstart[(ncol(intensities)+1):(2*ncol(intensities))]<=0)) {
-      badarg = "pstart"
-      mess   = paste("Please specify a numeric vector of length", 2*ncol(intensities))
+    if (!is.numeric(pstart) || length(pstart) != 2*ncol(y) || any(is.na(pstart))) {
+      badarg <- "pstart"
+      mess   <- paste("Please specify a numeric vector of length", 2*ncol(y))
+    }
+    if (any(pstart[(ncol(y)+1):(2*ncol(y))]<=0)) {
+      badarg <- "pstart"
+      mess   <- "Please specify non-negative values for the factors."
     }
   }
   if (!is.logical(verbose)) {
-    badarg = "verbose"
-    mess   = "Please specify a logical value."
+    badarg <- "verbose"
+    mess   <- "Please specify a logical value."
   }
   ## Error handling
-  if(!is.null(mess)) {
-    mess = paste("The argument ", badarg, " has an invalid value:", get(badarg), "\n", mess, "\n", sep="")
-    stop(mess)
-  }
-
-  y = getIntensityMatrix(intensities, verbose)
+  if(!is.null(mess))
+    stop(paste("The argument ", badarg, " has an invalid value:", get(badarg),
+               "\n", mess, "\n", sep=""))
 
   ## Print welcome message
   if (verbose)
-    cat("vsn: ", nrow(y), " x ", ncol(y), " matrix (lts.quantile=", 
-        signif(lts.quantile, 2), "). Please wait for ", niter+1, " dots:\n.", sep="")
+    cat("vsn: ", nrow(y), " x ", ncol(y), " matrix. Please wait for ",
+        niter+1, " dots:\n.", sep="")
 
   ##----------------------------------------------------------------------
   ## guess a parameter scale, set boundaries for optimization,
@@ -142,14 +144,13 @@ vsn = function(intensities,
     ## Generally, optim() will call the gradient of the objective function (gr)
     ## immediately after a call to the objective (fn) at the same parameter values.
     ## Anyway, we like to doublecheck
-    if(any(p!=get("p", ws))) {
-      mess = paste(
+    if(any(p!=get("p", ws)))
+      stop(paste(
         "\n\n\The function grll (likelihood-gradient) was called with different\n",
         "parameters than the previous call of ll (likelihood-value).\n",
         "This should never happen. Please contact the package maintainer:\n",
-        "w.huber@dkfz.de\n\n")
-      error(mess)
-    }
+        "w.huber@dkfz.de\n\n"))
+
     with(ws, {
       dhda      = 1/sqrt(1+ly*ly)
       dlndhdyda = -ly/(1+ly*ly)
