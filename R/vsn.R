@@ -417,11 +417,11 @@ vsn <-  function(intensities, lts.quantile=0.75, niter=10, verbose=TRUE, pstart=
 ## a wrapper for vsn to be used as a normalization method in
 ## the package affy
 ##------------------------------------------------------------
-normalize.Plob.vsn <- function(x, ...) {
-  tmp <- vsn(rbind(x@pm, x@mm), niter=6)
-  pm(x) = tmp@h[ 1:nrow(x@pm),            ]
-  mm(x) = tmp@h[(1:nrow(x@pm))+nrow(x@pm),]
-  return(x)
+normalize.Plob.vsn <- function(aplob, ...) {
+  vsnres <- vsn(aplob@pm, niter=6)
+  pm(aplob) = vsnh(aplob@pm, params(vsnres))
+  mm(aplob) = vsnh(aplob@mm, params(vsnres))
+  return(aplob)
 }
 
 ## could also write "both" instead of "pm" if so desired
