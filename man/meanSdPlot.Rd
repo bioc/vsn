@@ -47,7 +47,7 @@ meanSdPlot(x,
   active graphics device.
 }
 
-\author{Wolfgang Huber \url{http://www.dkfz.de/abt0840/whuber}}
+\author{Wolfgang Huber \url{http://www.ebi.ac.uk/huber}}
 \seealso{\code{\link{vsn}}}
 \examples{
   data(kidney)

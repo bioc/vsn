@@ -24,7 +24,7 @@
 }
 
 \value{An object of class \code{\link[affy:AffyBatch-class]{AffyBatch}}.}
-\author{Wolfgang Huber \url{mailto:w.huber@dkfz.de}}
+\author{Wolfgang Huber \url{http://www.ebi.ac.uk/huber}}
 
 \seealso{\code{\link{vsn}}}
 \examples{

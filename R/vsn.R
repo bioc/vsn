@@ -1,6 +1,6 @@
 ##----------------------------------------------------------------------
 ## Robust calibration and variance stabilization
-## (C) Wolfgang Huber <w.huber@dkfz.de> 2002-2004
+## (C) Wolfgang Huber <huber@ebi.ac.uk> 2002-2004
 ## With contributions from Markus Ruschhaupt, Dennis Kostka, David Kreil
 ##----------------------------------------------------------------------
 ##----------------------------------------------------------------------

@@ -23,7 +23,7 @@ rowSds(x, ...)
   \code{\link{rowMeans}} and \code{\link{rowSums}}. See the function
   definition, it is very simple.
 }
-\author{Wolfgang Huber \url{http://www.dkfz.de/abt0840/whuber}}
+\author{Wolfgang Huber \url{http://www.ebi.ac.uk/huber}}
 \seealso{\code{\link{rowMeans}} and \code{\link{rowSums}}}
 
 \examples{

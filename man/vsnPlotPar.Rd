@@ -20,7 +20,7 @@
   The function is called for its side effect, creating a plot on the
   active graphics device.
 }
-\author{Wolfgang Huber \url{http://www.dkfz.de/abt0840/whuber}}
+\author{Wolfgang Huber \url{http://www.ebi.ac.uk/huber}}
 \seealso{\code{\link{vsn}}}
 \examples{
   ## see example for vsn
