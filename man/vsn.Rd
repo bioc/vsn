@@ -133,10 +133,9 @@ if(interactive()) {
   x11(width=9, height=4.5)
   par(mfrow=c(1,2))
 }
+plot(log.na(exprs(kidney)), pch=".", main="log-log")
 
 vsnkid = vsn(kidney)   ## transform and calibrate
-
-plot(exprs(kidney), pch=".", main="log-log", log="xy")
 plot(exprs(vsnkid), pch=".", main="h-h")
 
 if (interactive()) {
