@@ -3,10 +3,11 @@
 ## (C) Wolfgang Huber 2002-2003
 ## w.huber@dkfz.de
 ##-----------------------------------------------------------------
-require(Biobase) || stop("Cannot load without package \"Biobase\"")
 
 ##------------------------------------------------------------
 ## vsn: the main function of this library
+## This is one big chunk of a function, but I haven't yet seen
+## how to improve it by splitting it up into smaller pieces.
 ##------------------------------------------------------------
 vsn = function(intensities,
                lts.quantile = 0.5,
@@ -94,7 +95,8 @@ vsn = function(intensities,
 
   ## Print welcome message
   if (verbose)
-    cat("vsn is working on a ", nrow(y), " x ", ncol(y), " matrix, with lts.quantile=", signif(lts.quantile, 2),
+    cat("vsn is working on a ", nrow(y), " x ", ncol(y), 
+        " matrix, with lts.quantile=", signif(lts.quantile, 2),
         "; please wait for ", niter+1, " dots:\n.", sep="")
 
   ##----------------------------------------------------------------------
@@ -130,7 +132,10 @@ vsn = function(intensities,
   assign("timell",   numeric(0), envir=ws)
   assign("timegrll", numeric(0), envir=ws)
 
-  ##----------------------------------------------------------
+  ##----------------------------------------------------------------------------
+  ## In the following, we define two functions: ll, grll. Doing this inside the 
+  ## function vsn is one simply way to hide them from outside
+  ##----------------------------------------------------------------------------
   ## Profile log likelihood of the model
   ##
   ##    asinh(a_i + b_i * y_ki) = m_k + epsilon_ki
@@ -152,7 +157,7 @@ vsn = function(intensities,
   ## Since the matrix can be large (O(10^4) x O(10^2)), we want to avoid passing
   ## around this matrix by value.
   ## 2. The function stores intermediate results in that environment, too.
-  ## They can then be re-used by vsngrll.
+  ## They can then be re-used by grll.
   ##
   ## The variables stored in environment ws are
   ## y      the matrix of the y_ki
@@ -166,7 +171,7 @@ vsn = function(intensities,
   ##        is called it can double-check whether it is indeed called
   ##        with the same arguments (see below for details)
   ##----------------------------------------------------------
-  vsnll = function(p) {
+  ll = function(p) {
     assign("p", p, envir=ws)
     with(ws, {
       offs = p[ 1:ncy     ]
@@ -187,7 +192,7 @@ vsn = function(intensities,
   ##--------------------------------------------------------------
   ## Gradient of the profile log likelihood
   ##--------------------------------------------------------------
-  vsngrll <- function(p) {
+  grll <- function(p) {
     ## Generally, optim() will call the gradient of the objective function (gr)
     ## immediately after a call to the objective (fn) at the same parameter values.
     ## Anyway, we like to doublecheck
@@ -219,7 +224,7 @@ vsn = function(intensities,
 
     p0 <- pstart
     for (optim.iter in 1:optim.niter) {
-      o  <- optim(par=p0, fn=vsnll, gr=vsngrll, method="L-BFGS-B",
+      o  <- optim(par=p0, fn=ll, gr=grll, method="L-BFGS-B",
                   control=control, lower=plower)
       if (o$convergence==0) next
 
@@ -328,13 +333,6 @@ vsnh <- function(y, p) {
   dimnames(hy) = dimnames(y)
   return(hy)
 }
-##------------------------------------------------------------
-## Some useful functions
-## sqr   : square (sqr(x) is faster than x^2)
-## within: is x in the interval [x1, x2] ?
-##------------------------------------------------------------
-   sqr <- function(x) { x*x }
-
 ##---------------------------------------------------------
 ## Enumerate all the subsets of size k of the integers 1:n.
 ## The result is returned in a matrix with k rows and
