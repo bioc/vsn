@@ -184,7 +184,7 @@ SEXP vsnc(SEXP e_y, SEXP e_par, SEXP e_strat, SEXP e_doopt)
   if(!isLogical(e_doopt))
     error("Invalid argument 'e_doopt', must be logical.");
 
-  if(abs(asinh(1.5)-1.1947632172871)>1e-10)
+  if(fabs(asinh(1.5)-1.1947632172871)>1e-10)
     error("Your 'asinh' function does not seem to work right.");
 
   /* assign length information and pointers to data areas into local caches */
