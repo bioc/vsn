@@ -89,7 +89,7 @@ vsn = function(intensities, lts.quantile=0.5, niter=10, verbose=TRUE, pstart=NUL
 
   ## Print welcome message
   if (verbose)
-    cat("vsn is working on ", nrow(y), " x ", ncol(y), " matrix, with lts.quantile=", signif(lts.quantile, 2),
+    cat("vsn is working on a ", nrow(y), " x ", ncol(y), " matrix, with lts.quantile=", signif(lts.quantile, 2),
         "; please wait for ", niter+1, " dots:\n.", sep="")
 
   ##----------------------------------------------------------

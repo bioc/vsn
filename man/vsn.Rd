@@ -63,7 +63,7 @@ command line.
 }
 
 \value{  
-  An object of class \link{vsn.result}. The slot \code{h} contains the
+  An object of class \link{vsn.result-class}. The slot \code{h} contains the
   calibrated and transformed intensities (see examples). Differences
   between the transformed may be interpreted in much the same way as
   log-ratios. In the high intensity range, i.e., for intensities much
@@ -78,14 +78,18 @@ calibration and to the quantification of differential expression,
 Wolfgang Huber, Anja von Heydebreck, Holger Sueltmann, Annemarie
 Poustka, Martin Vingron; Bioinformatics (2002) 18 Suppl.1 S96-S104.
 
-Parameter estimation for the calibration and variance stabilization
-of microarray data. Wolfgang Huber, Anja von Heydebreck, Holger
-Sueltmann, Annemarie Poustka, Martin Vingron. To appear in Statistical
-Applications in Genetics and Molecular Biology.}
+Parameter estimation for the calibration and variance stabilization 
+of microarray data, 
+Wolfgang Huber, Anja von Heydebreck, Holger Sueltmann, 
+Annemarie Poustka, and Martin Vingron;  
+Statistical Applications in Genetics and Molecular Biology (2003)
+Vol. 2 No. 1, Article 3.
+http://www.bepress.com/sagmb/vol2/iss1/art3.}
+
 
 \author{Wolfgang Huber \url{http://www.dkfz.de/abt0840/whuber}}
 
-\seealso{\code{\link{vsn.result}}, \code{\link{normalize.AffyBatch.vsn}}}
+\seealso{\code{\link{vsn.result-class}}, \code{\link{normalize.AffyBatch.vsn}}}
 \examples{
 data(lymphoma)
 

@@ -254,7 +254,7 @@ plot(Ms[,1,], xlab="vsn", ylab="global median", main="M (array 1)", pch=".")
 @
 \myincfig{vsn-Ms-plot}{80mm}
 
-The function \code{calc.fdr} provides a simple-minded 
+The function \code{calc.fdr} provides a very simple-minded 
 implementation of the estimation of the false discovery rate from 
 the permutation distribution of the sorted test statistics. 
 The result is shown in Fig.~\ref{vsn-fdr3}.
@@ -313,13 +313,12 @@ data processing routines of \code{affy}. See the documentation for
 the package \code{affy} for more information about data structures 
 and other available methods. There are different ways to treat the
 mismatch (MM) intensities, to adjust for background, and summarize 
-the probe sets.
+the probe sets. See the example for \code{normalize.AffyBatch.vsn}.
+The resulting plot is shown in Fig.~\ref{vsn-affy}.
 <<affy,include=FALSE,results=hide,fig=TRUE,width=7,height=7>>==
 example(normalize.AffyBatch.vsn)
 @
 \myincfig{vsn-affy}{0.75\textwidth}
-The scatterplot is shown in Fig.~\ref{vsn-affy}.
-
 
 %---------------------------------------------------------
 \section{Quality control}\label{sec.qc}

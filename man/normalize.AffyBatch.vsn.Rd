@@ -26,39 +26,44 @@
 
 \seealso{\code{\link{vsn}}}
 \examples{
-  library(affy)
-  data(Dilution)
+library(affy)
+data(Dilution)
 
-  ## normalize
-  normalize.AffyBatch.methods <- c(normalize.AffyBatch.methods, "vsn")
+## let affy know about vsn
+normalize.AffyBatch.methods <- c(normalize.AffyBatch.methods, "vsn")
 
-  es1 = express(Dilution[1:2],
-       normalize.method = "vsn", niter=4, bg.correct = FALSE)
+es1 = expresso(Dilution[1:2], 
+               bg.correct       = FALSE,   ## bg correction is done by vsn
+               normalize.method = "vsn",
+               pmcorrect.method = "pmonly", 
+               summary.method   = "medianpolish")
 
-  es2 = express(Dilution[1:2])  ## rma
+es2 = expresso(Dilution[1:2], 
+               bgcorrect.method = "rma",
+               normalize.method = "quantiles", 
+               pmcorrect.method = "pmonly",
+               summary.method   = "medianpolish")
 
-  ## graphics output
-  if(interactive())
-    x11()
-  par(mfrow=c(2,2))
-  pch="."
+## graphics output
+if(interactive()) x11()
+oldpar = par(mfrow=c(2,2), pch=".")
 
-  ## extract expression values
-  x1 = exprs(es1); x2 = exprs(es2) 
+## extract expression values
+x1 = exprs(es1); x2 = exprs(es2) 
  
-  ## scatter plot
-  plot(x1, pch=pch, main="vsn: chip 3 vs 4")
-  plot(x2, pch=pch, main="rma: chip 3 vs 4")
+## scatter plot
+plot(x1, main="vsn: chip 3 vs 4")
+plot(x2, main="rma: chip 3 vs 4")
 
-  ## rank(mean) - difference plot
-  ylim = c(-0.7, 0.7)
-  plot(rank(rowSums(x1)), diff(t(x1)), pch=pch, ylim=ylim, main="rank(mean) vs differences")
-  abline(h=0, col="red")
-  plot(rank(rowSums(x2)), diff(t(x2)), pch=pch, ylim=ylim, main="rank(mean) vs differences")
-  abline(h=0, col="red")
+## rank(mean) - difference plot
+ylim = c(-0.7, 0.7)
+plot(rank(rowSums(x1)), diff(t(x1)), ylim=ylim, main="rank(mean) vs differences")
+abline(h=0, col="red")
+plot(rank(rowSums(x2)), diff(t(x2)), ylim=ylim, main="rank(mean) vs differences")
+abline(h=0, col="red")
 
-  ## plot(exprs(Dilution)[, c(1,4)], 
-  ##      pch=pch, log="xy", main="raw: chip 1 vs 4")
+## reset old plotting parameters 
+par(oldpar)
 }
 
 \keyword{robust}
