@@ -5,9 +5,6 @@
 ##----------------------------------------------------------------------
 ##----------------------------------------------------------------------
 ## vsn: the main function of this library
-## This is one big chunk of a function - but lots of screen space are
-## comments, and if you have suggestions on how to improve this function
-## by splitting it up into smaller pieces, please come forward!
 ##----------------------------------------------------------------------
 vsn <- function(intensities,
                 lts.quantile = 0.5,
@@ -93,7 +90,7 @@ vsn <- function(intensities,
     ## i.e. istrat[j]...istrat[j+1] are the elements of ysel that
     ## belong to stratum j (using C indexing convention,
     ## i.e. starting at 0).
-    ## Note: the counting over the different sample is folded into j,
+    ## Note: the counting over the different samples is folded into j,
     ## i.e., if there are 4 strata on the array and 3 samples, then
     ## j runs from 1:12
     istr <- which(!duplicated(strsel))-1
@@ -179,7 +176,7 @@ vsn <- function(intensities,
 
   ## Prepare the return result: an exprSet
   ## The transformed data goes into slot exprs.
-  ## If input was allready an exprSet, pass on the values all the other slots.
+  ## If input was allready an exprSet, keep the values of all the other slots.
   ## To the slot description@preprocessing, append the parameters and the
   ##    trimming selection.
 
@@ -194,10 +191,12 @@ vsn <- function(intensities,
   if(is.null(res))     res   <- new("exprSet", description=descr)
 
   exprs(res) = hy[reord, ]
-  if (describe.preprocessing)
-    res@description@preprocessing = append(res@description@preprocessing,
-                      list(vsnParams        = par,
+  if (describe.preprocessing) {
+    vsnPreprocessing =  list(vsnParams        = par,
                            vsnParamsIter    = params,
-                           vsnTrimSelection = sel[reord]))
+                           vsnTrimSelection = sel[reord])
+    class(vsnPreprocessing) = c("vsnPreprocessing", class(vsnPreprocessing))
+    res@description@preprocessing = append(res@description@preprocessing, vsnPreprocessing)
+  }
   return(res)
 }

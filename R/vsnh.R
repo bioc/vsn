@@ -30,7 +30,9 @@ vsnh <- function(y, p, strata) {
   if (any(p[,,2]<=0))
     stop("'p' contains invalid values: factors must be non-negative.")
 
-  hy   = asinh(p[strata,,1] + p[strata,,2] * y) - log(2*p[strata[1],1,2])   
+  ## use the recycling rule: p[strata,,1], p[strata,,2], y, and the result of asinh()
+  ## are all n*d-matrices. p[strata,1,2] and the result of log() is an n-vector.
+  hy   = asinh(p[strata,,1] + p[strata,,2] * y) - log(2*p[strata,1,2])
   dimnames(hy) = dimnames(y)
   return(hy)
 }
