@@ -12,7 +12,9 @@ meanSdPlot = function(x, ranks=TRUE,
   sel = preproc(description(x))$vsnTrimSelection
   if(!is.null(sel)){
     if(!is.logical(sel) || length(sel)!=nrow(exprs(x)) || any(is.na(sel))) 
-      stop("The element \"vsnTrimSelection\" of the preprocessing slot of the description slot of \"x\" is corrupted.")
+      stop(paste("The element \"vsnTrimSelection\" of the preprocessing",
+                 "slot of the description slot of \"x\" is not valid.",
+                 "You may remove it and try again.\n"))
     if(!is.null(col))
       stop("Parameter \"col\" must not be specified.")
     col = ifelse(sel, "blue", "black")
