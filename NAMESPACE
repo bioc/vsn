@@ -3,7 +3,7 @@ useDynLib(vsn)
 export("vsn", "vsnh", "vsnPlotPar",
        "getIntensityMatrix",
        ## "kidney", "lymphoma",
-       "normalize.AffyBatch.vsn", "rowSds",
+       "normalize.AffyBatch.vsn", 
        "sagmbAssess", "sagmbSimulateData",
        "meanSdPlot", "nchoosek")
 
