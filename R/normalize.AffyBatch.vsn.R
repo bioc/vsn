@@ -27,7 +27,8 @@ normalize.AffyBatch.vsn = function (abatch, subsample = 20000, niter = 4, strata
 
   ## add parameters to preprocessing slot
   pars = preproc(description(vsnres))$vsnParams
-  description(abatch)@preprocessing = c(description(abatch)@preprocessing, list(vsnParams=pars))
+  parsIter = preproc(description(vsnres))$vsnParamsIter # J.: added 2005/04/26
+  description(abatch)@preprocessing = c(description(abatch)@preprocessing, list(vsnParams=pars, vsnParamsIter=parsIter))
 
   ## apply the transformation (to all data)
   intensity(abatch) = exp(vsnh(intensity(abatch), pars, strata=strata))
