@@ -1,5 +1,5 @@
 %\VignetteIndexEntry{vsn - introduction}
-%\VignetteDepends{Biobase,vsn,affy,affydata,marray,multtest,limma}
+%\VignetteDepends{Biobase,vsn,affy,affydata,marray,multtest,limma,hgu95av2cdf}
 %\VignetteKeywords{Expression Analysis}
 %\VignettePackage{vsn}
 
