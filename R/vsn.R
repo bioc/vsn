@@ -1,6 +1,6 @@
 ##----------------------------------------------------------------------
 ## Robust calibration and variance stabilization
-## (C) Wolfgang Huber <huber@ebi.ac.uk> 2002-2004
+## (C) Wolfgang Huber <huber@ebi.ac.uk> 2002-2005
 ## With contributions from Markus Ruschhaupt, Dennis Kostka, David Kreil
 ##----------------------------------------------------------------------
 ##----------------------------------------------------------------------
@@ -8,7 +8,7 @@
 ##----------------------------------------------------------------------
 vsn = function(intensities,
                 lts.quantile = 0.5,
-                verbose      = TRUE,
+                verbose      = interactive(),
                 niter        = 10,
                 cvg.check    = NULL,
                 describe.preprocessing=TRUE,

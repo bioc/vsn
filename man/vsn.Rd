@@ -7,7 +7,7 @@
 \usage{
 vsn(intensities,
     lts.quantile = 0.5,
-    verbose      = TRUE,
+    verbose      = interactive(),
     niter        = 10,
     cvg.check    = NULL,
     describe.preprocessing = TRUE,
