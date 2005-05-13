@@ -19,7 +19,7 @@
   \code{normalize.AffyBatch.vsn} \bold{exponentiates} the data. This is done in
   order to make the behavior of this function similar to the other
   normalization methods in affy. There, it is assumed that in subsequent
-  analysis steps (e.g. in \code{\link{medianpolish}}), the logarithm to
+  analysis steps (e.g. in \code{\link[stats]{medpolish}}), the logarithm to
   base 2 needs to be taken.
 }
 
