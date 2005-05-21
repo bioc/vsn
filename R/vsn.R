@@ -12,6 +12,7 @@ vsn = function(intensities,
                 niter        = 10,
                 cvg.check    = NULL,
                 describe.preprocessing=TRUE,
+                subsample,
                 pstart,
                 strata) {
   y = getIntensityMatrix(intensities, verbose)
@@ -25,7 +26,13 @@ vsn = function(intensities,
     stop("'niter' must be a number >=1.")
   if (!is.logical(verbose))
     stop("'verbose' must be a logical value.")
-
+  if(!missing(subsample)) {
+    if(!is.numeric(subsample) || !(length(subsample)==1))
+      stop("'subsample' must be a single number.")
+    if(!(subsample>1e4))
+      stop("'subsample' should not be less than 10000.")
+  }
+  
   if(missing(strata)) {
     strata = rep(as.integer(1), nrow(y))
   } else {
@@ -77,7 +84,8 @@ vsn = function(intensities,
   for(i in seq(along=ltsq)) {
     tryCatch({
       v = dovsn(y=y, lts.quantile=ltsq[i], verbose=verbose,
-                  niter=niter, cvg.check=cvg.check, pstart=pstart, strata=strata)
+        niter=niter, cvg.check=cvg.check, subsample=subsample,
+        pstart=pstart, strata=strata)
       succeed = TRUE
       break
     }, error= function(e) {
@@ -130,7 +138,7 @@ vsn = function(intensities,
 ##--------------------------------------------------
 ## This is the actual "workhorse" function 
 ##--------------------------------------------------
-dovsn = function(y, lts.quantile, verbose, niter, cvg.check, pstart, strata) {
+dovsn = function(y, lts.quantile, verbose, niter, cvg.check, subsample, pstart, strata) {
 
   nrstrata = dim(pstart)[1]
   d        = dim(pstart)[2]
@@ -143,8 +151,20 @@ dovsn = function(y, lts.quantile, verbose, niter, cvg.check, pstart, strata) {
   oldhy   = Inf  ## for calculating a convergence criterion: earlier result
   cvgcCnt = 0    ## counts the number of iterations that have already met
                   ## the convergence criterion
-  sel     = rep(TRUE, nrow(y))
+  sel = rep(TRUE, nrow(y))
   for(lts.iter in 1:niter) {
+    ## subsample?
+    if(!missing(subsample)) {
+      ssp  = split(which(sel), strata[sel])
+      ssps = lapply(ssp, function(s) {
+        if(length(s)<=subsample) {
+          s
+        } else {
+          sample(s, subsample, replace=FALSE)
+        }
+      } )
+      sel = unlist(ssps)
+    }
     ysel   = y[sel,]
     istrat = calc.istrat(strata[sel], nrstrata, d)
     p0     = pstart

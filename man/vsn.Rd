@@ -11,6 +11,7 @@ vsn(intensities,
     niter        = 10,
     cvg.check    = NULL,
     describe.preprocessing = TRUE,
+    subsample,
     pstart,
     strata)
 }
@@ -39,6 +40,9 @@ vsn(intensities,
 \item{describe.preprocessing}{Logical. If TRUE, calibration and
   transformation parameters, plus some other information are stored in
   the \code{preprocessing} slot of the returned object. See details.}
+\item{subsample}{Integer. If specified, the model parameters are
+  estimated from a subsample of the data only, the transformation is
+  then applied to all data. This can be useful for performance reasons.}
 \item{strata}{Integer vector. Its length must be the same as nrow(intensities).
   This parameter allows for the calibration and error model parameters
   to be stratified within each array, e.g to take into account probe 
