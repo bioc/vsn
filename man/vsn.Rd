@@ -134,10 +134,10 @@ vsn(intensities,
 }
 
 \value{An object of class \code{\link[Biobase:exprSet-class]{exprSet}}.
- Differences between the columns of the transformed intensities may be
- interpreted as "generalized log-ratios". For the transformation parameters,
- please see details.
-
+ Differences between the columns of the transformed intensities are 
+ "generalized log-ratios", which are shrinkage estimators of the natural
+ logarithm of the fold change. For the transformation parameters,
+ please see the Details.
 }
 
 \references{Variance stabilization applied to microarray data

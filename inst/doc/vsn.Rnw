@@ -4,8 +4,7 @@
 %\VignettePackage{vsn}
 
 \documentclass[11pt]{article}
-\usepackage{geometry}
-\usepackage{color}
+\usepackage{geometry}\usepackage{color}
 \definecolor{darkblue}{rgb}{0.0,0.0,0.75}
 \usepackage[%
 baseurl={http://www.bioconductor.org},%
@@ -56,9 +55,9 @@ on.exit( {options(oldopt)} )
 @ 
 
 %------------------------------------------------------------
-\section*{Introduction}
+\section{Getting started: brief overview}
 %------------------------------------------------------------ 
-\Rpackage{vsn} is a method to preprocess DNA microarray intensity data.
+\Rpackage{vsn} is a method to preprocess microarray intensity data.
 Calling \Rpackage{vsn} can be as simple as
 
 <<dummyex1,eval=FALSE>>=
@@ -74,9 +73,11 @@ corresponding to probes, columns to arrays and/or dyes).
 
 The so-called \textit{glog} (short for 
 \textit{\textbf{generalized logarithm}}) is a function that is like the
-natural logarithm for large values (compared against the background noise),
+natural logarithm for large values (large compared to the background noise),
 but is less steep for smaller values.  Differences between the transformed
-values are the \textit{\textbf{generalized log-ratios}}. For example,
+values are the \textit{\textbf{generalized log-ratios}}. These are 
+\emph{shrinkage estimators} of the natural logarithm of the fold change. 
+For example,
 
 <<dummyex2,eval=FALSE>>=
 M <- exprs(e2)[,i] - exprs(e2)[,j]
@@ -291,7 +292,8 @@ es1 = expresso(Dilution[, 1:2],
 
 Here, we have ignored the MM values and used \Robject{medianpolish} for
 summarization, as in the RMA method~\cite{RMA}. For comparison, let's 
-calculate expression values using another normalization method:
+calculate expression values using another normalization method.
+The resulting plots are shown in Fig.~\ref{vsn-affy3}.
 
 <<affy2,results=hide>>=
 es2 = expresso(Dilution[, 1:2], 
@@ -321,7 +323,11 @@ plot(rank(rowSums(x2)), diff(t(x2)), ylim=ylim, main="rank(mean) vs differences"
 abline(h=0, col="red")
 @
 
-The resulting plots are shown in Fig.~\ref{vsn-affy3}.
+Note that while the values of \Rpackage{vsn} are normally represented on the
+natural logarithmic scale, with the wrapper \Rfunction{normalize.AffyBatch.vsn}
+they are transformed to the logarithm base 2 scale. This way
+\Rfunction{normalize.AffyBatch.vsn} fits into the conventions of the
+\Rpackage{expresso}-function.
 
 \myincfig{vsn-affy3}{\textwidth}{\Robject{normalize.AffyBatch.vsn} example}
 
