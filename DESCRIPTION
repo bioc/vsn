@@ -1,6 +1,6 @@
 Package: vsn
-Version: 1.7.2
-Date: 14. Juni 2005
+Version: 1.7.3
+Date: 03 Sep 2005
 Title: Variance stabilization and calibration for microarray data
 Author: Wolfgang Huber <huber@ebi.ac.uk>, contributions from A. von
         Heydebreck <heydebre@molgen.mpg.de>, Markus Ruschhaupt
@@ -33,4 +33,4 @@ Reference: [1] Variance stabilization applied to microarray data
         http://www.bepress.com/sagmb/vol2/iss1/art3.
 License: LGPL
 URL: http://www.r-project.org, http://www.ebi.ac.uk/huber
-
+biocViews: Microarray, OneChannel, TwoChannel, Preprocessing
