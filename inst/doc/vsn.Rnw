@@ -22,6 +22,7 @@ pagecolor=darkblue,raiselinks,plainpages,pdftex]{hyperref}
 \newcommand{\Robject}[1]{\texttt{#1}}
 \newcommand{\Rpackage}[1]{\textit{#1}}
 \newcommand{\Rclass}[1]{\textit{#1}}
+\newcommand{\Rfunction}[1]{{\small\texttt{#1}}}
 
 \newcommand{\myincfig}[3]{%
   \begin{figure}[htbp]
