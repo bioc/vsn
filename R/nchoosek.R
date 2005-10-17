@@ -13,24 +13,28 @@ nchoosek = function(n, k) {
     stop("Arguments must satisfy 0 <= k <= n.")
 
   nck = choose(n, k)
-  res = matrix(NA, nrow=k, ncol = nck)
+  res = matrix(as.integer(NA), nrow=k, ncol = nck)
   res[, 1] = 1:k
-  j = 2
-  repeat {
-    res[, j] = res[, j-1]
-    i = k
+
+  if(nck>=2) {
+    j = 2
     repeat {
-      res[i,j] = res[i,j]+1
-      if(res[i,j] <= n-(k-i))
-        break
-      i = i-1
-      stopifnot(i>=1)
+      res[, j] = res[, j-1]
+      i = k
+      repeat {
+        res[i,j] = res[i,j]+1
+        if(res[i,j] <= n-(k-i))
+          break
+        i = i-1
+        stopifnot(i>=1)
+      }
+      if (i<k)
+        res[(i+1):k,j] = res[i,j] + 1:(k-i)
+      j = j+1
+      if (j>nck) break
     }
-    if (i<k)
-       res[(i+1):k,j] = res[i,j] + 1:(k-i)
-    j = j+1
-    if (j>nck) break
   }
+  
   ## plausibility tests
   stopifnot(all(res[, nck]==(n-k+1):n))
   stopifnot(all(res<=n) && all(res>=1))
