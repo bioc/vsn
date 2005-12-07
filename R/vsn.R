@@ -55,24 +55,26 @@ vsn = function(intensities,
         paste(dim(pstart), collapse=" x "), ".", sep=""))
   }
 
-  minperstratum = as.integer(42/lts.quantile)
-  sstr = sum(table(strata) < minperstratum)
-  if(sstr>0) {
-    mess = paste("*** There are less than", minperstratum, "data points in", sstr,
-      "of the strata.\n*** The fitted parameters may be unreliable.\n")
-    if(lts.quantile<0.9)
-      mess = paste(mess, "*** You could try to increase the value of 'lts.quantile'.\n", sep="")
-    if(nrstrata>1)
-      mess = paste(mess, "*** You could try to reduce the number of strata.\n", sep="")
-    warning(mess)
+  if(nrstrata>1) {
+    minperstratum = as.integer(42/lts.quantile)
+    sstr = sum(table(strata) < minperstratum)
+    if(sstr>0) {
+      mess = paste("*** There are less than", minperstratum, "data points in", sstr,
+        "of the strata.\n*** The fitted parameters may be unreliable.\n")
+      if(lts.quantile<0.9)
+        mess = paste(mess, "*** You could try to increase the value of 'lts.quantile'.\n", sep="")
+      if(nrstrata>1)
+        mess = paste(mess, "*** You could try to reduce the number of strata.\n", sep="")
+      warning(mess)
+    }
+
+    ## reorder the rows of the matrix so that each stratum sits in a contiguous block
+    ordstrata = order(strata)
+    reord     = order(ordstrata)
+    y         = y[ordstrata,]
+    strata    = strata[ordstrata]
   }
-
-  ## reorder the rows of the matrix so that each stratum sits in a contiguous block
-  ordstrata = order(strata)
-  reord     = order(ordstrata)
-  y         = y[ordstrata,]
-  strata    = strata[ordstrata]
-
+  
   ## Print welcome message
   if (verbose)
     cat("vsn: ", nrow(y), " x ", d, " matrix (", nrstrata, " strat",
@@ -91,7 +93,8 @@ vsn = function(intensities,
     }, error= function(e) {
       if(verbose) {
         cat(c("First", "Second", "Third")[i], "attempt at likelihood",
-            "optimization did not converge.\n")
+            "optimization result in the following error:\n")
+        print(e)
       if(i<length(ltsq))
         cat("Restarting with lts.quantile=", signif(ltsq[i+1],2), "\n")
       }}
@@ -155,7 +158,11 @@ dovsn = function(y, lts.quantile, verbose, niter, cvg.check, subsample, pstart, 
   for(lts.iter in 1:niter) {
     ## subsample?
     if(!missing(subsample)) {
-      ssp  = split(which(sel), strata[sel])
+      if(nrstrata==1) {
+        ssp = list(which(sel))
+      } else {
+        ssp  = split(which(sel), strata[sel])
+      }
       ssps = lapply(ssp, function(s) {
         if(length(s)<=subsample) {
           s
