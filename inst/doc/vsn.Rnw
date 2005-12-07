@@ -106,8 +106,8 @@ mathematical-methodical background
 
 
 In short, each column is calibrated by an affine transformation\footnote{It is
-possible to stratify the transformations within columns; this is discussed in
-Section~\ref{sec.strata}}, then the whole data are transformed by a
+possible to stratify the transformations within columns, see the \Robject{strata}
+parameter of \Rfunction{vsn}.}, then the whole data are transformed by a
 variance-stabilizing transformation.  After this, systematic array- or
 dye-biases should be removed, and the variance should be approximately
 independent of the mean intensity.  Many statistical methods such as
@@ -175,8 +175,8 @@ deviation on the mean. After variance stabilization, this should be
 approximately a horizontal line.  It may have some random
 fluctuations, but should not show an overall trend.  If this is not
 the case, that usually indicates a data quality problem, or is a
-consequence of inadequate prior data preprocessing (see
-Section~\ref{sec.qc}). The rank ordering distributes the data evenly
+consequence of inadequate prior data preprocessing. 
+The rank ordering distributes the data evenly
 along the $x$-axis. A plot in which the $x$-axis shows the average
 intensities themselves is obtained by calling the \Robject{plot}
 command with the argument \Robject{ranks=FALSE}.

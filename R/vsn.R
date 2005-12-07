@@ -55,6 +55,7 @@ vsn = function(intensities,
         paste(dim(pstart), collapse=" x "), ".", sep=""))
   }
 
+  isReordered = FALSE
   if(nrstrata>1) {
     minperstratum = as.integer(42/lts.quantile)
     sstr = sum(table(strata) < minperstratum)
@@ -73,6 +74,7 @@ vsn = function(intensities,
     reord     = order(ordstrata)
     y         = y[ordstrata,]
     strata    = strata[ordstrata]
+    isReordered = TRUE
   }
   
   ## Print welcome message
@@ -126,11 +128,16 @@ vsn = function(intensities,
   if(is.null(descr))   descr = new("MIAME")
   if(is.null(res))     res   = new("exprSet", description=descr)
 
-  exprs(res) = v$hy[reord, ]
+  if(isReordered) {
+    v$hy  = v$hy[reord, ]
+    v$sel = v$sel[reord]
+  }
+  
   if (describe.preprocessing) {
+    exprs(res) = v$hy
     vsnPreprocessing =  list(vsnParams      = v$par,
                            vsnParamsIter    = v$params,
-                           vsnTrimSelection = v$sel[reord])
+                           vsnTrimSelection = v$sel)
     class(vsnPreprocessing) = c("vsnPreprocessing", class(vsnPreprocessing))
     res@description@preprocessing = append(res@description@preprocessing, vsnPreprocessing)
   }
