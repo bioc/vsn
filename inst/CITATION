@@ -9,7 +9,7 @@ citEntry(entry="article",
   year = "2002",
   volume = "18 Suppl. 1",
   pages = "S96-S104",
-  textVersion = paste("Huber W, von Heydebreck A, Sueltmann H, Poustka A,"
+  textVersion = paste("Huber W, von Heydebreck A, Sueltmann H, Poustka A,",
     "Vingron M. Variance Stabilization Applied to Microarray Data",
     "Calibration and to the Quantification of Differential Expression.",
     "Bioinformatics 18, S96-S104 (2002)."))
