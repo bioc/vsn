@@ -288,7 +288,7 @@ SEXP vsn_c(SEXP e_y, SEXP e_par, SEXP e_strat, SEXP e_what)
   PROTECT(res);
 
   /* parameters:
-  /* transform the factors to log scale (see also comments for optfn) */
+     transform the factors to log scale (see also comments for optfn) */
   cpar    = (double *) R_alloc(x.npar, sizeof(double));
   for(i=0; i<x.nrstrat; i++) 
     cpar[i] = REAL(e_par)[i];
