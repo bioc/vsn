@@ -1,9 +1,8 @@
-useDynLib(vsn)
+useDynLib("vsn")
 
 export("vsn", "vsnh", "vsnPlotPar",
        "getIntensityMatrix",
-       ## "kidney", "lymphoma",
        "normalize.AffyBatch.vsn", 
        "sagmbAssess", "sagmbSimulateData",
-       "meanSdPlot", "nchoosek")
+       "meanSdPlot")
 
