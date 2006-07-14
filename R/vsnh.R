@@ -25,7 +25,7 @@ vsnh <- function(y, p, strata) {
   if(nrstrata==1 && length(dim(p))==2)
     dim(p) <- c(1, dim(p))
   
-  if(length(dim(p))!=3 || dim(p)[1]<nrstrata || dim(p)[2]!=ncol(y) || dim(p)[3]!=2)
+  if(length(dim(p))!=3 || dim(p)[1]!=nrstrata || dim(p)[2]!=ncol(y) || dim(p)[3]!=2)
     stop("'p' has wrong dimensions.")
   if (any(p[,,2]<=0))
     stop("'p' contains invalid values: factors must be non-negative.")
