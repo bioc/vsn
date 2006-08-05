@@ -31,6 +31,6 @@ Reference: [1] Variance stabilization applied to microarray data
         Statistical Applications in Genetics and Molecular Biology
         (2003) Vol. 2 No. 1, Article 3;
         http://www.bepress.com/sagmb/vol2/iss1/art3.
-License: LGPL
+License: Artistic License 2.0
 URL: http://www.r-project.org, http://www.ebi.ac.uk/huber
 biocViews: Microarray, OneChannel, TwoChannel, Preprocessing
