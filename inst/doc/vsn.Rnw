@@ -47,10 +47,10 @@ q(save="no")
 @
 
 <<setup,echo=FALSE,results=hide>>=
-library(affy)
-library(marray)
-library(multtest)
-library(limma)
+library("affy")
+library("marray")
+library("multtest")
+library("limma")
 oldopt <- options(digits=3)
 on.exit( {options(oldopt)} )
 @ 
@@ -126,8 +126,8 @@ The package includes example data from a cDNA array on which two
 biologically very similar samples, one labeled in green (Cy3), one
 in red (Cy5), were hybridized.
 <<lib,results=hide>>= 
-library(vsn) 
-data(kidney) 
+library("vsn") 
+data("kidney") 
 @ 
 The two columns of the matrix \Robject{exprs(kidney)} contain the
 green and red intensities, respectively. Let's try out \Robject{vsn} on
@@ -279,9 +279,9 @@ the following steps:
 the function \Robject{expresso} to run the whole process in one go:
 
 <<affy1,results=hide>>=
-library(affy)
-library(affydata)
-data(Dilution)
+library("affy")
+library("affydata")
+data("Dilution")
 ## let affy know about vsn
 normalize.AffyBatch.methods <- c(normalize.AffyBatch.methods, "vsn")
 es1 = expresso(Dilution[, 1:2], 
@@ -339,7 +339,7 @@ they are transformed to the logarithm base 2 scale. This way
 function \Robject{normalizeBetweenArrays}:
 
 <<limma1,eval=FALSE>>= 
-library(limma)
+library("limma")
 MA <- normalizeBetweenArrays(RG, method="vsn")
 @
 
@@ -412,7 +412,7 @@ prep$vsnParams
 The \Robject{description} slot of an \Rclass{exprSet} is an object of
 class \Rclass{MIAME}, and may contain annotation data pertinent to the
 experiment represented by the object. For an exprSet with $d$ sample 
-and $n_s$ probe strata (see Section~\ref{sec.strata}),
+and $n_s$ probe strata % (see Section~\ref{sec.strata}),
 \Robject{prep\$vsnParams} is a numeric array with dimensions $(n_s, d, 2)$. 
 \Robject{prep\$vsnParams[s, i, 1]} is what was called $a_{si}$ in
 Eqn.~(\ref{eq.transf}), and
@@ -509,7 +509,7 @@ of between- and within-group variability.}
 \end{figure}
 
 <<marraynorm,results=hide>>=
-library(marray)
+library("marray")
 mr <- new('marrayRaw', 
           maGf=exprs(lymphoma)[,refrs], 
           maRf=exprs(lymphoma)[,samps],
@@ -518,7 +518,7 @@ mn <- maNorm(mr, norm="median", echo=TRUE)
 @
 <<comp,results=hide,fig=TRUE,width=8,height=4,include=FALSE>>=
 par(mfrow=c(1,2))
-library(multtest)
+library("multtest")
 plot(M[,1], mn@maM[,1]*log(2), xlab="M (vsn)", ylab="M (global median)", main="slide 1", pch=".")
 abline(a=0,b=1,col="blue")
 classlabel <- regexpr("CLL",colnames(M)) > 0
@@ -529,7 +529,7 @@ abline(a=0,b=1,col="blue")
 @
 
 %---------------------------------------------------------
-\section{Quality control}\label{sec.qc}
+\section{Quality assessment}\label{sec.qc}
 %---------------------------------------------------------
 \Robject{vsn} makes some assumptions about your data that need to
 hold if it is to produce meaningful results. We have found them
