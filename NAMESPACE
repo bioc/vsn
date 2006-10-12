@@ -1,8 +1,9 @@
 useDynLib("vsn")
 
+importFrom("methods", "setGeneric", "setMethod")
 export("vsn", "vsnh", "vsnPlotPar",
        "getIntensityMatrix",
        "normalize.AffyBatch.vsn", 
-       "sagmbAssess", "sagmbSimulateData",
-       "meanSdPlot")
+       "sagmbAssess", "sagmbSimulateData")
+exportMethods("meanSdPlot")
 

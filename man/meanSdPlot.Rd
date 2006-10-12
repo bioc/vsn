@@ -1,7 +1,15 @@
 \name{meanSdPlot}
+\docType{methods}
 \alias{meanSdPlot}
-\title{Plot row standard deviations versus row means}
-\description{Plot row standard deviations versus row means}
+\alias{meanSdPlot-methods}
+\alias{meanSdPlot,matrix-method}
+\alias{meanSdPlot,eSet-method}
+\alias{meanSdPlot,exprSet-method}
+\title{Plot row standard deviations
+  versus row means}
+\description{Methods for objects of classes
+\code{eSet}, \code{exprSet} and \code{matrix}
+  to plot row standard deviations versus row means}
 \usage{
 meanSdPlot(x, 
            ranks = TRUE,
@@ -11,7 +19,8 @@ meanSdPlot(x,
            col, ...)} 
 \arguments{
 \item{x}{An object of class \code{\link[base:matrix]{matrix}} or
-  \code{\link[Biobase:exprSet-class]{exprSet}}}
+  \code{\link[Biobase:exprSet-class]{exprSet}} or
+  \code{\link[Biobase:eSet-class]{eSet}}}
 \item{ranks}{Logical, indicating whether the x-axis (means) should be plotted
   on the original scale (FALSE) or on the rank scale (TRUE). The latter
   distributes the data more evenly along the x-axis and allows a
@@ -24,8 +33,19 @@ meanSdPlot(x,
 \item{...}{Further arguments that get passed to plot.default.}
 }
 
+\section{Methods}{
+\describe{
+
+\item{meanSdPlot (signature \code{matrix}):}{method for
+    objects of class \code{matrix}}
+\item{meanSdPlot (signature \code{eSet}):}{method for
+    objects of class \code{eSet}}
+\item{meanSdPlot (signature \code{exprSet}):}{method for
+    objects of class \code{exprSet}}
+}}
+
 \details{Standard deviation and mean are calculated row-wise from the
-  matrix \code{exprs(x)}. The scatterplot of these versus each other
+  expression matrix \code{x}. The scatterplot of these versus each other
   allows to visually verify whether there is
   a dependence of the standard deviation (or variance) on the mean.
   The red dots depict the running median estimator (window-width 10\%).
@@ -43,7 +63,7 @@ meanSdPlot(x,
 }
 
 \value{
-  The function is called for its side effect, creating a plot on the
+  The methods are called for their side effect, creating a plot on the
   active graphics device.
 }
 
@@ -60,3 +80,4 @@ meanSdPlot(x,
 }
 
 \keyword{hplot}
+\keyword{methods}

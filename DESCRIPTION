@@ -1,13 +1,13 @@
 Package: vsn
-Version: 1.13.0
-Date: 16 September 2006
+Version: 1.13.1
+Date: 12 Oktober 2006
 Title: Variance stabilization and calibration for microarray data
 Author: Wolfgang Huber <huber@ebi.ac.uk>, contributions from A. von
         Heydebreck <heydebre@molgen.mpg.de>, Markus Ruschhaupt
         <m.ruschhaupt@dkfz-heidelberg.de>, D. Kostka
         <dennis.kostka@molgen.mpg.de>
 Maintainer: Wolfgang Huber <huber@ebi.ac.uk>
-Depends: R (>= 2.0.0), Biobase (>= 1.4.14)
+Depends: R (>= 2.0.0), Biobase (>= 1.4.14), methods
 Suggests: affy, affydata, marray, multtest, limma, hgu95av2cdf
 Description: The package implements a robust variant of the
         maximum-likelihood estimator for the stochastic model of
