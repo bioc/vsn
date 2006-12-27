@@ -4,6 +4,6 @@ importFrom("methods", "setGeneric", "setMethod")
 export("vsn", "vsnh", "vsnPlotPar",
        "getIntensityMatrix",
        "normalize.AffyBatch.vsn", 
-       "sagmbAssess", "sagmbSimulateData")
+       "sagmbAssess", "sagmbSimulateData", "vsnMatrix")
 exportMethods("meanSdPlot")
 

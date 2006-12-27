@@ -278,7 +278,8 @@ the following steps:
 \Robject{vsn} addresses the calibration and transformation. We can use 
 the function \Robject{expresso} to run the whole process in one go:
 
-<<affy1,results=hide>>=
+%% FIXME
+<<affy1,results=hide,eval=FALSE>>=
 library("affy")
 library("affydata")
 data("Dilution")
@@ -296,7 +297,8 @@ summarization, as in the RMA method~\cite{RMA}. For comparison, let's
 calculate expression values using another normalization method.
 The resulting plots are shown in Fig.~\ref{vsn-affy3}.
 
-<<affy2,results=hide>>=
+%%FIXME
+<<affy2,results=hide,eval=FALSE>>=
 es2 = expresso(Dilution[, 1:2], 
                bgcorrect.method = "rma",
                normalize.method = "quantiles", 
@@ -305,6 +307,11 @@ es2 = expresso(Dilution[, 1:2],
 ## extract expression values
 x1 = exprs(es1)
 x2 = exprs(es2) 
+@ 
+
+%%FIXME
+<<dummy>>=
+x1=x2=matrix(runif(1000), ncol=2)
 @ 
 
 <<affy3,include=FALSE,fig=TRUE,width=7,height=7>>=

@@ -1,9 +1,10 @@
-##-----------------------------------------------------------
+##----------------------------------------------------------------------------
 ## mu as in the statistical model - expectation of transformed intensities 
 ## generate sinh(mu) according to model of Newton et al.
 ## shape parameter a=1, scale theta=1
-##------------------------------------------------------------
-sagmbSimulateData <- function(n=8064, d=2, de=0, up=0.5, nrstrata=1) {
+## Since vsn 2.0, results are returned on log2 scale, rather than natural log.
+##----------------------------------------------------------------------------
+sagmbSimulateData <- function(n=8064, d=2, de=0, up=0.5, nrstrata=1, log2scale=FALSE) {
   stopifnot(is.numeric(n),  length(n)==1, n>=1)
   stopifnot(is.numeric(d),  length(d)==1, d>=2) 
   stopifnot(is.numeric(de), length(de)==1, de>=0, de<=1)
@@ -41,7 +42,11 @@ sagmbSimulateData <- function(n=8064, d=2, de=0, up=0.5, nrstrata=1) {
   offs   <- pars[strata,,1]
   facs   <- pars[strata,,2]
   stopifnot(all(dim(facs)==dim(hy)), all(dim(offs)==dim(hy)))
-  y <- offs + facs * sinh(hy)
+  ## hy is supposedly on a log-base2 scale, multiplication with log(2) lifts it to
+  ##   natural log scale
+  if(log2scale)
+    hy=hy*log(2)
+  y <- offs + facs * sinh(hy)  
   return(list(y=y, hy=hy, is.de=is.de, strata=strata))
 }
 

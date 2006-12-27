@@ -1,36 +1,69 @@
-library(vsn)
-data(kidney)
+library("vsn")
+data("kidney")
+
+## Test gradient calculation in vsn C code
+## nrp: number of points p0 from which to consider
+## lenp: length of p0 = number of parameters = 8 = number of arrays * number of strata * 2
+##
+## Some of the parameter values (namely, the factors) are transformed by the
+## wrapper vsn_c before being given to the C functions that calculate log-likelihood
+## and its gradient. 
+
+nrp  = 25
+lenp = 8
+
+oldlambda       = function(x) ifelse((1:8)<=4, x, exp(x))
+olddlambdadx    = function(x) ifelse((1:8)<=4, x, exp(x))
+oldinvlambda    = function(y) ifelse((1:8)<=4, y, log(y))
+olddinvlambdady = function(y) ifelse((1:8)<=4, y, 1/y)
+
+newlambda       = function(x) ifelse((1:8)<=4, x, ifelse(x<1, exp(x-1), x))
+newdlambdadx    = function(x) ifelse((1:8)<=4, x, ifelse(x<1, exp(x-1), 1))
+newinvlambda    = function(y) ifelse((1:8)<=4, y, ifelse(y<1, log(y)+1, y))
+newdinvlambdady = function(y) ifelse((1:8)<=4, y, ifelse(y<1, 1/y, 1))
 
 eps    <- 1e-4
 istrat <- as.integer((0:4)/2*nrow(exprs(kidney)))
 
+
+x  = exprs(kidney)
+df = array(NA, dim=c(lenp, nrp, 2))
 norm <- function(x) sqrt(sum(x*x))
 
-nrp  <- 30
-lenp <- 8
-facs <- 5:8
-df   <- array(NA, dim=c(2, lenp, nrp))
+almostequal=function(x,y) stopifnot(max(abs(x-y)/abs(x+y))<1e-10)
 
+cat("Wait for", nrp, "points: ")
 for (ip in 1:nrp) {
-  p0 <- c(runif(4)*20-10, runif(4)*6-3)
-  for(il in 1:lenp) {
-    dp     <- rep(0, lenp)
-    dp[il] <- eps
-    p      <- p0
-    p[facs] <- exp(p[facs]) + eps
-    f1   <- .Call("vsnc", exprs(kidney), p-dp, istrat, FALSE)[1]
-    f2   <- .Call("vsnc", exprs(kidney), p+dp, istrat, FALSE)[1]
-    gr   <- .Call("vsnc", exprs(kidney), p,    istrat, FALSE)[-1]
-    stopifnot(!any(is.na(c(f1, f2, gr))))
+  cat(ip, "")
+  p0 = runif(8)+4
+  gro = .Call("vsn_c",  x, p0, istrat, as.integer(1), PACKAGE="vsn")[-1]
+  grn = .Call("vsn2_c", x, p0, istrat, as.integer(1), PACKAGE="vsn")[-1]
+  almostequal(gro*olddinvlambdady(p0), grn*newdinvlambdady(p0))
 
-    gr[facs] <- gr[facs]/p[facs] ## chain rule
-    df[1, il, ip]  <- sum(gr*dp)/norm(dp)
-    df[2, il, ip]  <- (f2[1]-f1[1])/(2*norm(dp))
-    cat(df[1, il, ip], df[2, il, ip], df[1, il, ip]/df[2, il, ip], "\n", sep="\t")
+  df[,ip,1] = grn
+  for(il in 1:lenp) {
+    dp = eps*(il==1:lenp)
+    f1o = .Call("vsn_c",  x, p0-dp, istrat, as.integer(1), PACKAGE="vsn")[1]
+    f2o = .Call("vsn_c",  x, p0+dp, istrat, as.integer(1), PACKAGE="vsn")[1]
+    f1n = .Call("vsn2_c", x, p0-dp, istrat, as.integer(1), PACKAGE="vsn")[1]
+    f2n = .Call("vsn2_c", x, p0+dp, istrat, as.integer(1), PACKAGE="vsn")[1]
+    almostequal(f1o, f1n)
+    almostequal(f2o, f2n)
+    gr = (f2n-f1n)/norm(newinvlambda(p0+dp)-newinvlambda(p0-dp))
+    stopifnot(is.finite(gr))
+    df[il,ip,2]  = gr
   }
 }
-par(mfrow=c(2,4))
+cat("\n\n")
+
+graphics.off(); x11(width=12, height=7);par(mfrow=c(2,4))
 for(il in 1:lenp) {
-  plot(df[1, il, ], df[2, il, ], pch=16, main=paste(il))
+  plot(df[il,,1], df[il,,2], pch=16, xlab="df1", ylab="df2", main=paste(il))
   abline(a=0, b=1, col="blue")
+}
+
+x11(width=7, height=4); par(mfrow=c(1,2))
+for(j in list(1:4, 5:8)){
+  hist(df[j,,1]-df[j,,2], col="orange", breaks=30)
+  abline(v=0, col="blue")
 }
