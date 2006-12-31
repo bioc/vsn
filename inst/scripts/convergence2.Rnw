@@ -45,7 +45,7 @@ library("vsn")
 set.seed(0x1234)
 options(error=recover)
 
-sim <- function(..., nrrep=16) {
+sim <- function(..., lts.quantile=0.9, nrrep=20) {
   callpar <- list(...)
   ll      <- listLen(callpar)
   stopifnot(ll[1]>=1, all(ll[-1]==1))
@@ -57,7 +57,8 @@ sim <- function(..., nrrep=16) {
     simpar[[1]] <- callpar[[1]][i]
     for (r in 1:nrrep) {
       sim <- do.call("sagmbSimulateData", simpar)
-      ny  <- vsnMatrix(sim$y, strata=factor(sim$strata), verbose=!TRUE)
+      ny  <- vsnMatrix(sim$y, strata=factor(sim$strata), 
+          lts.quantile=lts.quantile, verbose=!TRUE)
       ##plot(as.vector(sim$hy), as.vector(ny$hy), pch=".", col=col(sim$hy))
       res[r, i] <- sagmbAssess(ny$hy, sim)
     }
@@ -136,7 +137,7 @@ myPlot(nrstrata, res, main="nrstrata")
 \includegraphics[width=0.5\textwidth]{figd}
 \includegraphics[width=0.5\textwidth]{fignrstrata}
 \caption{\label{figds}%
-Estimation error as a function of the number of sample (a) 
+Estimation error as a function of the number of samples (a) 
 and number of strata (b). See Sections~\ref{sec:d} and \ref{sec:nrstrata}.}
 \end{center}
 \end{figure}
@@ -155,9 +156,18 @@ differentially expressed genes is not that large. See Figure~\ref{figdiff}.
 de  <- (0:6)/10
 res1 <- sim(de=de)
 res2 <- sim(de=de, lts.quantile=0.5)
-par(mfrow=c(1,2))
-myPlot(de, res1, main="lts.quantile=0.9")
-myPlot(de, res2, main="lts.quantile=0.5")
+
+myPlot2 <- function(n, rl, ...) {
+  par(mfrow=c(1,2))
+  ylim=range(unlist(rl))
+  for(i in seq(along=rl)) {
+    matplot(n, t(rl[[i]]), pch=20, ylab='r.m.s. error', 
+            log="y", ylim=ylim, col="#909090", main=names(rl)[i])
+    lines(n, colMeans(rl[[i]]), col="blue")
+  }
+}
+
+myPlot2(de, list("lts.quantile=0.9"=res1, "lts.quantile=0.5"=res2))
 @
 %
 \Robject{up} is the fraction of up-regulated genes among the differentially
@@ -168,9 +178,7 @@ while the estimation goes up the more unbalanced the situation becomes.
 up  <- (0:8)/8
 res1 <- sim(up=up, de=0.2)
 res2 <- sim(up=up, de=0.2, lts.quantile=0.5)
-par(mfrow=c(1,2))
-myPlot(up, res1, main="lts.quantile=0.9")
-myPlot(up, res2, main="lts.quantile=0.5")
+myPlot2(up, list("lts.quantile=0.9"=res1, "lts.quantile=0.5"=res2))
 @
 %
 \begin{figure}[tbp]
