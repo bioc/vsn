@@ -1,0 +1,83 @@
+%\VignetteIndexEntry{vsn - Derivation of the Likelihood for Incremental Normalization}
+%\VignetteDepends{vsn}
+%\VignetteKeywords{Expression Analysis}
+%\VignettePackage{vsn}
+
+\documentclass[11pt]{article}
+\usepackage{color}
+\definecolor{darkblue}{rgb}{0.0,0.0,0.75}
+\usepackage[%
+baseurl={http://www.bioconductor.org},%
+pdftitle={Robust calibration and variance stabilization with VSN},%
+pdfauthor={Wolfgang Huber},%
+pdfsubject={vsn},%
+pdfkeywords={Bioconductor},%
+pagebackref,bookmarks,colorlinks,linkcolor=darkblue,citecolor=darkblue,%
+pagecolor=darkblue,raiselinks,plainpages,pdftex]{hyperref}
+
+%------------------------------------------------------------
+% newcommand
+%------------------------------------------------------------
+\newcommand{\arsinh}{\mathop{\mathgroup\symoperators arsinh}\nolimits}
+\newcommand{\Robject}[1]{\texttt{#1}}
+\newcommand{\Rpackage}[1]{\textit{#1}}
+\newcommand{\mbs}[1]{{\mbox{\scriptsize #1}}}
+
+\begin{document}
+
+%---------------------------------------------------------------------------
+\title{Derivation of the Likelihood for Incremental Normalization with \Rpackage{vsn}}
+%---------------------------------------------------------------------------
+\author{Wolfgang Huber}
+\maketitle
+
+Given $\mu_1,\ldots,\mu_n$ and $\sigma$ (from a model fit to a previous set of $\mu$arrays),
+the probability of the data is 
+\begin{equation}
+P(\mbox{data})=\prod_{k=1}^n\int\limits_{y_k^\alpha}^{y_k^\beta} dy_k\;
+p_{\mbs{Normal}}\left(\frac{h(y_k)-\mu_k}{\sigma}\right)
+\frac{dh}{dy}(y_k),
+\end{equation}
+where $h(y)\equiv h(y,a,b) = \arsinh(a+by)$,
+\[
+\frac{dh}{dy}=\frac{b}{\sqrt{1+(a+by)^2}},
+\]
+and the integration is over a volume element of $y$-space (so that we get a 
+finite probability). The likelihood is
+\[
+\left(\frac{1}{\sqrt{2\pi}\sigma}\right)^n
+\prod_{k=1}^n \exp\left\{-\left(\frac{h(y_k)-\mu_k}{\sigma}\right)^2\right\}
+\frac{dh}{dy}(y_k),
+\]
+and the negative log-likelihood
+\begin{equation}
+-LL=n\log\left(\sqrt{2\pi}\sigma\right)+
+\sum_{k=1}^n \left(\frac{(h(y_k)-\mu_k)^2}{\sigma^2}
+  -\log\frac{b}{\sqrt{1+(a+b y_k)^2}}\right).
+\end{equation}
+This is what we want to optimize as a function of $a$ and $b$. The optimizer benefits 
+from the derivatives. The  derivative with respect to $a$ is
+\begin{equation}
+\frac{\partial}{\partial a}(-LL) =
+\sum_{k=1}^n \frac{2}{\sigma^2}
+\frac{h(y_k)-\mu_k}{\sqrt{1+(a+by_k)}}
+-\frac{a+by_k}{1+(a+b y_k)^2}
+\end{equation}
+and with respect to $b$
+\begin{equation}
+\frac{\partial}{\partial b}(-LL) =
+-\frac{n}{b} +
+\sum_{k=1}^n \left( \frac{2}{\sigma^2}
+\frac{h(y_k)-\mu_k}{\sqrt{1+(a+by_k)}}
+-\frac{a+by_k}{1+(a+b y_k)^2}\right)y_k
+\end{equation}
+
+
+\newpage
+\textbf{NB}: This computation is related to (and simpler than) the
+profile likelihood for the original modus operandi of \Rpackage{vsn},
+where $\mu_1,\ldots,\mu_n$ and $\sigma$ are estimated from the data
+$y_{ki}$ themselves via profiling.
+\end{document}
+
+
