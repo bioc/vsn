@@ -42,11 +42,9 @@ sagmbSimulateData <- function(n=8064, d=2, de=0, up=0.5, nrstrata=1, log2scale=F
   offs   <- pars[strata,,1]
   facs   <- pars[strata,,2]
   stopifnot(all(dim(facs)==dim(hy)), all(dim(offs)==dim(hy)))
-  ## hy is supposedly on a log-base2 scale, multiplication with log(2) lifts it to
-  ##   natural log scale
-  if(log2scale)
-    hy=hy*log(2)
-  y <- offs + facs * sinh(hy)  
+  ## sinh expects values on natural log scale
+  shhy = sinh(if(log2scale)(hy*log(2))else(hy))
+  y <- offs + facs * shhy
   return(list(y=y, hy=hy, is.de=is.de, strata=strata))
 }
 

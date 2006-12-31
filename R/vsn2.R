@@ -123,14 +123,14 @@ vsnLTS = function(v) {
     sqres  = hy - hmean
     sqres  = rowSums(sqres*sqres) 
 
-    ## select those data points within quantile; do this separately
+    ## select those data points whose sqres is within the quantile; do this separately
     ## within each stratum, and also within strata defined by hmean
     ## (see the SAGMB 2003 paper for details)
     nrslice = 5
-    group   = ceiling(rank(hmean)/length(hmean)*nrslice)
-    group   = factor((intStrat-1)*nrslice + group)
-    grmed   = tapply(sqres, group, quantile, probs=v@lts.quantile)
-    meds    = grmed[as.character(group)]
+    slice   = ceiling(rank(hmean)/length(hmean)*nrslice)
+    slice   = factor((intStrat-1)*nrslice + slice)
+    grmed   = tapply(sqres, slice, quantile, probs=v@lts.quantile)
+    meds    = grmed[as.character(slice)]
     stopifnot(!any(is.na(meds)))
     sel     = (sqres <= meds)
 

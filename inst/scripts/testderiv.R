@@ -17,10 +17,14 @@ olddlambdadx    = function(x) ifelse((1:8)<=4, x, exp(x))
 oldinvlambda    = function(y) ifelse((1:8)<=4, y, log(y))
 olddinvlambdady = function(y) ifelse((1:8)<=4, y, 1/y)
 
-newlambda       = function(x) ifelse((1:8)<=4, x, ifelse(x<1, exp(x-1), x))
-newdlambdadx    = function(x) ifelse((1:8)<=4, x, ifelse(x<1, exp(x-1), 1))
-newinvlambda    = function(y) ifelse((1:8)<=4, y, ifelse(y<1, log(y)+1, y))
-newdinvlambdady = function(y) ifelse((1:8)<=4, y, ifelse(y<1, 1/y, 1))
+#newlambda       = function(x) ifelse((1:8)<=4, x, ifelse(x<1, exp(x-1), x))
+#newdlambdadx    = function(x) ifelse((1:8)<=4, x, ifelse(x<1, exp(x-1), 1))
+#newinvlambda    = function(y) ifelse((1:8)<=4, y, ifelse(y<1, log(y)+1, y))
+#newdinvlambdady = function(y) ifelse((1:8)<=4, y, ifelse(y<1, 1/y, 1))
+newlambda       = function(x) x*x
+newdlambdadx    = function(x) 2*x
+newinvlambda    = function(y) sqrt(y)
+newdinvlambdady = function(y) 1/(2*sqrt(y))
 
 eps    <- 1e-4
 istrat <- as.integer((0:4)/2*nrow(exprs(kidney)))

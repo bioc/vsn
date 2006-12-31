@@ -79,9 +79,13 @@ void vsn2trsf(vsn_data *px, double* par, double *hy)
   For the gradient (see below), note that: 
     d/dx f(lambda(x)) = f'(lambda(x))*lambda'(x)
 -----------------------------------------------------------------------*/
-double lambda(double x)    { if(x<1) {return(exp(x-1));} else {return(x);}}
+double lambda(double x)    { return(x*x);}
+double dlambdadx(double x) { return(2.0*x);}
+double invlambda(double y) { return(sqrt(y));} 
+
+/* double lambda(double x)    { if(x<1) {return(exp(x-1));} else {return(x);}}
 double dlambdadx(double x) { if(x<1) {return(exp(x-1));} else {return(1.0);}}
-double invlambda(double y) { if(y<1) {return(log(y)+1.0);} else {return(y);}}
+double invlambda(double y) { if(y<1) {return(log(y)+1.0);} else {return(y);}} */
 
 /* double lambda(double x)    {return(x);}
 double dlambdadx(double x) {return(1.0);}

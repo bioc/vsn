@@ -57,8 +57,6 @@ sim <- function(..., nrrep=16) {
       sim <- do.call("sagmbSimulateData", simpar)
       ny  <- vsnMatrix(sim$y, strata=factor(sim$strata), verbose=TRUE)  ## fixme
       plot(as.vector(sim$hy), as.vector(ny$hy), pch=".", col=col(sim$hy))
-      ## plot(exprs(ny)[, 1:2], pch=16, col=1+preproc(description(ny))$vsnTrimSelection)
-      ## browser()
       res[r, i] <- sagmbAssess(ny$hy, sim)
     }
   }
