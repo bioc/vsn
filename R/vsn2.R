@@ -134,6 +134,10 @@ vsnLTS = function(v) {
     stopifnot(!any(is.na(meds)))
     sel     = (sqres <= meds)
 
+    ## diagnostic plot (most useful for d=2)
+    ## plot(hy, pch=".", col=2-sel, main=sprintf("iter=%d", iter))
+    ## browser()
+    
     ## Convergence check
     ## after a suggestion from David Kreil, kreil@ebi.ac.uk
     if(v@cvg.eps>0) {
