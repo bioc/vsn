@@ -31,11 +31,11 @@ validityVsnInput = function(object){
 }
 
 validityVsn = function(object){
-  if(any(is.na(object@par)))
-    stop("'par' must not contain NA values.")
+  if(any(is.na(object@par))||(length(dim(object@par))!=3))
+    stop("'par' must be a 3D array and not contain NA values.")
   if(any(is.na(object@refh)))
     stop("'refh' must not contain NA values.")
-  validScalar(object, "sd")
+  validScalar(object, "refsd")
   if(length(object@strata)>0){
     if(length(object@refh)>0)
       if(length(object@reh)!=length(object@strata))

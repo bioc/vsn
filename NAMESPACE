@@ -7,6 +7,7 @@ export("vsn", "vsnh", "vsnPlotPar",
        "getIntensityMatrix",
        "normalize.AffyBatch.vsn", 
        "sagmbAssess", "sagmbSimulateData",
+       "plotLogLik",
        "vsnMatrix")
 exportMethods("meanSdPlot", "predict")
 
