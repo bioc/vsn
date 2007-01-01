@@ -118,8 +118,13 @@ vsnLTS = function(v) {
     if (abs(v@lts.quantile-1)<sqrt(.Machine$double.eps))
       break
        
-    ## calculate residuals
-    hmean  = rowMeans(hy)
+    ## Calculate residuals
+    hmean  = if(length(v@reference@refh)>0) {
+      v@reference@refh  ## WITH reference
+    } else {
+      rowMeans(hy)      ## WITHOUT reference
+    }
+    
     sqres  = hy - hmean
     sqres  = rowSums(sqres*sqres) 
 
@@ -229,12 +234,18 @@ vsnMatrix = function(x,
   }
   if(missing(reference)) {
     reference = new("vsn")
+  } else {
+    if(nrow(reference)!=nrow(x))
+      stop("'nrow(reference)' must be equal to 'nrow(x)'.")
+    if(nrow(reference)!=length(reference@refh))
+      stop(sprintf("The slot 'reference@refh' has length 0, but expected is n=%d", nrow(reference)))
   }
+  
   if(missing(strata)) {
     strata = factor(integer(0), levels="all")
   }
   
-  vsndat = new("vsnInput",
+  v = new("vsnInput",
     x      = x,
     strata = strata,
     pstart = pstart,
@@ -252,7 +263,7 @@ vsnMatrix = function(x,
     cat("vsn: ", nrow(x), " x ", ncol(x), " matrix (", nlevels(strata), " strat",
         ifelse(nlevels(strata)==1, "um", "a"), ").  0% done.", sep="")
 
-  res = vsnSample(vsndat)
+  res = vsnSample(v)
   
   return(res)
 }

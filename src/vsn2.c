@@ -12,7 +12,7 @@
 #include <R_ext/Utils.h>          /* for R_CheckUserInterrupt */
 extern double asinh(double);
 
-/* #define VSN_DEBUG  */
+/*#define VSN_DEBUG */
 #undef VSN_DEBUG
 
 typedef struct {
@@ -25,6 +25,7 @@ typedef struct {
   double *y;       /* expression matrix: y_ik     */
   int nrow;        /* no. of features             */
   int ncol;        /* no. of chips                */
+  int ntot;        /* no. of data points that are not NA (if none, this should be nrow*ncol) */
 
   double *ly;      /* affine transformed matrix: offs_ik + facs_ik * y_ik */
   double *asly;    /* transformed expression matrix: asinh(ly)            */
@@ -39,11 +40,8 @@ typedef struct {
 
 /*--------------------------------------------------
   Apply the transformation to the matrix px->y
-  1. Addition of h0: so that in the limit of x->\infty,
-  the result of this function approximates log2(x)
-  2. Scaling by oolog2: in contrast in to previous 
-  versions, the result is returned on the glog-scale 
-  to basis 2, not e.
+  Note: in contrast in to previous versions, the result
+   is returned on the glog-scale to basis 2, not e.
   However, the computations further below (vsnloglik etc.) 
   are all done using the asinh and natural log scale 
   (since the tried and tested legacy code works well)
@@ -51,7 +49,7 @@ typedef struct {
 void vsn2trsf(vsn_data *px, double* par, double *hy)
 {
     int i, j, ns, s, nr, nc;
-    double fac, off, h0;      
+    double z, fac, off, h0;      
     double oolog2;
  
     oolog2 = 1.0/log(2.0);
@@ -60,14 +58,18 @@ void vsn2trsf(vsn_data *px, double* par, double *hy)
     ns = px->npar / (nc*2);
     
     for(i=0; i <nr; i++) {
-	s  = (px->strat[i]) - 1;
-	h0 = log2(2*par[s + ns*nc]); 
-	for(j=0; j<nc; j++) {
-	    off          = par[s + j*ns];
-	    fac          = par[s + j*ns + ns*nc];
-            /*Rprintf("i=%d j=%d off=%g fac=%g\n", i, j, off, fac);*/
-	    hy[i + j*nr] = oolog2*asinh(px->y[i+ j*nr] * fac + off) - h0;
+      s  = (px->strat[i]) - 1;
+      h0 = log2(2*par[s + ns*nc]); 
+      for(j=0; j<nc; j++) {
+        z = px->y[i+ j*nr];
+        if(ISNA(z)){
+	  hy[i + j*nr] = NA_REAL;
+	} else {
+	  off = par[s + j*ns];
+	  fac = par[s + j*ns + ns*nc];
+          hy[i + j*nr] = oolog2*asinh(z*fac + off) - h0;
 	}
+      }
     }
     return;
 }
@@ -102,7 +104,7 @@ double vsnloglik(int n, double *par, void *ex)
 {
   double *facs, *offs;      
   double fj, oj, s, z, res, jac;  
-  int i, j;
+  int i, j, ni;
   int nr, nc;
   vsn_data *px;
 
@@ -122,29 +124,18 @@ double vsnloglik(int n, double *par, void *ex)
     fj = lambda(facs[j]);
     oj = offs[j];
     for(i = px->strat[j]; i < px->strat[j+1]; i++){
-      z           = (px->y[i])*fj + oj; 
-      px->ly[i]   = z;
-      px->asly[i] = asinh(z);
-      s           = 1.0/sqrt(1.0+z*z);   /* Jacobi term dh/dy   */
-      px->dh[i]   = s;
-      jac        += log(s);    /* logarithm since log-likelihood */
-
-      /** FIXME **/
-      if(!R_finite(z)){  
-	Rprintf("j=%d, i=%d, z=%g, s=%g, y[i]=%g, fj=%g, oj=%g\n", j, i, z, s, px->y[i], fj, oj);
-	for(j=0; j < px->npar; j++) Rprintf(" %6g", par[j]); 
-	Rprintf("\n"); 
-	error("Zapperlot z");
-      }
-
-      if(!R_finite(jac)){  
-	Rprintf("j=%d, i=%d, z=%g, s=%g, y[i]=%g, fj=%g, oj=%g\n", j, i, z, s, px->y[i], fj, oj);
-	for(j=0; j < px->npar; j++) Rprintf(" %6g", par[j]); 
-	Rprintf("\n"); 
-	error("Zapperlot jac");
+      z = px->y[i];
+      if(!ISNA(z)) {
+	z = z*fj + oj;  /* Affine transformation */
+	s = 1.0/sqrt(1.0+z*z);   /* Jacobi term dh/dy */
+	px->ly[i] = z;
+	px->asly[i] = asinh(z);
+	px->dh[i] = s;
+	jac += log(s*fj);    /* logarithm since log-likelihood */
+      } else {
+	px->ly[i] = px->asly[i]	= px->dh[i] = NA_REAL;
       }
     } /* for i */
-    jac += (px->strat[j+1] - px->strat[j])*log(fj);
   } /* for j */
   
   /* calculate ssq of residuals and rcasly  */
@@ -153,19 +144,30 @@ double vsnloglik(int n, double *par, void *ex)
   px->ssq = 0.0;
   for(i=0; i<nr; i++){
     s = 0.0;
+    ni = 0;   /* count the number of data points in this row i (excl. NA) */
     for(j=0; j < nc; j++){
-      s += px->asly[j*nr+i];
+      z = px->asly[j*nr+i];
+      if(!ISNA(z)){
+	s += z;
+	ni++;
+      }
     }
-    s /= nc;
+    s /= ni;
+
     for(j=0; j < nc; j++){
-      z = px->asly[j*nr+i] - s;
-      px->rcasly[j*nr+i] = z;
-      px->ssq += z*z;
+      z = px->asly[j*nr+i];
+      if(!ISNA(z)){
+	z = z - s;
+	px->rcasly[j*nr+i] = z;
+	px->ssq += z*z;
+      } else {
+	px->rcasly[j*nr+i] = NA_REAL;
+      }
     }
   }
 
-  /* the negative profile log likelihood */
-  res = nr*nc*log(px->ssq)/2. - jac;
+  /* Negative profile log likelihood */
+  res = (px->ntot)*log(px->ssq)/2.0 - jac;
 
 #ifdef VSN_DEBUG
   Rprintf("vsnloglik %9g", res); 
@@ -185,7 +187,7 @@ void vsnloglikgrad(int n, double *par, double *gr, void *ex)
   double *facs;       
   double s1, s2, s3, s4, z1, z2, z3, vorfak; 
   int i, j, k;
-  int nr, nc;
+  int nr, nc, nj;
   vsn_data *px;
 
   px   = (vsn_data*) ex;
@@ -200,24 +202,29 @@ void vsnloglikgrad(int n, double *par, double *gr, void *ex)
     }
   }
 
-  vorfak = nr*nc/(px->ssq);
-
+  vorfak = (px->ntot)/(px->ssq);
   for(j = 0; j < px->nrstrat; j++) {
-    s1 = s2 = s3 = s4 = 0;
+    s1 = s2 = s3 = s4 = 0.0;
+    nj = 0;
     for(k = px->strat[j]; k < px->strat[j+1]; k++) {
-      z1 = (px->rcasly[k]) * (px->dh[k]); 
-      s1 += z1;             /* deviation term for offset  */
-      s2 += z1 * px->y[k];  /* deviation term for factor  */
+      z1 = px->rcasly[k];
+      if(!ISNA(z1)){
+	z1 *= (px->dh[k]); 
+	s1 += z1;             /* deviation term for offset  */
+	s2 += z1 * px->y[k];  /* deviation term for factor  */
 
-      z2 = px->ly[k];
-      z3 = z2/(1+z2*z2);    /* jacobi term                */
-      s3 += z3;             /* jacobi term for offset     */
-      s4 += z3 * px->y[k];  /* jacobi term for factor     */
-    }
-    s4 -= (px->strat[j+1] - px->strat[j])/lambda(facs[j]);
+	z2 = px->ly[k];
+	z3 = z2/(1+z2*z2);    /* jacobi term                */
+	s3 += z3;             /* jacobi term for offset     */
+	s4 += z3 * px->y[k];  /* jacobi term for factor     */
+        nj++;
+      }
+    } /* for k */
+    s4 -= (double)nj / lambda(facs[j]);
     gr[j]             =  vorfak * s1 + s3;
     gr[px->nrstrat+j] = (vorfak * s2 + s4) * dlambdadx(facs[j]); /* chain rule */
   }
+
 
 #ifdef VSN_DEBUG
   Rprintf("vsnloglikgrad      "); 
@@ -236,7 +243,7 @@ void vsnloglikgrad(int n, double *par, double *gr, void *ex)
 ------------------------------------------------------------*/
 SEXP vsn2_c(SEXP e_y, SEXP e_par, SEXP e_strat, SEXP e_what)
 {
-  int i, nc, nr, what;
+  int i, nc, nr, nt, what;
 
   int     lmm      = 10;   
   int     fail     = 0;
@@ -285,6 +292,12 @@ SEXP vsn2_c(SEXP e_y, SEXP e_par, SEXP e_strat, SEXP e_what)
   x.nrow    = nr;
   x.ncol    = nc;
   x.y       = REAL(e_y);
+
+  nt = 0;
+  for(i=0; i<nr*nc; i++)
+    if(!ISNA(x.y[i]))
+      nt++;
+  x.ntot = nt;  
 
   /* workspaces for function and gradient calculation */
   x.ly      = (double *) R_alloc(nr*nc,  sizeof(double)); 
