@@ -55,8 +55,8 @@ validityVsn = function(object){
   if(any(is.na(object@refh)))
     stop("'refh' must not contain NA values.")
   
-  if(length(object@refsd)!=1)
-    stop("'refsd' must be of length 1.")
+  if(length(object@refsigma)!=1)
+    stop("'refsigma' must be of length 1.")
 
   if(!equalOrZero(ncol(object@data), dim(object@par)[2]))
     stop("'ncol(data)' and 'dim(object@par)[2]' must match.")
@@ -86,14 +86,14 @@ setClass("vsn",
     n      = "integer",
     strata = "factor", 
     refh   = "numeric",
-    refsd  = "numeric",
+    refsigma  = "numeric",
     data   = "matrix"),
   prototype = list(
     par    = array(0, dim=c(0,0,2)),
     n      = as.integer(0),
     strata = factor(integer(0)),
     refh   = numeric(0),
-    refsd  = as.numeric(NA),
+    refsigma  = as.numeric(NA),
     data   = matrix(0, nrow=0, ncol=0)),
   validity = validityVsn)
 

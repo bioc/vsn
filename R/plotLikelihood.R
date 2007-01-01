@@ -35,7 +35,8 @@ plotLogLik = function(x, strata, p0, wh, n=31) {
     p0[wh[1,,drop=FALSE]] = psteps[j,1]
     for(i in seq_len(n)) {
       p0[wh[2,,drop=FALSE]] = psteps[i,2]
-      ll[i,j] = .Call("vsn2_ll", x, as.vector(p0), istrat, PACKAGE="vsn")[1]
+      ll[i,j] = .Call("vsn2_point", x, as.vector(p0), istrat,
+          v@reference@refh, v@reference@refsigma, PACKAGE="vsn")[1]
     }
   }
   

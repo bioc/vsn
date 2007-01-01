@@ -60,7 +60,7 @@ from the derivatives. The  derivative with respect to $a$ is
 \begin{equation}
 \frac{\partial}{\partial a}(-LL) =
 \sum_{k=1}^n \frac{2}{\sigma^2}
-\frac{h(y_k)-\mu_k}{\sqrt{1+(a+by_k)}}
+\frac{h(y_k)-\mu_k}{\sqrt{1+(a+by_k)^2}}
 -\frac{a+by_k}{1+(a+b y_k)^2}
 \end{equation}
 and with respect to $b$
@@ -68,7 +68,7 @@ and with respect to $b$
 \frac{\partial}{\partial b}(-LL) =
 -\frac{n}{b} +
 \sum_{k=1}^n \left( \frac{2}{\sigma^2}
-\frac{h(y_k)-\mu_k}{\sqrt{1+(a+by_k)}}
+\frac{h(y_k)-\mu_k}{\sqrt{1+(a+by_k)^2}}
 -\frac{a+by_k}{1+(a+b y_k)^2}\right)y_k
 \end{equation}
 

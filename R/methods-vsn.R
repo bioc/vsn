@@ -45,7 +45,7 @@ setMethod("show", signature("vsn"),
     if(nrow(object@data)>0)
       cat(sprintf("data: %d x %d matrix\n", nrow(object@data), ncol(object(data))))
     if(length(object@refh)>0)
-      cat(sprintf("refsd: %g\n", object@refsd))
+      cat(sprintf("refsigma: %g\n", object@refsigma))
   })
 
 setMethod("[", "vsn",

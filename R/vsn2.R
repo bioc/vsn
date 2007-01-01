@@ -22,7 +22,7 @@ vsnML = function(v, niter=4) {
   istrat = calcistrat(v) ## pointers to the starts of strata
   
   for (iter in seq_len(niter)) {
-    o = .Call("vsn2_optim", v@x, p, istrat, v@reference@refh, v@reference@refsd, PACKAGE="vsn")
+    o = .Call("vsn2_optim", v@x, p, istrat, v@reference@refh, v@reference@refsigma, PACKAGE="vsn")
     
     conv = as.integer(o[length(o)])
     if (conv==0) 
@@ -146,7 +146,7 @@ vsnLTS = function(v) {
     ## Convergence check
     ## after a suggestion from David Kreil, kreil@ebi.ac.uk
     if(v@cvg.eps>0) {
-      cvgc    = max(abs((hy - oldhy)/diff(range(hy))))
+      cvgc    = max(abs(hy - oldhy))
       cvgcCnt = if(cvgc<v@cvg.eps) (cvgcCnt+1) else 0 
       if (v@verbose)
         cat(sprintf("iter %2d: cvgc=%.5f%%, par=", iter, cvgc),
@@ -224,9 +224,8 @@ vsnMatrix = function(x,
   verbose      = interactive(),
   returnData   = TRUE,
   pstart,
-  cvg.niter    = as.integer(10),
-  cvg.eps      = 0
-  ) {
+  cvg.niter    = as.integer(7),
+  cvg.eps      = 1e-3) {
 
   if(missing(pstart)) {
     pstart = array(0, dim=c(nlevels(strata), ncol(x), 2))

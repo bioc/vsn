@@ -1,7 +1,7 @@
 
 /* vsn2.c: */
-SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP Srefsd);
-SEXP vsn2_point(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP Srefsd);
+SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP Srefsigma);
+SEXP vsn2_point(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP Srefsigma);
 SEXP vsn2_trsf(SEXP Sy, SEXP Spar, SEXP Sstrat);
 
 /* vsn.c */

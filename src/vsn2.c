@@ -15,16 +15,26 @@ extern double asinh(double);
 #undef VSN_DEBUG
 
 typedef struct {
+  double *y;       /* expression matrix: y_ik     */
+  int nrow;        /* no. of features             */
+  int ncol;        /* no. of chips                */
+  int ntot;        /* no. of data points that are not NA (if none, this should be nrow*ncol) */
+  int npar;        /* no. of parameters */
+
   int *strat;      /* For what=0 and 1, strat[j] is the index of the first element 
                       of j-th stratum, and the length of this array is nrstrat.
                       For what=2, strat[j] is the stratum of the j-th probe, and
                       the length of this array is nrow.                   */
   int nrstrat;     /* no. of strata                                       */
 
-  double *y;       /* expression matrix: y_ik     */
-  int nrow;        /* no. of features             */
-  int ncol;        /* no. of chips                */
-  int ntot;        /* no. of data points that are not NA (if none, this should be nrow*ncol) */
+  double ssq;
+
+  double *refh;    /* reference values and sigma */
+  double refsigma;
+
+  /* Workspaces -  used to store intermediate results from the computation 
+     of the likelihood function. These are reused in the computation of the 
+     function gradient */
 
   double *ly;      /* affine transformed matrix: offs_ik + facs_ik * y_ik */
   double *asly;    /* transformed expression matrix: asinh(ly)            */
@@ -32,8 +42,6 @@ typedef struct {
   double *dh;      /* another auxilliary array                            */
 
   double *lastpar;
-  int npar;         /* no. of parameters */
-  double ssq;
 } vsn_data;
 
 
@@ -41,9 +49,8 @@ typedef struct {
   Apply the transformation to the matrix px->y
   Note: in contrast in to previous versions, the result
    is returned on the glog-scale to basis 2, not e.
-  However, the computations further below (vsnloglik etc.) 
+  However, the likelihood computations further below
   are all done using the asinh and natural log scale 
-  (since the tried and tested legacy code works well)
   --------------------------------------------------*/
 void vsn2trsf(vsn_data *px, double* par, double *hy)
 {
@@ -85,21 +92,21 @@ void vsn2trsf(vsn_data *px, double* par, double *hy)
 -----------------------------------------------------------------------*/
 double lambda(double x)    { return(x*x);}
 double dlambdadx(double x) { return(2.0*x);}
-double invlambda(double y) { return(sqrt(y));}  
+double invlambda(double y) { return(sqrt(y));}
 
 /* double lambda(double x)    { if(x<1) {return(exp(x-1));} else {return(x);}}
 double dlambdadx(double x) { if(x<1) {return(exp(x-1));} else {return(1.0);}}
 double invlambda(double y) { if(y<1) {return(log(y)+1.0);} else {return(y);}} */
 
-/* double lambda(double x)    {return(x);}
-double dlambdadx(double x) {return(1.0);}
+/* double lambda(double x)    {return(fabs(x));}
+double dlambdadx(double x) {return(x>0 ? 1.0 : -1.0);}
 double invlambda(double y) {return(y);} */
 
 /* double lambda(double x)    {return(exp(x));}
 double dlambdadx(double x) {return(exp(x));}
 double invlambda(double y) {return(log(y));} */
 
-double vsnloglik(int n, double *par, void *ex)
+double prof_loglik(int n, double *par, void *ex)
 {
   double *facs, *offs;      
   double fj, oj, s, z, res, jac;  
@@ -169,7 +176,7 @@ double vsnloglik(int n, double *par, void *ex)
   res = (px->ntot)*log(px->ssq)/2.0 - jac;
 
 #ifdef VSN_DEBUG
-  Rprintf("vsnloglik %9g", res); 
+  Rprintf("prof_loglik %9g", res); 
   for(j=0; j < px->npar; j++) Rprintf(" %9g", par[j]); 
   Rprintf("\n"); 
 #endif
@@ -178,10 +185,10 @@ double vsnloglik(int n, double *par, void *ex)
 }
 
 /*------------------------------------------------------------
-   gradient of vsnloglik
+   gradient of prof_loglik
    (see p.206 in notebook)
 ------------------------------------------------------------*/
-void vsnloglikgrad(int n, double *par, double *gr, void *ex)
+void grad_prof_loglik(int n, double *par, double *gr, void *ex)
 {
   double *facs;       
   double s1, s2, s3, s4, z1, z2, z3, vorfak; 
@@ -226,7 +233,7 @@ void vsnloglikgrad(int n, double *par, double *gr, void *ex)
 
 
 #ifdef VSN_DEBUG
-  Rprintf("vsnloglikgrad      "); 
+  Rprintf("grad_prof_loglik    "); 
   for(j=0; j < px->npar; j++) Rprintf(" %9g", gr[j]); 
   Rprintf("\n"); 
 #endif 
@@ -275,7 +282,7 @@ void setupEverybody(SEXP Sy, SEXP Spar, SEXP Sstrat, vsn_data* px)
 /* It sets up workspaces, processes the Sstrat parameters,
    and does the parameter transformation (lambda)  */
 
-double* setupLikelihoodstuff(SEXP Sy, SEXP Spar, SEXP Sstrat, vsn_data* px) 
+double* setupLikelihoodstuff(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP Srefsigma, vsn_data* px) 
 {  
   int i, nr, nc, np, ns;
   double* cpar;
@@ -286,7 +293,7 @@ double* setupLikelihoodstuff(SEXP Sy, SEXP Spar, SEXP Sstrat, vsn_data* px)
   ns = px->nrstrat = LENGTH(Sstrat)-1;
 
   if ((2*ns) != np) 
-    error("Unconformable size of arguments 'Spar', 'Sstrat'.");
+    error("Wrong size of arguments 'Spar', 'Sstrat'.");
   if(px->strat[0] != 0)
     error("First element of argument 'Sstrat' must be 0.");
   if(px->strat[ns] != nr*nc)
@@ -294,6 +301,25 @@ double* setupLikelihoodstuff(SEXP Sy, SEXP Spar, SEXP Sstrat, vsn_data* px)
   for(i=0; i<ns; i++) {
     if((px->strat[i+1]) <= (px->strat[i]))
       error("Elements of argument 'Sstrat' must be in ascending order.");
+  }
+
+  /* Process Srefh and Srefsigma; If Srefh has length 0, then we do
+     the 2002 model. If it has length nr, normalize against reference */
+
+  if(!(isReal(Srefsigma) && (LENGTH(Srefsigma)==1)))
+    error("Invalid argument 'Srefsigma', must be a real vector of length 1.");
+  px->refsigma = REAL(Srefsigma)[0];
+
+  if(!(isReal(Srefh)))
+    error("Invalid argument 'Srefh', must be a real vector.");
+  if(LENGTH(Srefh)==nr) {
+    px->Srefh = REAL(Srefh);
+  } else {
+    if(LENGTH(Srefh)==0) {
+      px->Srefh = NULL;
+    } else {
+      error("Invalid length of argument 'Srefh'.");
+    }
   }
 
   /* workspaces for function and gradient calculation */
@@ -316,31 +342,35 @@ double* setupLikelihoodstuff(SEXP Sy, SEXP Spar, SEXP Sstrat, vsn_data* px)
 } 
 
 /*------------------------------------------------------------
-   vsn2_point: calculate the loglikehood and gradient
+   vsn2_point: calculate the loglikelihood and gradient
    This is mostly for debugging, see for example the script 
    testderiv.R in the inst/scripts directory 
 ------------------------------------------------------------*/
-SEXP vsn2_point(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP Srefsd)
+SEXP vsn2_point(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP Srefsigma)
 {
   double* cpar;
   SEXP res;
   vsn_data x;
 
   setupEverybody(Sy, Spar, Sstrat, &x);
-  cpar = setupLikelihoodstuff(Sy, Spar, Sstrat, &x);
+  cpar = setupLikelihoodstuff(Sy, Spar, Sstrat, Srefh, Srefsigma, &x);
  
   res = allocVector(REALSXP, x.npar+1);
 
-  REAL(res)[0] = vsnloglik(x.npar, cpar, (void*) &x);
-  vsnloglikgrad(x.npar, cpar, REAL(res)+1, (void*) &x);
-
+  if(x.refh==NULL) {
+    REAL(res)[0] = prof_loglik(x.npar, cpar, (void*) &x);
+    prof_loglik_grad(x.npar, cpar, REAL(res)+1, (void*) &x);
+  } else {
+    REAL(res)[0] = refr_loglik(x.npar, cpar, (void*) &x);
+    refr_loglik_grad(x.npar, cpar, REAL(res)+1, (void*) &x);
+  }
   return(res);
 }
 
 /*------------------------------------------------------------
    vsn2_optim
 ------------------------------------------------------------*/
-SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP Srefsd)
+SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP Srefsigma)
 {
   int i, lmm, fail, fncount, grcount, maxit, trace, nREPORT;
   int *nbd;
@@ -361,7 +391,7 @@ SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP Srefsd)
   nREPORT  = 1;
 
   setupEverybody(Sy, Spar, Sstrat, &x);
-  cpar = setupLikelihoodstuff(Sy, Spar, Sstrat, &x);
+  cpar = setupLikelihoodstuff(Sy, Spar, Sstrat, Srefh, Srefsigma, &x);
  
   lower   = (double *) R_alloc(x.npar, sizeof(double));
   upper   = (double *) R_alloc(x.npar, sizeof(double));
@@ -376,7 +406,8 @@ SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP Srefsd)
   } 
   
   /* optimize (see below for documentation of the function arguments) */
-  lbfgsb(x.npar, lmm, cpar, lower, upper, nbd, &fmin, vsnloglik, vsnloglikgrad, &fail,
+  lbfgsb(x.npar, lmm, cpar, lower, upper, nbd, &fmin, 
+         prof_loglik, grad_prof_loglik, &fail,
 	 (void *) &x, factr, pgtol, &fncount, &grcount, maxit, msg,
 	 trace, nREPORT); 
 
