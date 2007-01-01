@@ -1,3 +1,6 @@
+## validity functions
+## (see below for class definitions)
+
 validScalar = function(ob, nm, min=0, max=+Inf) {
   s = slot(ob, nm)
   if((length(s)!=1)||any(is.na(s))||(s<min)||(s>max))
@@ -5,7 +8,6 @@ validScalar = function(ob, nm, min=0, max=+Inf) {
 }
 
 validityVsnInput = function(object){
-     
   validScalar(object, "subsample", min=-Inf)
   validScalar(object, "cvg.niter", min=1)
   validScalar(object, "cvg.eps")
@@ -25,7 +27,22 @@ validityVsnInput = function(object){
   
   if(!all(dim(object@pstart)==c(nlevels(object@strata), ncol(object@x), 2)))
     stop("Invalid dimensions of 'pstart'.")
-  
+  return(TRUE)
+}
+
+validityVsn = function(object){
+  if(any(is.na(object@par)))
+    stop("'par' must not contain NA values.")
+  if(any(is.na(object@refh)))
+    stop("'refh' must not contain NA values.")
+  validScalar(object, "sd")
+  if(length(object@strata)>0){
+    if(length(object@refh)>0)
+      if(length(object@reh)!=length(object@strata))
+        stop("'strata' and 'refh' must have the same length.")
+    if(nlevels(object@strata)!=dim(object@par)[1])
+      stop("'nlevels(strata)' and 'dim(par)[1]' must match.")
+  }
   return(TRUE)
 }
 
@@ -45,3 +62,12 @@ setClass("vsnInput",
          
    validity = validityVsnInput)
                   
+
+setClass("vsn",
+  representation(
+    par = "array",
+    strata = "factor", 
+    refh = "numeric",
+    refsd = "numeric"),
+
+  validity = validityVsn)

@@ -12,8 +12,8 @@
 #include <R_ext/Utils.h>          /* for R_CheckUserInterrupt */
 extern double asinh(double);
 
-/*#define VSN_DEBUG */
-#undef VSN_DEBUG
+#define VSN_DEBUG 
+/*#undef VSN_DEBUG*/
 
 typedef struct {
   int *strat;      /* For what=0 and 1, strat[j] is the index of the first element 
@@ -39,8 +39,11 @@ typedef struct {
 
 /*--------------------------------------------------
   Apply the transformation to the matrix px->y
-  Note: in contrast in to previous versions, the result
-   is returned on the glog-scale to basis 2, not e.
+  1. Addition of h0: so that in the limit of x->\infty,
+  the result of this function approximates log2(x)
+  2. Scaling by oolog2: in contrast in to previous 
+  versions, the result is returned on the glog-scale 
+  to basis 2, not e.
   However, the computations further below (vsnloglik etc.) 
   are all done using the asinh and natural log scale 
   (since the tried and tested legacy code works well)
