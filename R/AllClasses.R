@@ -6,22 +6,29 @@ validScalar = function(ob, nm, min=0, max=+Inf) {
   if((length(s)!=1)||any(is.na(s))||(s<min)||(s>max))
     stop(sprintf("'%s' must be a scalar with values between %g and %g.", nm, min, max))
 }
+validLogical = function(ob, nm) {
+  s = slot(ob, nm)
+  if((length(s)!=1)||any(is.na(s)))
+    stop(sprintf("'%s' must be a logical of length one and not be NA.", nm))
+}
+
+equalOrZero = function(i, j) ((i==j)||(i==0))
 
 validityVsnInput = function(object){
   validScalar(object, "subsample", min=-Inf)
   validScalar(object, "cvg.niter", min=1)
   validScalar(object, "cvg.eps")
   validScalar(object, "lts.quantile", min=0.5, max=1)
-  
-  if(any(is.na(object@verbose)) || (length(object@verbose)!=1))
-    stop("'verbose must be of length 1 and not NA.")
-  
-  if(any(is.na(object@ordered)) || (length(object@ordered)!=1))
-    stop("'ordered must be of length 1 and not NA.")
+  validLogical(object, "verbose")
+  validLogical(object, "returnData")
+  validLogical(object, "ordered")
 
-  if(!(length(object@strata)%in%c(0, nrow(object@x)))||any(is.na(object@strata)))
-    stop("'strata' must be  factor of length 0 or nrow(x) and must not contain NAs.")
-  
+  if(!equalOrZero(length(object@strata), nrow(object@x)))
+    stop("'length(strata)' must must match 'nrow(x)'.")
+
+  if(any(is.na(object@strata)))
+    stop("'strata' must not contain NA values.")
+
   if(!is.numeric(object@pstart)||length(dim(object@pstart))!=3)
     stop("'pstart' must be a 3D array.")
   
@@ -30,44 +37,85 @@ validityVsnInput = function(object){
   return(TRUE)
 }
 
+
+## strata may be of length 0 (in which case there are no strata).
+## refh may be of length 0 (in which case there is no reference).
+## data may be of length 0 (in which case the data is not provided).
+## If any these slots is of length>0, then they must agree in size.
 validityVsn = function(object){
   if(any(is.na(object@par))||(length(dim(object@par))!=3))
     stop("'par' must be a 3D array and not contain NA values.")
+
+  if(dim(object@par)[3]!=2)
+    stop("'dim(par)[3]' must be equal to 2.")
+  
+  if((length(object@n)!=1)||any(is.na(object@n)))
+    stop("'n' must be of length 1 and not NA.")
+
   if(any(is.na(object@refh)))
     stop("'refh' must not contain NA values.")
-  validScalar(object, "refsd")
-  if(length(object@strata)>0){
-    if(length(object@refh)>0)
-      if(length(object@reh)!=length(object@strata))
-        stop("'strata' and 'refh' must have the same length.")
+  
+  if(length(object@refsd)!=1)
+    stop("'refsd' must be of length 1.")
+
+  if(!equalOrZero(ncol(object@data), dim(object@par)[2]))
+    stop("'ncol(data)' and 'dim(object@par)[2]' must match.")
+
+  if(!equalOrZero(length(object@strata), object@n))
+    stop("'length(strata)' must match 'n'.")
+
+  if(!equalOrZero(length(object@refh), object@n))
+    stop("'length(refh)' must match 'n'.")
+
+  if(!equalOrZero(nrow(object@data), object@n))
+    stop("'nrow(data)' must match 'n'.")
+
+  if(length(object@strata)>0)
     if(nlevels(object@strata)!=dim(object@par)[1])
       stop("'nlevels(strata)' and 'dim(par)[1]' must match.")
-  }
+  
   return(TRUE)
 }
 
+##------------------------------------------------------------
+## Class vsn
+##------------------------------------------------------------
+setClass("vsn",
+  representation(
+    par    = "array",
+    n      = "integer",
+    strata = "factor", 
+    refh   = "numeric",
+    refsd  = "numeric",
+    data   = "matrix"),
+  prototype = list(
+    par    = array(0, dim=c(0,0,2)),
+    n      = as.integer(0),
+    strata = factor(integer(0)),
+    refh   = numeric(0),
+    refsd  = as.numeric(NA),
+    data   = matrix(0, nrow=0, ncol=0)),
+  validity = validityVsn)
+
+##------------------------------------------------------------
+## Class vsnInput
+##------------------------------------------------------------
 
 setClass("vsnInput",
   representation(
     x  = "matrix",     ## The n*d data matrix
+    reference = "vsn", ## A result from a previous fit (for reference normalization)          
     strata = "factor", ## Factor of length n, aligned with rows of x. Special case:
                        ##  It can also be length 0, in case there is only one stratum
     ordered = "logical",  ## Are the levels consecutive in "strata"?               
-    pstart = "array",     ## Start parameters (3D array: nrstrata * d * 2)
     lts.quantile = "numeric",
-    cvg.niter  = "integer",
-    cvg.eps   = "numeric",
     subsample = "integer",
-    verbose   = "logical"),
+    verbose   = "logical",
+    returnData= "logical",
+    pstart    = "array",     ## Start parameters (3D array: nrstrata * d * 2)
+    cvg.niter = "integer",
+    cvg.eps   = "numeric"),
          
    validity = validityVsnInput)
                   
 
-setClass("vsn",
-  representation(
-    par = "array",
-    strata = "factor", 
-    refh = "numeric",
-    refsd = "numeric"),
-
-  validity = validityVsn)

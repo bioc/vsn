@@ -1,6 +1,7 @@
 useDynLib("vsn")
 
 importFrom("stats", "predict")
+importFrom("methods", "show")
 
 exportClasses("vsn")
 export("vsn", "vsnh", "vsnPlotPar",
@@ -9,5 +10,7 @@ export("vsn", "vsnh", "vsnPlotPar",
        "sagmbAssess", "sagmbSimulateData",
        "plotLogLik",
        "vsnMatrix")
-exportMethods("meanSdPlot", "predict")
+
+exportMethods("meanSdPlot",
+              "predict", "nrow", "show")
 

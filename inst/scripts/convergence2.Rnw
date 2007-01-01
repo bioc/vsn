@@ -60,7 +60,11 @@ sim <- function(..., lts.quantile=0.9, nrrep=20) {
       ny  <- vsnMatrix(sim$y, strata=factor(sim$strata), 
           lts.quantile=lts.quantile, verbose=!TRUE)
       ##plot(as.vector(sim$hy), as.vector(ny$hy), pch=".", col=col(sim$hy))
-      res[r, i] <- sagmbAssess(ny$hy, sim)
+      res[r, i] <- sagmbAssess(ny$hy, sim)     
+      ## if(res[r,i]>0.045) {
+      ##  z=plotLogLik(si$y, factor(si$strata), ny$par, wh=rbind(c(1,1,1),c(1,1,2)), n=31)
+      ##  browser()
+      ## }
     }
   }
   return(res)

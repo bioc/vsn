@@ -34,3 +34,20 @@ setMethod("predict",
   })
        
 
+setMethod("nrow",
+  signature("vsn"),
+  definition = function(x) x@n)
+
+setMethod("show",
+  signature("vsn"),
+  definition = function(object) {
+    cat(class(object), sprintf("object for n=%d features and d=%d samples.\n",
+      object@n, dim(object@par)[2]))
+    if(length(object@strata)>0)
+      cat(sprintf("strata: %d levels\n", nlevels(object@strata)))
+    if(nrow(object@data)>0)
+      cat(sprintf("data: %d x %d matrix\n", nrow(object@data), ncol(object(data))))
+    if(length(object@refh)>0)
+      cat(sprintf("refsd: %g\n", object@refsd))
+  })
+

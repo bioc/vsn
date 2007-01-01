@@ -12,8 +12,8 @@
 #include <R_ext/Utils.h>          /* for R_CheckUserInterrupt */
 extern double asinh(double);
 
-#define VSN_DEBUG 
-/*#undef VSN_DEBUG*/
+/* #define VSN_DEBUG  */
+#undef VSN_DEBUG
 
 typedef struct {
   int *strat;      /* For what=0 and 1, strat[j] is the index of the first element 

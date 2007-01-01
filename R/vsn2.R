@@ -212,23 +212,34 @@ vsnSample = function(v) {
 ## vsnMatrix
 ##----------------------------------------------------------------------
 vsnMatrix = function(x,
-                lts.quantile = 0.9,
-                subsample    = as.integer(0),
-                verbose      = interactive(),
-                cvg.niter    = as.integer(10),
-                cvg.eps      = 0,
-                pstart,
-                strata = factor(integer(0), levels="all")) {
+  reference,
+  strata,
+  lts.quantile = 0.9,
+  subsample    = as.integer(0),
+  verbose      = interactive(),
+  returnData   = TRUE,
+  pstart,
+  cvg.niter    = as.integer(10),
+  cvg.eps      = 0
+  ) {
 
   if(missing(pstart)) {
     pstart = array(0, dim=c(nlevels(strata), ncol(x), 2))
     pstart[,,2] = rep(1/apply(x, 2, IQR), each=dim(pstart)[1])
+  }
+  if(missing(reference)) {
+    reference = new("vsn")
+  }
+  if(missing(strata)) {
+    strata = factor(integer(0), levels="all")
   }
   
   vsndat = new("vsnInput",
     x      = x,
     strata = strata,
     pstart = pstart,
+    reference = reference,
+    returnData = returnData,
     lts.quantile = lts.quantile,
     cvg.niter  = cvg.niter,
     cvg.eps   = cvg.eps,

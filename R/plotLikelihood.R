@@ -1,6 +1,7 @@
-plotLogLik = function(x, strata, p0, which, delta, n=31) {
+plotLogLik = function(x, strata, p0, wh, n=31) {
 
-  stopifnot(length(which)==2, length(delta)==2)
+  stopifnot(is.matrix(wh), nrow(wh)==2, ncol(wh)==3)
+  
   v = new("vsnInput",
     x = x,
     strata = strata,
@@ -21,21 +22,30 @@ plotLogLik = function(x, strata, p0, which, delta, n=31) {
   ll = matrix(as.numeric(NA), nrow=n, ncol=n)
   istrat = calcistrat(v)
 
-  px = (2*(0:(n-1))/(n-1)-1)*delta[1] + p0[which[1]]
-  py = (2*(0:(n-1))/(n-1)-1)*delta[2] + p0[which[2]]
+  pwh = p0[wh]
+  psteps = matrix(as.numeric(NA), ncol=nrow(wh), nrow=n)
+  for(i in 1:ncol(psteps))
+    psteps[,i] = switch(as.integer(wh[i, 3]),
+            { delta = quantile(x[, wh[i, 2]], probs=0.05)
+              pwh[i] + seq(-delta, +delta, length=n) },
+            { pwh[i] * exp(seq(-log(sqrt(2)), log(sqrt(2)), length=n)) },
+             stop("Zapperlot"))
+ 
   for(j in seq_len(n)) {
-    p0[which[1]] = px[j]
+    p0[wh[1,,drop=FALSE]] = psteps[j,1]
     for(i in seq_len(n)) {
-      p0[which[2]] = py[i]
-      ll[i,j] = .Call("vsn2_c", x, p0, istrat, as.integer(1), PACKAGE="vsn")[1]
+      p0[wh[2,,drop=FALSE]] = psteps[i,2]
+      ll[i,j] = .Call("vsn2_c", x, as.vector(p0), istrat, as.integer(1), PACKAGE="vsn")[1]
     }
   }
   
   if(require("lattice"))
-    print(levelplot(z~x*y, data=data.frame(z=as.vector(ll), x=px[col(ll)], y=py[row(ll)])))
+    print(levelplot(z~p1*p2,
+      data=data.frame(z=as.vector(ll), p1=psteps[col(ll), 1], p2=psteps[row(ll), 2]),
+      xlab=sprintf("par[%d,%d,%d]", wh[1,1], wh[1,2], wh[1,3]),
+      ylab=sprintf("par[%d,%d,%d]", wh[2,1], wh[2,2], wh[2,3])))
   else
     warning("lattice package is not available, cannot call 'levelplot'.")
-  browser()
   
   return(invisible(ll))
 }    
