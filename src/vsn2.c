@@ -306,19 +306,17 @@ double* setupLikelihoodstuff(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP S
   /* Process Srefh and Srefsigma; If Srefh has length 0, then we do
      the 2002 model. If it has length nr, normalize against reference */
 
-  if(!(isReal(Srefsigma) && (LENGTH(Srefsigma)==1)))
-    error("Invalid argument 'Srefsigma', must be a real vector of length 1.");
-  px->refsigma = REAL(Srefsigma)[0];
-
-  if(!(isReal(Srefh)))
-    error("Invalid argument 'Srefh', must be a real vector.");
-  if(LENGTH(Srefh)==nr) {
+  if(!(isReal(Srefh)&&(isReal(Srefsigma))))
+    error("Invalid arguments: 'Srefh' and 'Srefsigma' must be real vectors.");
+  if((LENGTH(Srefh)==nr)&&(LENGTH(Srefsigma)==1)) {
     px->refh = REAL(Srefh);
+    px->refsigma = REAL(Srefsigma)[0];
   } else {
     if(LENGTH(Srefh)==0) {
       px->refh = NULL;
+      px->refsigma = 0.0;
     } else {
-      error("Invalid length of argument 'Srefh'.");
+      error("Invalid length of arguments 'Srefh', 'Srefsigma'.");
     }
   }
 
