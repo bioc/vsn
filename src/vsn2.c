@@ -8,7 +8,6 @@
 #include <Rdefines.h>
 
 #include <R_ext/Applic.h>         /* for lbfgsb */
-#include <R_ext/Rdynload.h>
 #include <R_ext/Utils.h>          /* for R_CheckUserInterrupt */
 extern double asinh(double);
 
@@ -86,7 +85,7 @@ void vsn2trsf(vsn_data *px, double* par, double *hy)
 -----------------------------------------------------------------------*/
 double lambda(double x)    { return(x*x);}
 double dlambdadx(double x) { return(2.0*x);}
-double invlambda(double y) { return(sqrt(y));} 
+double invlambda(double y) { return(sqrt(y));}  
 
 /* double lambda(double x)    { if(x<1) {return(exp(x-1));} else {return(x);}}
 double dlambdadx(double x) { if(x<1) {return(exp(x-1));} else {return(1.0);}}
@@ -234,187 +233,195 @@ void vsnloglikgrad(int n, double *par, double *gr, void *ex)
   return;
 }
 
-/*------------------------------------------------------------
-   The interface to R
-   what=0: do the full parameters optimization
-   what=1: just calculate the transformation and gradients on 
-           given parameters
-   what=2: just calculate the transformation on given parameters
-------------------------------------------------------------*/
-SEXP vsn2_c(SEXP e_y, SEXP e_par, SEXP e_strat, SEXP e_what)
-{
-  int i, nc, nr, nt, what;
+/* This setup function is used by vsn2_optim, vsn2_point, vsn2_trsf 
+   It checks the arguments Sy, Spar Strat and copies relevant bits 
+   into (*px) */
 
-  int     lmm      = 10;   
-  int     fail     = 0;
-  double  factr    = 5e+7;  /* see below */
-  double  pgtol    = 0; 
-  int     fncount  = 0;
-  int     grcount  = 0;
-  int     maxit    = 40000;
-  int     trace    = 0; /* 6; */
-  int     nREPORT  = 1;
-  double  fmin;
-  char    msg[60];
-
-  double  *cpar;
-  double  *lower;
-  double  *upper;
-  double  *scale;
-  int     *nbd;
-
-  SEXP res, dimres, dimy;
-  vsn_data x;
-
-  /* check input arguments */
-  PROTECT(dimy = getAttrib(e_y, R_DimSymbol));
- 
-  if((!isReal(e_y)) | isNull(dimy) | (LENGTH(dimy)!=2))
-    error("Invalid argument 'e_y', must be a real matrix."); 
-  if(!isReal(e_par))
-    error("Invalid argument 'e_par', must be a real vector.");
-  if(!isInteger(e_strat))
-    error("Invalid argument 'e_strat', must be integer.");
-  if(!isInteger(e_what) || LENGTH(e_what)!=1)
-    error("Invalid argument 'e_what', must be integer of length 1.");
-  what = INTEGER(e_what)[0];
-  if(what<0 || what>2)
-    error("Invalid argument 'e_what', must be 0, 1, or 2.");
+void setupEverybody(SEXP Sy, SEXP Spar, SEXP Sstrat, vsn_data* px) 
+{ 
+  int i, nr, nc, nt;  
+  double* y;
+  SEXP dimy;
 
   if(fabs(asinh(1.5)-1.1947632172871)>1e-10)
     error("Your 'asinh' function does not seem to work right.");
 
-  /* assign length information and pointers to data areas into local workspace 'x' */
-  x.npar    = LENGTH(e_par);
-  x.strat   = INTEGER(e_strat);
-  nr        = INTEGER(dimy)[0];
-  nc        = INTEGER(dimy)[1];
-  x.nrow    = nr;
-  x.ncol    = nc;
-  x.y       = REAL(e_y);
+  PROTECT(dimy = getAttrib(Sy, R_DimSymbol));
+  if((!isReal(Sy)) | isNull(dimy) | (LENGTH(dimy)!=2))
+    error("Invalid argument 'Sy', must be a real matrix."); 
+  if(!isReal(Spar))
+    error("Invalid argument 'Spar', must be a real vector.");
+  if(!isInteger(Sstrat)) 
+    error("Invalid argument 'Sstrat', must be integer.");
+
+  px->npar    = LENGTH(Spar);
+  px->strat   = INTEGER(Sstrat);
+
+  px->y    = y  = REAL(Sy);
+  px->nrow = nr = INTEGER(dimy)[0];
+  px->ncol = nc = INTEGER(dimy)[1];
 
   nt = 0;
   for(i=0; i<nr*nc; i++)
-    if(!ISNA(x.y[i]))
+    if(!ISNA(y[i]))
       nt++;
-  x.ntot = nt;  
+  px->ntot = nt;  
+
+  UNPROTECT(1); 
+  return;
+}
+
+/* This setup function is used by vsn2_optim, vsn2_point (but not by vsn2_trsf) */
+/* It sets up workspaces, processes the Sstrat parameters,
+   and does the parameter transformation (lambda)  */
+
+double* setupLikelihoodstuff(SEXP Sy, SEXP Spar, SEXP Sstrat, vsn_data* px) 
+{  
+  int i, nr, nc, np, ns;
+  double* cpar;
+
+  nr = px->nrow;
+  nc = px->ncol;
+  np = px->npar;
+  ns = px->nrstrat = LENGTH(Sstrat)-1;
+
+  if ((2*ns) != np) 
+    error("Unconformable size of arguments 'Spar', 'Sstrat'.");
+  if(px->strat[0] != 0)
+    error("First element of argument 'Sstrat' must be 0.");
+  if(px->strat[ns] != nr*nc)
+    error("Last element of argument 'Sstrat' must be equal to length of 'n_y'.");
+  for(i=0; i<ns; i++) {
+    if((px->strat[i+1]) <= (px->strat[i]))
+      error("Elements of argument 'Sstrat' must be in ascending order.");
+  }
 
   /* workspaces for function and gradient calculation */
-  x.ly      = (double *) R_alloc(nr*nc,  sizeof(double)); 
-  if (what<=1) {
-      x.nrstrat = LENGTH(e_strat)-1;
-      if (2*x.nrstrat != x.npar) 
-	  error("Unconformable size of arguments 'e_par', 'e_strat'.");
-      if(x.strat[0] != 0)
-	  error("First element of argument 'e_strat' must be 0.");
-      if(x.strat[x.nrstrat] != nr*nc)
-	  error("Last element of argument 'e_strat' must be equal to length of 'n_y'.");
-      for(i=0; i<x.nrstrat; i++) {
-	  if(x.strat[i+1]<= x.strat[i])
-	      error("Elements of argument 'e_strat' must be in ascending order.");
-      }
-      /* if what is 0, the return value is a vector with 
-         the parameters and with "ifail". If it is 1, it is 
-         a vector with the value of the likelihood function 
-         and its gradient. In addition, we need several
-         workspace arrays for intermediate results */
-      x.asly    = (double *) R_alloc(nr*nc,  sizeof(double));
-      x.rcasly  = (double *) R_alloc(nr*nc,  sizeof(double));
-      x.dh      = (double *) R_alloc(nr*nc,  sizeof(double));
-      x.lastpar = (double *) R_alloc(x.npar, sizeof(double));
-      res       = allocVector(REALSXP, x.npar+1);
-  } else {
-      x.nrstrat = x.npar/2;
-      if (LENGTH(e_strat) != x.nrow) 
-	  error("Length of 'e_strat' must be the same as the number of rows of 'e_y'.");
-      lmm = x.npar / (nc*2);
-      for(i=0; i<LENGTH(e_strat); i++)
-	  if(x.strat[i]<1 || x.strat[i]>lmm) {
-	      Rprintf("x.strat[%d]=%d but should be >=1 and <=%d\n", i, x.strat[i], lmm);
-	      error("Invalid argument 'e_strat'.");
-	  }
-      /* if what is 2, the return value is a matrix of the same size 
-         as y */
-      res                = allocVector(REALSXP, nr*nc);
-      PROTECT(dimres     = allocVector(INTSXP, 2));
-      INTEGER(dimres)[0] = nr;
-      INTEGER(dimres)[1] = nc;
-      setAttrib(res, R_DimSymbol, dimres);
-      UNPROTECT(1);
-  }
-  PROTECT(res);
+  px->ly      = (double *) R_alloc(nr*nc,  sizeof(double)); 
+  px->asly    = (double *) R_alloc(nr*nc,  sizeof(double));
+  px->rcasly  = (double *) R_alloc(nr*nc,  sizeof(double));
+  px->dh      = (double *) R_alloc(nr*nc,  sizeof(double));
+  px->lastpar = (double *) R_alloc(np, sizeof(double));
 
-  /* parameters:
-     transform the factors using "lambda" (see above) */
-  cpar = (double *) R_alloc(x.npar, sizeof(double));
-  for(i=0; i<x.nrstrat; i++) 
-    cpar[i] = REAL(e_par)[i];
-  for(i=x.nrstrat; i < 2*x.nrstrat; i++) {
-    if(REAL(e_par)[i] <=0 )
-      error("'e_par': factors must be >0.");
-    cpar[i] = (what<=1) ? invlambda(REAL(e_par)[i]) : REAL(e_par)[i];
+  /* parameters: transform the factors using "lambda" (see above) */
+  cpar = (double *) R_alloc(np, sizeof(double));
+  for(i=0; i < ns; i++) 
+    cpar[i] = REAL(Spar)[i];
+  for(i=ns; i < 2*ns; i++) {
+    if(REAL(Spar)[i] <=0 )
+      error("'Spar': factors must be >0.");
+    cpar[i] = invlambda(REAL(Spar)[i]);
   }
+  return(cpar);
+} 
 
-  /* parameter bounds and scale */
-  switch(what) {
-      case 0:
-	  lower   = (double *) R_alloc(x.npar, sizeof(double));
-	  upper   = (double *) R_alloc(x.npar, sizeof(double));
-	  scale   = (double *) R_alloc(x.npar, sizeof(double));
-	  nbd     = (int *)    R_alloc(x.npar, sizeof(int));
-	  
-	  for(i=0; i<x.npar; i++) {
-	      lower[i]  = 0.;
-	      upper[i]  = 0.;
-	      scale[i]  = 1.;
-	      nbd[i]    = 0;   /* see below in the Readme file */
-	  } 
-	  
-	  /* optimize (see below for documentation of the function arguments) */
-	  lbfgsb(x.npar, lmm, cpar, lower, upper, nbd, &fmin, vsnloglik, vsnloglikgrad, &fail,
-		 (void *) &x, factr, pgtol, &fncount, &grcount, maxit, msg,
-		 trace, nREPORT); 
-	  /* write new values in result */
-	  for(i=0; i < x.nrstrat; i++) 
-	      REAL(res)[i] = cpar[i];
-	  for(i=x.nrstrat; i < 2*x.nrstrat; i++) 
-	      REAL(res)[i] = lambda(cpar[i]);
-	  REAL(res)[x.npar] = (double) fail;
-	  break;
-      case 1:
-	  /* just calculate function values and gradients; this is mostly for 
-	     debugging, see script testderiv.R in inst/scripts directory  */
-	  REAL(res)[0] = vsnloglik(x.npar, cpar, (void*) &x);
-	  vsnloglikgrad(x.npar, cpar, REAL(res)+1, (void*) &x);
-	  break;
-      case 2:
-	  vsn2trsf(&x, cpar, REAL(res));
-          break;
-  }
+/*------------------------------------------------------------
+   vsn2_point: calculate the loglikehood and gradient
+   This is mostly for debugging, see for example the script 
+   testderiv.R in the inst/scripts directory 
+------------------------------------------------------------*/
+SEXP vsn2_point(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP Srefsd)
+{
+  double* cpar;
+  SEXP res;
+  vsn_data x;
 
-  UNPROTECT(2); /* dimy, res */
+  setupEverybody(Sy, Spar, Sstrat, &x);
+  cpar = setupLikelihoodstuff(Sy, Spar, Sstrat, &x);
+ 
+  res = allocVector(REALSXP, x.npar+1);
+
+  REAL(res)[0] = vsnloglik(x.npar, cpar, (void*) &x);
+  vsnloglikgrad(x.npar, cpar, REAL(res)+1, (void*) &x);
+
   return(res);
 }
 
+/*------------------------------------------------------------
+   vsn2_optim
+------------------------------------------------------------*/
+SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP Srefsd)
+{
+  int i, lmm, fail, fncount, grcount, maxit, trace, nREPORT;
+  int *nbd;
+  double *cpar, *lower, *upper, *scale;
+  double factr, pgtol, fmin;
+  char msg[60];
+  SEXP res;
+  vsn_data x;
 
+  lmm      = 10;   
+  fail     = 0;
+  factr    = 5e+7;  /* see below */
+  pgtol    = 0; 
+  fncount  = 0;
+  grcount  = 0;
+  maxit    = 40000;
+  trace    = 0; /* 6; */
+  nREPORT  = 1;
 
+  setupEverybody(Sy, Spar, Sstrat, &x);
+  cpar = setupLikelihoodstuff(Sy, Spar, Sstrat, &x);
+ 
+  lower   = (double *) R_alloc(x.npar, sizeof(double));
+  upper   = (double *) R_alloc(x.npar, sizeof(double));
+  scale   = (double *) R_alloc(x.npar, sizeof(double));
+  nbd     = (int *)    R_alloc(x.npar, sizeof(int));
+	  
+  for(i=0; i<x.npar; i++) {
+    lower[i]  = 0.;
+    upper[i]  = 0.;
+    scale[i]  = 1.;
+    nbd[i]    = 0;   /* see below in the Readme file */
+  } 
+  
+  /* optimize (see below for documentation of the function arguments) */
+  lbfgsb(x.npar, lmm, cpar, lower, upper, nbd, &fmin, vsnloglik, vsnloglikgrad, &fail,
+	 (void *) &x, factr, pgtol, &fncount, &grcount, maxit, msg,
+	 trace, nREPORT); 
 
-/* Registration information for DLL */
-static R_CallMethodDef callMethods[] = {
-    { "vsn2_c", ( DL_FUNC ) &vsn2_c, 4,
-        /* { REALSXP, REALSXP, INTSXP, INTSXP } */ },
-    { NULL, NULL, 0 }
-};
-
-extern void R_init_vsn2(DllInfo *info);
-extern void R_unload_vsn2(DllInfo *info);
-
-void R_init_vsn2(DllInfo *info) {
-    R_registerRoutines(info, NULL, callMethods, NULL, NULL);
+  /* write new values in result */
+  res = allocVector(REALSXP, x.npar+1);
+  for(i=0; i < x.nrstrat; i++) 
+    REAL(res)[i] = cpar[i];
+  for(i=x.nrstrat; i < 2*x.nrstrat; i++) 
+    REAL(res)[i] = lambda(cpar[i]);
+  REAL(res)[x.npar] = (double) fail;
+	  
+  return(res);
 }
 
-void R_unload_vsn2(DllInfo *info) {
-  /* Release resources. */
+/*------------------------------------------------------------
+   vsn2_trsf
+------------------------------------------------------------*/
+SEXP vsn2_trsf(SEXP Sy, SEXP Spar, SEXP Sstrat)
+{
+  int maxs, i; 
+  SEXP res, dimres, dimy;
+  vsn_data x;
+
+  setupEverybody(Sy, Spar, Sstrat, &x);
+ 
+  if (LENGTH(Sstrat) != x.nrow) 
+    error("Length of 'Sstrat' must be the same as the number of rows of 'Sy'.");
+
+  maxs = x.npar / (x.ncol*2);
+  for(i=0; i<LENGTH(Sstrat); i++)
+    if(x.strat[i]<1 || x.strat[i]>maxs) {
+      Rprintf("x.strat[%d]=%d but should be >=1 and <=%d\n", i, x.strat[i], maxs);
+      error("Invalid argument 'Sstrat'.");
+    }
+  
+  PROTECT(res = allocVector(REALSXP, x.nrow*x.ncol));
+  dimres = allocVector(INTSXP, 2);
+  INTEGER(dimres)[0] = x.nrow;
+  INTEGER(dimres)[1] = x.ncol;
+  setAttrib(res, R_DimSymbol, dimres);
+
+  vsn2trsf(&x, REAL(Spar), REAL(res));
+
+  UNPROTECT(1);
+  return(res);
 }
 
 

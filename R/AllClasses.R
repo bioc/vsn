@@ -1,5 +1,5 @@
-## validity functions
-## (see below for class definitions)
+## See further below for class definitions.
+## First come the validity functions, because they are needed for that
 
 validScalar = function(ob, nm, min=0, max=+Inf) {
   s = slot(ob, nm)

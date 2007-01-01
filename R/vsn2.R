@@ -22,7 +22,7 @@ vsnML = function(v, niter=4) {
   istrat = calcistrat(v) ## pointers to the starts of strata
   
   for (iter in seq_len(niter)) {
-    o = .Call("vsn2_c", v@x, p, istrat, as.integer(0), PACKAGE="vsn")
+    o = .Call("vsn2_optim", v@x, p, istrat, v@reference@refh, v@reference@refsd, PACKAGE="vsn")
     
     conv = as.integer(o[length(o)])
     if (conv==0) 
@@ -301,7 +301,7 @@ vsn2trsf = function(y, p, strata) {
   if (any(p[,,2]<=0))
     stop("'p' contains invalid values: factors must be non-negative.")
 
-  hy = .Call("vsn2_c", y, as.vector(p), strata, as.integer(2), PACKAGE="vsn")
+  hy = .Call("vsn2_trsf", y, as.vector(p), strata, PACKAGE="vsn")
 
   dimnames(hy) = dimnames(y)
   return(hy)

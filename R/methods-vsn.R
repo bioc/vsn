@@ -26,7 +26,7 @@ setMethod("predict", signature("vsn"),
       s = as.integer(s)
     }
     
-    hy = .Call("vsn2_c", newdata, as.vector(object@par), s, as.integer(2), PACKAGE="vsn")
+    hy = .Call("vsn2_trsf", newdata, as.vector(object@par), s, PACKAGE="vsn")
 
     dimnames(hy) = dimnames(newdata)
     return(hy)

@@ -338,28 +338,6 @@ SEXP vsn_c(SEXP e_y, SEXP e_par, SEXP e_strat, SEXP e_what)
 
 
 
-
-/* Registration information for DLL */
-static R_CallMethodDef callMethods[] = {
-    { "vsn_c", ( DL_FUNC ) &vsn_c, 4,
-        /* { REALSXP, REALSXP, INTSXP, INTSXP } */ },
-    { NULL, NULL, 0 }
-};
-
-extern void R_init_vsn(DllInfo *info);
-extern void R_unload_vsn(DllInfo *info);
-
-void R_init_vsn(DllInfo *info) {
-    R_registerRoutines(info, NULL, callMethods, NULL, NULL);
-}
-
-void R_unload_vsn(DllInfo *info) {
-  /* Release resources. */
-}
-
-
-
-
 /* Here's an excerpt from the Readme file for Lbfgsb.2.1
 
           L-BFGS-B (version 2.1)    March 1997
