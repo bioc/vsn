@@ -313,10 +313,10 @@ double* setupLikelihoodstuff(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP S
   if(!(isReal(Srefh)))
     error("Invalid argument 'Srefh', must be a real vector.");
   if(LENGTH(Srefh)==nr) {
-    px->Srefh = REAL(Srefh);
+    px->refh = REAL(Srefh);
   } else {
     if(LENGTH(Srefh)==0) {
-      px->Srefh = NULL;
+      px->refh = NULL;
     } else {
       error("Invalid length of argument 'Srefh'.");
     }
@@ -359,10 +359,10 @@ SEXP vsn2_point(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP Srefsigma)
 
   if(x.refh==NULL) {
     REAL(res)[0] = prof_loglik(x.npar, cpar, (void*) &x);
-    prof_loglik_grad(x.npar, cpar, REAL(res)+1, (void*) &x);
+    grad_prof_loglik(x.npar, cpar, REAL(res)+1, (void*) &x);
   } else {
-    REAL(res)[0] = refr_loglik(x.npar, cpar, (void*) &x);
-    refr_loglik_grad(x.npar, cpar, REAL(res)+1, (void*) &x);
+    /* REAL(res)[0] = refr_loglik(x.npar, cpar, (void*) &x);
+       refr_loglik_grad(x.npar, cpar, REAL(res)+1, (void*) &x); */
   }
   return(res);
 }
