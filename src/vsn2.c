@@ -38,7 +38,7 @@ typedef struct {
 
   double *ly;      /* affine transformed matrix: offs_ik + facs_ik * y_ik */
   double *asly;    /* transformed expression matrix: asinh(ly)            */
-  double *rcasly;  /* row centered version of asly                        */
+  double *resid;  /* row centered version of asly                        */
   double *dh;      /* another auxilliary array                            */
 
   double *lastpar;
@@ -80,16 +80,6 @@ void vsn2trsf(vsn_data *px, double* par, double *hy)
     return;
 }
 
-/*----------------------------------------------------------------------
-  The function to be optimized:
-  offs[j] for j=0,..,nrstrat-1 are the offsets, lambda(facs[j]) the factors. 
-  Here, lambda(x) is a monotonous, continuous, differentiable and strictly 
-  positive function.
-  By running the minimization on the parameters transformed by lambda, 
-  the constraint that the factors need to be >0 is automatically satisfied. 
-  For the gradient (see below), note that: 
-    d/dx f(lambda(x)) = f'(lambda(x))*lambda'(x)
------------------------------------------------------------------------*/
 double lambda(double x)    { return(x*x);}
 double dlambdadx(double x) { return(2.0*x);}
 double invlambda(double y) { return(sqrt(y));}
@@ -106,11 +96,25 @@ double invlambda(double y) {return(y);} */
 double dlambdadx(double x) {return(exp(x));}
 double invlambda(double y) {return(log(y));} */
 
-double prof_loglik(int n, double *par, void *ex)
+/*----------------------------------------------------------------------
+  The function to be optimized:
+  offs[j] for j=0,..,nrstrat-1 are the offsets, lambda(facs[j]) the factors. 
+  Here, lambda(x) is a monotonous, continuous, differentiable and strictly 
+  positive function.
+  By running the minimization on the parameters transformed by lambda, 
+  the constraint that the factors need to be >0 is automatically satisfied. 
+  For the gradient, note that: 
+    d/dx f(lambda(x)) = f'(lambda(x))*lambda'(x)
+  
+  For the normal likelihood, see the vignette: incremental.Rnw
+  For the profile likelihood, see the SAGMB 2003 paper, and my grey 
+   notebook p. 206 for the gradient.
+-----------------------------------------------------------------------*/
+double loglik(int n, double *par, void *ex)
 {
   double *facs, *offs;      
-  double fj, oj, s, z, res, jac;  
-  int i, j, ni;
+  double fj, oj, mu, s, z, res, ssq, jac;  
+  int i, j, ni, nt;
   int nr, nc;
   vsn_data *px;
 
@@ -144,39 +148,59 @@ double prof_loglik(int n, double *par, void *ex)
     } /* for i */
   } /* for j */
   
-  /* calculate ssq of residuals and rcasly  */
-  /* rcasly  = row-centered version of asly */
-  /* ssq     = sum_k sum_i rcasly_ik^2      */
-  px->ssq = 0.0;
+  /* calculate ssq of residuals and resid  */
+  /* resid  = row-centered version of asly */
+  /* ssq     = sum_k sum_i resid_ik^2      */
+  ssq = 0.0;
+  nt = 0;
   for(i=0; i<nr; i++){
-    s = 0.0;
-    ni = 0;   /* count the number of data points in this row i (excl. NA) */
-    for(j=0; j < nc; j++){
-      z = px->asly[j*nr+i];
-      if(!ISNA(z)){
-	s += z;
-	ni++;
+
+    if(px->refh==NULL) {
+      /* profiling: mu =  arithmetic mean */
+      mu = 0.0;
+      ni = 0;   /* count the number of data points in this row i (excl. NA) */
+      for(j=0; j < nc; j++){
+	z = px->asly[j*nr+i];
+	if(!ISNA(z)){
+	  mu += z;
+	  ni++;
+	}
       }
+      mu /= ni;
+      nt += ni;
+    } else {
+      /* used the given parameter mu */
+      mu = px->refh[i];
     }
-    s /= ni;
 
     for(j=0; j < nc; j++){
       z = px->asly[j*nr+i];
       if(!ISNA(z)){
-	z = z - s;
-	px->rcasly[j*nr+i] = z;
-	px->ssq += z*z;
+	z = z - mu;
+	px->resid[j*nr+i] = z;
+	ssq += z*z;
       } else {
-	px->rcasly[j*nr+i] = NA_REAL;
+	px->resid[j*nr+i] = NA_REAL;
       }
     }
+  } /* for i */
+
+  px->ssq = ssq;
+
+  if(px->refh==NULL) {
+    if(px->ntot != nt)      
+      error("Internal error in 'loglik'.");
+    /* Negative profile log likelihood */
+    res = (px->ntot)*log(ssq)/2.0 - jac;
+  } else {
+    /* Negative log likelihood */
+    /* The constant term nr*log(sqrt(2.0*M_PI)*px->refsigma) 
+       is not relevant for the parameter optimization */
+    res = ssq/((px->refsigma)*(px->refsigma)) - jac;
   }
 
-  /* Negative profile log likelihood */
-  res = (px->ntot)*log(px->ssq)/2.0 - jac;
-
 #ifdef VSN_DEBUG
-  Rprintf("prof_loglik %9g", res); 
+  Rprintf("loglik %9g", res); 
   for(j=0; j < px->npar; j++) Rprintf(" %9g", par[j]); 
   Rprintf("\n"); 
 #endif
@@ -185,13 +209,13 @@ double prof_loglik(int n, double *par, void *ex)
 }
 
 /*------------------------------------------------------------
-   gradient of prof_loglik
-   (see p.206 in notebook)
+   gradient
 ------------------------------------------------------------*/
-void grad_prof_loglik(int n, double *par, double *gr, void *ex)
+void grad_loglik(int n, double *par, double *gr, void *ex)
 {
   double *facs;       
-  double s1, s2, s3, s4, z1, z2, z3, vorfak; 
+  double s1, s2, s3, s4, z1, z2, z3;
+  double vorfak;
   int i, j, k;
   int nr, nc, nj;
   vsn_data *px;
@@ -204,26 +228,33 @@ void grad_prof_loglik(int n, double *par, double *gr, void *ex)
   for(i=0; i < px->npar; i++) {
     if (px->lastpar[i] != par[i]) {
       Rprintf("%d\t%g\t%g\n", i, px->lastpar[i], par[i]);
-      error("Parameters in 'vsnloglikgrad' are different from those in 'vsnloglik'.");
+      error("Parameters in 'grad_loglik' are different from those in 'loglik'.");
     }
   }
 
-  vorfak = (px->ntot)/(px->ssq);
+  if(px->refh==NULL) {
+    /* Negative profile log likelihood */
+    vorfak = (px->ntot)/(px->ssq);
+  } else {
+    /* Negative log likelihood */
+   vorfak = 2.0/((px->refsigma)*(px->refsigma));
+  } 
+
   for(j = 0; j < px->nrstrat; j++) {
     s1 = s2 = s3 = s4 = 0.0;
     nj = 0;
     for(k = px->strat[j]; k < px->strat[j+1]; k++) {
-      z1 = px->rcasly[k];
+      z1 = px->resid[k];
       if(!ISNA(z1)){
 	z1 *= (px->dh[k]); 
 	s1 += z1;             /* deviation term for offset  */
 	s2 += z1 * px->y[k];  /* deviation term for factor  */
-
+	  
 	z2 = px->ly[k];
-	z3 = z2/(1+z2*z2);    /* jacobi term                */
+	z3 = z2/(1+z2*z2);    
 	s3 += z3;             /* jacobi term for offset     */
 	s4 += z3 * px->y[k];  /* jacobi term for factor     */
-        nj++;
+	nj++;
       }
     } /* for k */
     s4 -= (double)nj / lambda(facs[j]);
@@ -233,7 +264,7 @@ void grad_prof_loglik(int n, double *par, double *gr, void *ex)
 
 
 #ifdef VSN_DEBUG
-  Rprintf("grad_prof_loglik    "); 
+  Rprintf("grad_loglik    "); 
   for(j=0; j < px->npar; j++) Rprintf(" %9g", gr[j]); 
   Rprintf("\n"); 
 #endif 
@@ -323,7 +354,7 @@ double* setupLikelihoodstuff(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP S
   /* workspaces for function and gradient calculation */
   px->ly      = (double *) R_alloc(nr*nc,  sizeof(double)); 
   px->asly    = (double *) R_alloc(nr*nc,  sizeof(double));
-  px->rcasly  = (double *) R_alloc(nr*nc,  sizeof(double));
+  px->resid   = (double *) R_alloc(nr*nc,  sizeof(double));
   px->dh      = (double *) R_alloc(nr*nc,  sizeof(double));
   px->lastpar = (double *) R_alloc(np, sizeof(double));
 
@@ -356,8 +387,8 @@ SEXP vsn2_point(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP Srefsigma)
   res = allocVector(REALSXP, x.npar+1);
 
   if(x.refh==NULL) {
-    REAL(res)[0] = prof_loglik(x.npar, cpar, (void*) &x);
-    grad_prof_loglik(x.npar, cpar, REAL(res)+1, (void*) &x);
+    REAL(res)[0] = loglik(x.npar, cpar, (void*) &x);
+    grad_loglik(x.npar, cpar, REAL(res)+1, (void*) &x);
   } else {
     /* REAL(res)[0] = refr_loglik(x.npar, cpar, (void*) &x);
        refr_loglik_grad(x.npar, cpar, REAL(res)+1, (void*) &x); */
@@ -405,7 +436,7 @@ SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP Srefsigma)
   
   /* optimize (see below for documentation of the function arguments) */
   lbfgsb(x.npar, lmm, cpar, lower, upper, nbd, &fmin, 
-         prof_loglik, grad_prof_loglik, &fail,
+         loglik, grad_loglik, &fail,
 	 (void *) &x, factr, pgtol, &fncount, &grcount, maxit, msg,
 	 trace, nREPORT); 
 
