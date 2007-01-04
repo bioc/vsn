@@ -7,7 +7,9 @@
   from a nephrectomy (kidney)}
 \usage{data(kidney)}
 
-\format{\code{kidney} is an exprSet containing the data from 1 cDNA
+\format{\code{kidney} is an
+  \code{\link[ExpressionSet-class]{ExpressionSet}}
+  containing the data from one cDNA
   chip. The 8704x2 matrix \code{exprs(kidney)} contains the
   spot intensities for the red (635 nm) and green color channels
   (532 nm) respectively. For each spot, a background estimate from a
