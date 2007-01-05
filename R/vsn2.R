@@ -95,7 +95,7 @@ calcistrat = function(vp) {
 vsnLTS = function(v) {
 
   ## a place to save the trajectory of estimated parameters along the iterations
-  params = array(as.numeric(NA), dim=c(dim(v@pstart), v@cvg.niter))
+  ## params = array(as.numeric(NA), dim=c(dim(v@pstart), v@cvg.niter))
 
   ## for calculating a convergence criterion: earlier result
   oldhy   = Inf
@@ -112,7 +112,7 @@ vsnLTS = function(v) {
 
     ## apply to all data
     hy = vsn2trsf(v@x, par, intStrat)
-    params[,,,iter] = v@pstart = par
+    v@pstart = par      ## params[,,,iter] 
 
     ## if LTS.quantile is 1, then the following stuff is not necessary
     if (abs(v@lts.quantile-1)<sqrt(.Machine$double.eps))
@@ -163,9 +163,28 @@ vsnLTS = function(v) {
 
   } ## end of for-loop
   if(v@verbose) cat("\n")
-  return(list(par=par, hy=hy, params=params))
+  return(list(par=par, hy=hy))
 }
 
+##----------------------------------------------------------------------------------
+## vsnColumnByColumn
+##----------------------------------------------------------------------------------
+vsnColumnByColumn = function(v) {
+  res = vsnLTS(v[,1])
+  n = ncol(v)
+  if(n>1) {
+    # create new arrays of appropriate size
+    stopifnot(dim(res$par)[2]==1, ncol(res$hy)==1)
+    par = array(as.numeric(NA), dim=c(dim(res$par)[1], n, dim(res$par)[3]))
+    hy  = matrix(as.numeric(NA), nrow=nrow(res$hy), ncol=n)
+      
+    for(j in 2:n) {
+      rj = vsnLTS(v[,j])
+      ## DADIDA
+    }
+  } 
+  return(res)
+}
 
 ##----------------------------------------------------------------------------------
 ## vsnStrata: if necessary,
@@ -188,11 +207,14 @@ vsnStrata = function(v, minDataPointsPerStratum=42) {
     v@ordered = TRUE
   }
 
-  res = vsnLTS(v)
-
-  if(!is.null(ord)) {
+  res = if(length(v@reference@refh)>0)
+    vsnColumnByColumn(v)
+  else
+    vsnLTS(v)
+   
+  if(!is.null(ord))
     res$hy[ord, ] = res$hy
-  }
+
   return(res)
 } 
 
