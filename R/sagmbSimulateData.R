@@ -57,8 +57,10 @@ sagmbAssess <- function(h1, sim) {
   stopifnot(all(c("y", "hy", "is.de") %in% names(sim)))
   h2    <- sim$hy
   is.de <- sim$is.de
+
+  stopifnot(is.matrix(h1), is.matrix(h2), is.logical(is.de),
+            identical(is.na(h1), is.na(sim$y)), !any(is.na(h2)))
   
-  stopifnot(is.matrix(h1), is.matrix(h2), is.logical(is.de))
   n <- nrow(h1)
   d <- ncol(h1)
   if(nrow(h2)!=n || ncol(h2)!=d) 
@@ -66,13 +68,9 @@ sagmbAssess <- function(h1, sim) {
          n, "x", d, " and ", nrow(h2), "x", ncol(h2), sep=""))
   stopifnot(length(is.de)==n)
 
-  dh1 <- dh2 <- matrix(nrow=n, ncol=d-1)
-  for (j in 2:d) {
-    dh1[, j-1] <- h1[, j] - h1[, 1]
-    dh2[, j-1] <- h2[, j] - h2[, 1]
-  }
+  dh1 <- h1-rowMeans(h1, na.rm=TRUE)
+  dh2 <- h2-rowMeans(h2)
 
-  nsum <- (d-1) * sum(!is.de)
-  res  <- sqrt(sum((dh1[!is.de,]-dh2[!is.de,])^2) / nsum)
-  return(res)
+  dh   <- dh1[!is.de,] - dh2[!is.de,]
+  sqrt(mean(dh^2, na.rm=TRUE))
 }

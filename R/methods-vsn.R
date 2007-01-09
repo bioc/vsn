@@ -1,3 +1,7 @@
+#------------------------------------------------------------
+# methods related to the class 'vsn'
+#  (see below for methods for the generic function 'vsn2')
+#------------------------------------------------------------
 setMethod("predict", signature("vsn"),
   function(object, newdata) {
 
@@ -35,6 +39,7 @@ setMethod("predict", signature("vsn"),
 
 setMethod("nrow", signature("vsn"), function(x) x@n)
 setMethod("ncol", signature("vsn"), function(x) dim(x@par)[2])
+setMethod("dim",  signature("vsn"), function(x) c(x@n, dim(x@par)[2]))
 
 setMethod("show", signature("vsn"),
   function(object) {
@@ -62,3 +67,12 @@ setMethod("[", "vsn",
     return(x)
   })
        
+
+#------------------------------------------------------------
+# methods for the generic function 'vsn2'
+#------------------------------------------------------------
+setMethod("vsn2", "matrix", vsnMatrix)
+
+setMethod("vsn2", "numeric",
+   function(x, reference, strata, ...)
+      vsnMatrix(as.matrix(x, ncol=1), reference, strata, ...))

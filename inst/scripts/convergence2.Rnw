@@ -48,7 +48,8 @@ options(error=recover)
 dothis = c("n: one stratum", "n: 8 strata", "d", "nrstrata",
            "de, lts.quantile=0.9", "de, lts.quantile=0.5",
            "up, lts.quantile=0.9", "up, lts.quantile=0.5",
-           "fraction NA", "reference")[9]
+           "fraction NA (d=8)", "fraction NA (d=2)",
+           "reference")[1:10]
 
 sim = function(..., what, lts.quantile=0.9, nrrep=20) {
   callpar = list(...)
@@ -64,7 +65,7 @@ sim = function(..., what, lts.quantile=0.9, nrrep=20) {
       simpar[[1]] = callpar[[1]][i]
       for (r in 1:nrrep) {
         sim = do.call("sagmbSimulateData", simpar)
-        ny  = vsnMatrix(sim$y, strata=factor(sim$strata), 
+        ny  = vsn2(sim$y, strata=factor(sim$strata), 
           lts.quantile=lts.quantile, verbose=!TRUE)
         res[r, i] = sagmbAssess(ny$hy, sim)     
         ##
@@ -79,16 +80,16 @@ sim = function(..., what, lts.quantile=0.9, nrrep=20) {
   return(res)
 }
 
-myPlot = function(n, res, ...) {
-  matplot(n, t(res), pch=20, log="xy", ylab='r.m.s. error', main=attr(res, "main"), col="#909090")
+myPlot = function(n, res, log="xy") {
+  matplot(n, t(res), pch=20, log=log, ylab='r.m.s. error', main=attr(res, "main"), col="#909090", xlab=deparse(substitute(n)))
   lines(n, colMeans(res), col="blue")
 }
 
-myPlot2 = function(n, rl, ...) {
+myPlot2 = function(n, rl) {
   par(mfrow=c(1,2))
   ylim=range(unlist(rl))
   for(i in seq(along=rl)) {
-    matplot(n, t(rl[[i]]), pch=20, ylab='r.m.s. error', 
+    matplot(n, t(rl[[i]]), pch=20, ylab='r.m.s. error', xlab=deparse(substitute(n)),
             log="y", ylim=ylim, col="#909090", main=attr(rl[[i]], "main"))
     lines(n, colMeans(rl[[i]]), col="blue")
   }
@@ -179,7 +180,6 @@ differentially expressed genes is not that large. See Figure~\ref{figdiff}.
 de  = (0:6)/10
 res1 = sim(de=de, what="de, lts.quantile=0.9")
 res2 = sim(de=de, lts.quantile=0.5, what="de, lts.quantile=0.5")
-
 myPlot2(de, list(res1, res2))
 @
 %
@@ -219,14 +219,21 @@ see Section~\ref{sec:de}.}
 %------------------------------------------------------
 
 <<figmiss>>=
-miss = seq(0, 0.8, length=7)
-res = sim(miss=miss, what="fraction NA")
-myPlot(miss, res)
+miss = seq(0, 0.75, length=7)
+res = sim(miss=miss, d=8, what="fraction NA (d=8)")
+myPlot(miss, res, log="y")
 @ 
+%
+<<figmiss2>>=
+miss = seq(0, 0.1, length=5)
+res = sim(miss=miss, d=2, what="fraction NA (d=2)")
+myPlot(miss, res, log="y")
+@ 
+
 \begin{figure}[tbp]
 \begin{center}
-\includegraphics[width=0.5\textwidth]{figmiss}
-% \includegraphics[width=0.5\textwidth]{figincr}
+\includegraphics[width=0.5\textwidth]{figmiss1}
+\includegraphics[width=0.5\textwidth]{figmiss2}
 \caption{\label{figds}%
 Estimation error as a function of (a) the fraction of missing data points
 and (b) BLA BLA. See Sections~\ref{sec:miss} and \ref{sec:inc}.}
@@ -237,6 +244,22 @@ and (b) BLA BLA. See Sections~\ref{sec:miss} and \ref{sec:inc}.}
 \section{Incremental normalization}\label{sec:inc}
 %------------------------------------------------------
 \textbf{TODO}
+<<incr>>=
+dat = sagmbSimulateData(n=10000, d=12, de=0, nrstrata=2, miss=0.01, log2scale=TRUE)
+v = vsn2(dat)
+for(j in seq_len(ncol(dat))){
+  vj = vsn2(dat[,j], reference=v)
+  browser()
+}
+@ 
+
+%-----------------------------------------------------
+\section{Subsampling}\label{sec:sample}
+%------------------------------------------------------
+\textbf{TODO}
+<<sample>>=
+
+@ 
 
 %-----------------------------------------------------
 \begin{thebibliography}{10}

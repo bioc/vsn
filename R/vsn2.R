@@ -135,8 +135,11 @@ vsnLTS = function(v) {
     slice   = ceiling(rank(hmean, na.last=TRUE)/length(hmean)*nrslice)
     slice   = factor((intStrat-1)*nrslice + slice)
     grmed   = tapply(rsd, slice, quantile, probs=v@lts.quantile, na.rm=TRUE)
+    if(any(is.na(grmed)))
+      stop(sprintf("Too many data points are NA (%d of %d), not enough data for fitting, am giving up.",
+                   sum(is.na(sv@x)), length(sv@x)))
+    
     meds    = grmed[as.character(slice)]
-    stopifnot(!any(is.na(meds)))
     whsel   = which(rsd <= meds)
 
     ## diagnostic plot (most useful for d=2)
@@ -146,7 +149,7 @@ vsnLTS = function(v) {
     ## Convergence check
     ## after a suggestion from David Kreil, kreil@ebi.ac.uk
     if(v@cvg.eps>0) {
-      cvgc    = max(abs(hy - oldhy))
+      cvgc    = max(abs(hy - oldhy), na.rm=TRUE)
       cvgcCnt = if(cvgc<v@cvg.eps) (cvgcCnt+1) else 0 
       if (v@verbose)
         cat(sprintf("iter %2d: cvgc=%.5f%%, par=", iter, cvgc),

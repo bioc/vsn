@@ -24,6 +24,7 @@ setMethod("[", "vsnInput",
        
 setMethod("nrow", signature("vsnInput"), function(x) nrow(x@x))
 setMethod("ncol", signature("vsnInput"), function(x) ncol(x@x))
+setMethod("dim",  signature("vsnInput"), function(x) dim(x@x))
 
 setMethod("show", signature("vsnInput"),
   function(object) {

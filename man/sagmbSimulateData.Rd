@@ -5,7 +5,7 @@
 \description{Functions to validate and assess the performance of vsn
   through simulation of data.}
 \usage{
-sagmbSimulateData(n=8064, d=2, de=0, up=0.5, nrstrata=1, log2scale=FALSE)
+sagmbSimulateData(n=8064, d=2, de=0, up=0.5, nrstrata=1,  miss=0, log2scale=FALSE)
 sagmbAssess(h1, sim)
 }
 \arguments{
@@ -15,6 +15,8 @@ sagmbAssess(h1, sim)
   \item{up}{Numeric. Fraction of up-regulated genes among the
     differentially expressed genes.}
   \item{nrstrata}{Numeric. Number of probe strata.}
+  \item{miss}{Numeric. Fraction of data points that is randomly sampled
+    and set to \code{NA}.}
   \item{log2scale}{Logical. If \code{TRUE}, glog on base 2 is used, if \code{FALSE},
     (the default), then base e.}
   \item{h1}{Matrix. Calibrated and transformed data, according, e.g., to
