@@ -4,7 +4,7 @@
 ## shape parameter a=1, scale theta=1
 ## Since vsn 2.0, results are returned on log2 scale, rather than natural log.
 ##----------------------------------------------------------------------------
-sagmbSimulateData <- function(n=8064, d=2, de=0, up=0.5, nrstrata=1, log2scale=FALSE) {
+sagmbSimulateData <- function(n=8064, d=2, de=0, up=0.5, nrstrata=1, miss=0, log2scale=FALSE) {
   stopifnot(is.numeric(n),  length(n)==1, n>=1)
   stopifnot(is.numeric(d),  length(d)==1, d>=2) 
   stopifnot(is.numeric(de), length(de)==1, de>=0, de<=1)
@@ -45,6 +45,10 @@ sagmbSimulateData <- function(n=8064, d=2, de=0, up=0.5, nrstrata=1, log2scale=F
   ## sinh expects values on natural log scale
   shhy = sinh(if(log2scale)(hy*log(2))else(hy))
   y <- offs + facs * shhy
+
+  if(miss>0)
+    y[sample(length(y), length(y)*miss)] = as.numeric(NA)
+  
   return(list(y=y, hy=hy, is.de=is.de, strata=strata))
 }
 

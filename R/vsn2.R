@@ -94,20 +94,20 @@ calcistrat = function(vp) {
 ##-------------------------------------------------------------------------
 vsnLTS = function(v) {
 
-  ## a place to save the trajectory of estimated parameters along the iterations
-  ## params = array(as.numeric(NA), dim=c(dim(v@pstart), v@cvg.niter))
-
   ## for calculating a convergence criterion: earlier result
   oldhy   = Inf
   
   ## the number of iterations that have already met the convergence criterion
   cvgcCnt = 0
 
+  ## a place to save the trajectory of estimated parameters along the iterations
+  ## params = array(as.numeric(NA), dim=c(dim(v@pstart), v@cvg.niter))
+
   ## integer version of "v@strata"
   intStrat = if(length(v@strata)==0) rep(as.integer(1), nrow(v@x)) else as.integer(v@strata)
 
   for(iter in seq_len(v@cvg.niter)) {
-    sv = if(iter==1) v else v[sel, ]
+    sv = if(iter==1) v else v[whsel, ]
     par = vsnML(sv)
 
     ## apply to all data
@@ -120,24 +120,24 @@ vsnLTS = function(v) {
        
     ## Calculate residuals
     hmean  = if(length(v@reference@refh)>0) {
-      v@reference@refh  ## WITH reference
+      v@reference@refh           ## WITH reference
     } else {
-      rowMeans(hy)      ## WITHOUT reference
+      rowMeans(hy, na.rm=TRUE)   ## WITHOUT reference
     }
-    
-    sqres  = hy - hmean
-    sqres  = rowSums(sqres*sqres) 
 
-    ## select those data points whose sqres is within the quantile; do this separately
+    ## row variances
+    rsd  = rowVars(hy, mean=hmean, na.rm=TRUE)
+
+    ## select those data points whose rsd is within the quantile; do this separately
     ## within each stratum, and also within strata defined by hmean
     ## (see the SAGMB 2003 paper for details)
     nrslice = 5
-    slice   = ceiling(rank(hmean)/length(hmean)*nrslice)
+    slice   = ceiling(rank(hmean, na.last=TRUE)/length(hmean)*nrslice)
     slice   = factor((intStrat-1)*nrslice + slice)
-    grmed   = tapply(sqres, slice, quantile, probs=v@lts.quantile)
+    grmed   = tapply(rsd, slice, quantile, probs=v@lts.quantile, na.rm=TRUE)
     meds    = grmed[as.character(slice)]
     stopifnot(!any(is.na(meds)))
-    sel     = (sqres <= meds)
+    whsel   = which(rsd <= meds)
 
     ## diagnostic plot (most useful for d=2)
     ## plot(hy, pch=".", col=2-sel, main=sprintf("iter=%d", iter))
@@ -177,11 +177,14 @@ vsnColumnByColumn = function(v) {
     stopifnot(dim(res$par)[2]==1, ncol(res$hy)==1)
     par = array(as.numeric(NA), dim=c(dim(res$par)[1], n, dim(res$par)[3]))
     hy  = matrix(as.numeric(NA), nrow=nrow(res$hy), ncol=n)
-      
+    par[,1,] = res$par
+    hy[,1]   = res$hy
     for(j in 2:n) {
       rj = vsnLTS(v[,j])
-      ## DADIDA
+      par[,j,] = rj$par
+      hy[,j]   = rj$hy
     }
+    res=list(par=par, hy=hy)
   } 
   return(res)
 }
@@ -251,7 +254,7 @@ vsnMatrix = function(x,
 
   if(missing(pstart)) {
     pstart = array(0, dim=c(nlevels(strata), ncol(x), 2))
-    pstart[,,2] = rep(1/apply(x, 2, IQR), each=dim(pstart)[1])
+    pstart[,,2] = rep(1/apply(x, 2, IQR, na.rm=TRUE), each=dim(pstart)[1])
   }
   if(missing(reference)) {
     reference = new("vsn")
@@ -327,4 +330,19 @@ vsn2trsf = function(y, p, strata) {
   dimnames(hy) = dimnames(y)
   return(hy)
 }
+
+##----------------------------------------------------------
+## helper function: row-wise variances of a matrix
+##-----------------------------------------------------------
+
+rowVars = function(x, mean, ...) {
+  sqr     = function(x)  x*x
+  n       = rowSums(!is.na(x))
+  n[n<=1] = NA
+  if(missing(mean))
+    mean=rowMeans(x, ...)
+  return(rowSums(sqr(x-mean), ...)/(n-1))
+}
+
+
 

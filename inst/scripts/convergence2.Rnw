@@ -16,7 +16,7 @@
 
 
 \begin{document}
-\SweaveOpts{eps=false}
+\SweaveOpts{eps=FALSE}
 
 %------------------------------------------------------------------------
 \title{How to assess the accuracy of vsn with simulated data}
@@ -40,39 +40,58 @@ suite of assessments with respect to the number of features \Robject{n}, the
 number of arrays \Robject{d}, the fraction of differentially expressed genes
 \Robject{de}, and the fraction of up-regulated genes \Robject{up}.
 %
-<<setup,results=hide>>=
+<<setup, results=hide, echo=FALSE>>=
 library("vsn")
 set.seed(0x1234)
 options(error=recover)
 
-sim <- function(..., lts.quantile=0.9, nrrep=20) {
-  callpar <- list(...)
-  ll      <- listLen(callpar)
+dothis = c("n: one stratum", "n: 8 strata", "d", "nrstrata",
+           "de, lts.quantile=0.9", "de, lts.quantile=0.5",
+           "up, lts.quantile=0.9", "up, lts.quantile=0.5",
+           "fraction NA", "reference")[9]
+
+sim = function(..., what, lts.quantile=0.9, nrrep=20) {
+  callpar = list(...)
+  ll      = listLen(callpar)
   stopifnot(ll[1]>=1, all(ll[-1]==1))
-  res  <- matrix(NA, nrow=nrrep, ncol=ll[1])
-  ## default parameters
-  simpar <- append(callpar, list(n=4096, d=2, de=0, up=0.5, nrstrata=1, log2scale=TRUE)) 
-  simpar <- simpar[!duplicated(names(simpar))]
-  for (i in 1:ll[1]) {
-    simpar[[1]] <- callpar[[1]][i]
-    for (r in 1:nrrep) {
-      sim <- do.call("sagmbSimulateData", simpar)
-      ny  <- vsnMatrix(sim$y, strata=factor(sim$strata), 
+  res  = matrix(1, nrow=nrrep, ncol=ll[1])
+  attr(res, "main") = what
+  if(what %in% dothis){
+    ## default parameters
+    simpar = append(callpar, list(n=4096, d=2, de=0, up=0.5, nrstrata=1, miss=0, log2scale=TRUE)) 
+    simpar = simpar[!duplicated(names(simpar))]
+    for (i in 1:ll[1]) {
+      simpar[[1]] = callpar[[1]][i]
+      for (r in 1:nrrep) {
+        sim = do.call("sagmbSimulateData", simpar)
+        ny  = vsnMatrix(sim$y, strata=factor(sim$strata), 
           lts.quantile=lts.quantile, verbose=!TRUE)
-      ##plot(as.vector(sim$hy), as.vector(ny$hy), pch=".", col=col(sim$hy))
-      res[r, i] <- sagmbAssess(ny$hy, sim)     
-      ## if(res[r,i]>0.045) {
-      ##  z=plotLogLik(si$y, factor(si$strata), ny$par, wh=rbind(c(1,1,1),c(1,1,2)), n=31)
-      ##  browser()
-      ## }
-    }
-  }
+        res[r, i] = sagmbAssess(ny$hy, sim)     
+        ##
+        ## plot(as.vector(sim$hy), as.vector(ny$hy), pch=".", col=col(sim$hy))
+        ##
+        ## if(res[r,i]>0.045) {
+        ##  z=plotLogLik(si$y, factor(si$strata), ny$par, wh=rbind(c(1,1,1),c(1,1,2)), n=31)
+        ## }
+      } ## for r
+    } ## for i
+  } ## if
   return(res)
 }
 
-myPlot <- function(n, res, ...) {
-  matplot(n, t(res), pch=20, log="xy", ylab='r.m.s. error', , col="#909090")
+myPlot = function(n, res, ...) {
+  matplot(n, t(res), pch=20, log="xy", ylab='r.m.s. error', main=attr(res, "main"), col="#909090")
   lines(n, colMeans(res), col="blue")
+}
+
+myPlot2 = function(n, rl, ...) {
+  par(mfrow=c(1,2))
+  ylim=range(unlist(rl))
+  for(i in seq(along=rl)) {
+    matplot(n, t(rl[[i]]), pch=20, ylab='r.m.s. error', 
+            log="y", ylim=ylim, col="#909090", main=attr(rl[[i]], "main"))
+    lines(n, colMeans(rl[[i]]), col="blue")
+  }
 }
 @
 
@@ -86,15 +105,15 @@ the estimation error should decrease roughly as $n^{-1/2}$.
 %
 <<fign1, fig=TRUE, include=FALSE, prefix=FALSE>>=
 ## with one stratum
-n   <- 1000*2^seq(-2, 6)
-res <- sim(n=n)
-myPlot(n, res, "One stratum")
+n   = 1000*2^seq(-2, 6)
+res = sim(n=n, what="n: one stratum")
+myPlot(n, res)
 @
 <<fign2, fig=TRUE, include=FALSE, prefix=FALSE>>=
 ## with 8 strata
-n   <- 1000*2^seq(1, 6)
-res <- sim(n=n, nrstrata=8)
-myPlot(n, res, "Eight strata")
+n   = 1000*2^seq(1, 6)
+res = sim(n=n, nrstrata=8, what="n: 8 strata")
+myPlot(n, res)
 @
 %
 \begin{figure}[tbp]
@@ -118,9 +137,9 @@ estimated is proportional to $d$, so the "number of data points per parameter"
 is constant in this plot (in contrast to Fig.~\ref{fign}).
 %
 <<figd, fig=TRUE, include=FALSE, prefix=FALSE>>=
-d   <- 2^seq(1, 5)
-res <- sim(d=d)
-myPlot(d, res, main="d")
+d   = 2^seq(1, 5)
+res = sim(d=d, what="d")
+myPlot(d, res)
 @
 %--------------------------------------------------
 \section{Number of strata}\label{sec:nrstrata}
@@ -131,9 +150,9 @@ parameters, and if the overall number of features does not change, more strata
 means less and less data per parameters.
 %
 <<fignrstrata, fig=TRUE, include=FALSE, prefix=FALSE>>=
-nrstrata <- 2^seq(0, 4)
-res <- sim(nrstrata=nrstrata)
-myPlot(nrstrata, res, main="nrstrata")
+nrstrata = 2^seq(0, 4)
+res = sim(nrstrata=nrstrata, what="nrstrata")
+myPlot(nrstrata, res)
 @
 %
 \begin{figure}[tbp]
@@ -141,8 +160,8 @@ myPlot(nrstrata, res, main="nrstrata")
 \includegraphics[width=0.5\textwidth]{figd}
 \includegraphics[width=0.5\textwidth]{fignrstrata}
 \caption{\label{figds}%
-Estimation error as a function of the number of samples (a) 
-and number of strata (b). See Sections~\ref{sec:d} and \ref{sec:nrstrata}.}
+Estimation error as a function of (a) the number of samples
+and (b) the number of strata. See Sections~\ref{sec:d} and \ref{sec:nrstrata}.}
 \end{center}
 \end{figure}
 
@@ -157,21 +176,11 @@ is more efficient (more precise with less data) \textit{if} the fraction of
 differentially expressed genes is not that large. See Figure~\ref{figdiff}.
 %
 <<figdiff, fig=TRUE, include=FALSE, prefix=FALSE, width=11, height=5.5>>=
-de  <- (0:6)/10
-res1 <- sim(de=de)
-res2 <- sim(de=de, lts.quantile=0.5)
+de  = (0:6)/10
+res1 = sim(de=de, what="de, lts.quantile=0.9")
+res2 = sim(de=de, lts.quantile=0.5, what="de, lts.quantile=0.5")
 
-myPlot2 <- function(n, rl, ...) {
-  par(mfrow=c(1,2))
-  ylim=range(unlist(rl))
-  for(i in seq(along=rl)) {
-    matplot(n, t(rl[[i]]), pch=20, ylab='r.m.s. error', 
-            log="y", ylim=ylim, col="#909090", main=names(rl)[i])
-    lines(n, colMeans(rl[[i]]), col="blue")
-  }
-}
-
-myPlot2(de, list("lts.quantile=0.9"=res1, "lts.quantile=0.5"=res2))
+myPlot2(de, list(res1, res2))
 @
 %
 \Robject{up} is the fraction of up-regulated genes among the differentially
@@ -179,10 +188,10 @@ expressed genes.  The best results are obtained for \Robject{up}$\approx0.5$,
 while the estimation goes up the more unbalanced the situation becomes.
 %
 <<figup, fig=TRUE, include=FALSE, prefix=FALSE>>=
-up  <- (0:8)/8
-res1 <- sim(up=up, de=0.2)
-res2 <- sim(up=up, de=0.2, lts.quantile=0.5)
-myPlot2(up, list("lts.quantile=0.9"=res1, "lts.quantile=0.5"=res2))
+up  = (0:8)/8
+res1 = sim(up=up, de=0.2, what="up, lts.quantile=0.9")
+res2 = sim(up=up, de=0.2, lts.quantile=0.5, what="up, lts.quantile=0.5")
+myPlot2(up, list(res1, res2))
 @
 %
 \begin{figure}[tbp]
@@ -205,9 +214,33 @@ see Section~\ref{sec:de}.}
 \end{center}
 \end{figure}
 
+%-----------------------------------------------------
+\section{Missing values}\label{sec:miss}
+%------------------------------------------------------
 
+<<figmiss>>=
+miss = seq(0, 0.8, length=7)
+res = sim(miss=miss, what="fraction NA")
+myPlot(miss, res)
+@ 
+\begin{figure}[tbp]
+\begin{center}
+\includegraphics[width=0.5\textwidth]{figmiss}
+% \includegraphics[width=0.5\textwidth]{figincr}
+\caption{\label{figds}%
+Estimation error as a function of (a) the fraction of missing data points
+and (b) BLA BLA. See Sections~\ref{sec:miss} and \ref{sec:inc}.}
+\end{center}
+\end{figure}
 
+%-----------------------------------------------------
+\section{Incremental normalization}\label{sec:inc}
+%------------------------------------------------------
+\textbf{TODO}
+
+%-----------------------------------------------------
 \begin{thebibliography}{10}
+%-----------------------------------------------------
 
 \bibitem{HuberSAGMB2003}
 W. Huber, A. von Heydebreck, H. {S\"ultmann}, A. Poustka, and M. Vingron.

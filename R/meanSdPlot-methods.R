@@ -1,13 +1,3 @@
-
-rowSds <- function(x, ...) {
-  sqr     = function(x)  x*x
-  n       = rowSums(!is.na(x))
-  n[n<=1] = NA
-  return(sqrt(rowSums(sqr(x-rowMeans(x, ...)), ...)/(n-1)))
-}
-
-
-
 ## ==========================================================================
 ## meanSdPlot method for matrix
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -28,7 +18,7 @@ setMethod("meanSdPlot",
 
                 n    <- nrow(x)
                 px   <- rowMeans(x, na.rm=TRUE)
-                py   <- rowSds(  x, na.rm=TRUE)
+                py   <- sqrt(rowVars(x, mean=px, na.rm=TRUE))
                 rpx  <- rank(px, na.last=FALSE)
                 
                 ## run median with centers at dm,2*dm,3*dm,... and width 2*dm

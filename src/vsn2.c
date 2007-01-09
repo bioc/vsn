@@ -166,7 +166,7 @@ double loglik(int n, double *par, void *ex)
 	  ni++;
 	}
       }
-      mu /= ni;
+      mu = (ni>0) ? (mu/ni) : NA_REAL;
       nt += ni;
     } else {
       /* used the given parameter mu */
@@ -175,7 +175,7 @@ double loglik(int n, double *par, void *ex)
 
     for(j=0; j < nc; j++){
       z = px->asly[j*nr+i];
-      if(!ISNA(z)){
+      if(!(ISNA(mu)||ISNA(z))){
 	z = z - mu;
 	px->resid[j*nr+i] = z;
 	ssq += z*z;
@@ -194,8 +194,8 @@ double loglik(int n, double *par, void *ex)
     res = (px->ntot)*log(ssq)/2.0 - jac;
   } else {
     /* Negative log likelihood */
-    /* The constant term nr*log(sqrt(2.0*M_PI)*px->refsigma) 
-       is not relevant for the parameter optimization */
+    /* Omitting the constant term nr*log(sqrt(2.0*M_PI)*px->refsigma) 
+       which is not relevant for the parameter optimization */
     res = ssq/((px->refsigma)*(px->refsigma)) - jac;
   }
 

@@ -34,30 +34,30 @@ setMethod("predict", signature("vsn"),
        
 
 setMethod("nrow", signature("vsn"), function(x) x@n)
-
+setMethod("ncol", signature("vsn"), function(x) dim(x@par)[2])
 
 setMethod("show", signature("vsn"),
   function(object) {
     cat(class(object), sprintf("object for n=%d features and d=%d samples.\n",
-      object@n, dim(object@par)[2]))
+      nrow(object), ncol(object)))
     if(length(object@strata)>0)
       cat(sprintf("strata: %d levels\n", nlevels(object@strata)))
     if(nrow(object@data)>0)
       cat(sprintf("data: %d x %d matrix\n", nrow(object@data), ncol(object(data))))
     if(length(object@refh)>0)
-      cat(sprintf("refsigma: %g\n", object@refsigma))
+      cat(sprintf("refsigma: %g\n", round(object@refsigma, 3)))
   })
 
 setMethod("[", "vsn",
   function(x, i, j, ..., drop=FALSE) {
-    stopifnot(missing(j), !drop)
+    stopifnot(missing(j), length(list(...))==0, !drop)
 
     if(length(x@strata)>0)
-      x@strata = x@strata[i]
+      x@strata = x@strata[i,drop=FALSE]
     if(length(x@refh)>0)
-      x@refh = x@ref[i]
+      x@refh = x@ref[i,drop=FALSE]
     if(nrow(x@data)>0)
-      x@data = x@data[i, ]
+      x@data = x@data[i,,drop=FALSE]
 
     return(x)
   })

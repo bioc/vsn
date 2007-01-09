@@ -3,6 +3,9 @@
 ## (C) Wolfgang Huber <huber@ebi.ac.uk> 2002-2005
 ## With contributions from Markus Ruschhaupt, Dennis Kostka, David Kreil
 ##----------------------------------------------------------------------
+
+VSN_DEPR_MSG = "The function 'vsn' is deprecated, please use 'vsn2' instead."
+
 ##----------------------------------------------------------------------
 ## vsn: the main function of this library
 ##----------------------------------------------------------------------
@@ -15,6 +18,9 @@ vsn = function(intensities,
                 subsample,
                 pstart,
                 strata) {
+  
+  .Deprecated(msg=VSN_DEPR_MSG)
+  
   y = getIntensityMatrix(intensities, verbose)
   d = ncol(y)
 

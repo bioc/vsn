@@ -1,4 +1,4 @@
-%\VignetteIndexEntry{vsn - Derivation of the Likelihood for Incremental Normalization}
+%\VignetteIndexEntry{vsn - Likelihood Calculations}
 %\VignetteDepends{vsn}
 %\VignetteKeywords{Expression Analysis}
 %\VignettePackage{vsn}
@@ -8,7 +8,7 @@
 \definecolor{darkblue}{rgb}{0.0,0.0,0.75}
 \usepackage[%
 baseurl={http://www.bioconductor.org},%
-pdftitle={Robust calibration and variance stabilization with VSN},%
+pdftitle={vsn likelihood Calculations},%
 pdfauthor={Wolfgang Huber},%
 pdfsubject={vsn},%
 pdfkeywords={Bioconductor},%
@@ -26,13 +26,29 @@ pagecolor=darkblue,raiselinks,plainpages,pdftex]{hyperref}
 \begin{document}
 
 %---------------------------------------------------------------------------
-\title{Derivation of the Likelihood for Incremental Normalization with \Rpackage{vsn}}
+\title{Likelihood calculations for \Rpackage{vsn}}
 %---------------------------------------------------------------------------
 \author{Wolfgang Huber}
 \maketitle
 
-Given $\mu_1,\ldots,\mu_n$ and $\sigma$ (from a model fit to a previous set of $\mu$arrays),
-the probability of the data is 
+This vignette contains some of the computations that underlie the
+numerical code of \Rpackage{vsn}.  If you are a new user and looking for an
+introduction on how to \textbf{use} \Rpackage{vsn}, please refer to the
+vignette \emph{Robust calibration and variance stabilization with
+\Rpackage{vsn}}, which is provided separately.
+
+\section{Likelihood for Incremental Normalization}\label{sec:inc}
+
+Here, \textit{incremental normalization} means that the model
+parameters $\mu_1,\ldots,\mu_n$ and $\sigma$ are already known from a
+fit to a previous set of $\mu$arrays, ie a set of reference
+arrays. See Section~\ref{sec:prof} for the profile likelihood approach
+that is used if $\mu_1,\ldots,\mu_n$ and $\sigma$ are not known and
+need to be estimated from the data. The latter is the approach that
+was presented in the initial publication on \Rpackage{vsn}~\cite{HuberISMB2002} 
+and implemented in versions 1.X of the package.
+
+The probability of the data is 
 \begin{equation}
 P(\mbox{data})=\prod_{k=1}^n\int\limits_{y_k^\alpha}^{y_k^\beta} dy_k\;
 p_{\mbs{Normal}}\left(\frac{h(y_k)-\mu_k}{\sigma}\right)
@@ -50,21 +66,21 @@ finite probability). The likelihood is
 \frac{dh}{dy}(y_k),
 \]
 and the negative log-likelihood
-\begin{equation}
+\begin{equation}\label{eq:nll}
 -LL=n\log\left(\sqrt{2\pi}\sigma\right)+
 \sum_{k=1}^n \left(\frac{(h(y_k)-\mu_k)^2}{\sigma^2}
   -\log\frac{b}{\sqrt{1+(a+b y_k)^2}}\right).
 \end{equation}
 This is what we want to optimize as a function of $a$ and $b$. The optimizer benefits 
 from the derivatives. The  derivative with respect to $a$ is
-\begin{equation}
+\begin{equation}\label{eq:ddanll}
 \frac{\partial}{\partial a}(-LL) =
 \sum_{k=1}^n \frac{2}{\sigma^2}
 \frac{h(y_k)-\mu_k}{\sqrt{1+(a+by_k)^2}}
 -\frac{a+by_k}{1+(a+b y_k)^2}
 \end{equation}
 and with respect to $b$
-\begin{equation}
+\begin{equation}\label{eq:ddbnll}
 \frac{\partial}{\partial b}(-LL) =
 -\frac{n}{b} +
 \sum_{k=1}^n \left( \frac{2}{\sigma^2}
@@ -73,11 +89,28 @@ and with respect to $b$
 \end{equation}
 
 
-\newpage
-\textbf{NB}: This computation is related to (and simpler than) the
-profile likelihood for the original modus operandi of \Rpackage{vsn},
-where $\mu_1,\ldots,\mu_n$ and $\sigma$ are estimated from the data
-$y_{ki}$ themselves via profiling.
+\section{Profile Likelihood}\label{sec:prof}
+The derivation of the negative log profile likelihood is given in
+reference~\cite{HuberSAGMB2003}. It turns out that the expression is
+contains similarities to Equation~(\ref{eq:nll}), and the expression for its
+gradient is obtained similarly as that in Equations~(\ref{eq:ddanll}) and (\ref{eq:ddbnll}).
+
+
+\begin{thebibliography}{10}
+
+\bibitem{HuberISMB2002}
+W. Huber, A. von Heydebreck, H. {S\"ultmann}, A. Poustka, and M. Vingron.
+\newblock Variance stablization applied to microarray data calibration and to
+  quantification of differential expression.
+\newblock \textit{Bioinformatics}, 18:S96--S104, 2002.
+
+\bibitem{HuberSAGMB2003}
+W. Huber, A. von Heydebreck, H. {S\"ultmann}, A. Poustka, and M. Vingron.
+\newblock Parameter estimation for the calibration and variance stabilization 
+of microarray data.
+\newblock \textit{Statistical Applications in Genetics and Molecular Biology}, 
+Vol. 2: No. 1, Article 3, 2003. 
+http://www.bepress.com/sagmb/vol2/iss1/art3
+
+\end{thebibliography}
 \end{document}
-
-

@@ -4,13 +4,17 @@ importFrom("stats", "predict")
 importFrom("methods", "show")
 
 exportClasses("vsn")
-export("vsn", "vsnh", "vsnPlotPar",
-       "getIntensityMatrix",
-       "normalize.AffyBatch.vsn", 
-       "sagmbAssess", "sagmbSimulateData",
-       "plotLogLik",
-       "vsnMatrix")
+export(
+  ## Deprecated
+  "vsn", "vsnh", "vsnPlotPar", "getIntensityMatrix",
+
+  ## needs update     
+  "normalize.AffyBatch.vsn",
+
+  ## New     
+  "vsnMatrix",
+  "sagmbAssess", "sagmbSimulateData", "plotLogLik")
 
 exportMethods("meanSdPlot",
-              "predict", "nrow", "show")
+              "predict", "nrow", "ncol", "show")
 
