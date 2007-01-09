@@ -67,12 +67,10 @@ sim = function(..., what, lts.quantile=0.9, nrrep=20) {
         sim = do.call("sagmbSimulateData", simpar)
         ny  = vsn2(sim$y, strata=factor(sim$strata), 
           lts.quantile=lts.quantile, verbose=!TRUE)
-        res[r, i] = sagmbAssess(ny$hy, sim)     
-        ##
-        ## plot(as.vector(sim$hy), as.vector(ny$hy), pch=".", col=col(sim$hy))
+        res[r, i] = sagmbAssess(ny@data, sim)     
         ##
         ## if(res[r,i]>0.045) {
-        ##  z=plotLogLik(si$y, factor(si$strata), ny$par, wh=rbind(c(1,1,1),c(1,1,2)), n=31)
+        ##  z=plotLogLik(si$y, factor(si$strata), ny@par, wh=rbind(c(1,1,1),c(1,1,2)), n=31)
         ## }
       } ## for r
     } ## for i
@@ -104,7 +102,7 @@ the root mean squared difference between true and estimated transformed data)
 as a function of the number of features $n$. If \Rfunction{vsn} works correctly,
 the estimation error should decrease roughly as $n^{-1/2}$.
 %
-<<fign1, fig=TRUE, include=FALSE, prefix=FALSE>>=
+<<fign1, fig=TRUE, include=FALSE, prefix=FALSE, eps=FALSE>>=
 ## with one stratum
 n   = 1000*2^seq(-2, 6)
 res = sim(n=n, what="n: one stratum")
@@ -243,13 +241,18 @@ and (b) BLA BLA. See Sections~\ref{sec:miss} and \ref{sec:inc}.}
 %-----------------------------------------------------
 \section{Incremental normalization}\label{sec:inc}
 %------------------------------------------------------
-\textbf{TODO}
 <<incr>>=
-dat = sagmbSimulateData(n=10000, d=12, de=0, nrstrata=2, miss=0.01, log2scale=TRUE)
-v = vsn2(dat)
-for(j in seq_len(ncol(dat))){
-  vj = vsn2(dat[,j], reference=v)
-  browser()
+library("vsn")
+options(error=recover)
+dat = sagmbSimulateData(n=10000, d=6, de=0, nrstrata=1, miss=0.01, log2scale=TRUE)
+v = vsn2(dat$y, lts.quantile=1)
+par(mfrow=c(2, 3))
+for(j in seq_len(ncol(v))) {
+  vj = vsn2(dat$y[,j], reference=v, lts.quantile=1)
+  ##plot(dat$hy[,j], exprs(v)[,j])
+  plot(dat$hy[,j], exprs(vj))
+  ##plot(exprs(v)[,j], exprs(vj))
+  abline(a=0, b=1, col="blue")
 }
 @ 
 

@@ -32,7 +32,7 @@ setMethod("show", signature("vsnInput"),
       nrow(object), ncol(object)))
     if(length(object@strata)>0)
       cat(sprintf("strata: %d levels\n", nlevels(object@strata)))
-    if(nrow(object@reference)>0)
+    if(nrow(object@reference)==0)
       cat("No reference object.\n")
     else
       cat(sprintf("Has reference object, refsigma=%g\n", round(object@reference@refsigma, 3)))

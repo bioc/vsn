@@ -20,7 +20,6 @@ validityVsnInput = function(object){
   validScalar(object, "cvg.eps")
   validScalar(object, "lts.quantile", min=0.5, max=1)
   validLogical(object, "verbose")
-  validLogical(object, "returnData")
   validLogical(object, "ordered")
 
   if(!equalOrZero(length(object@strata), nrow(object@x)))
@@ -53,7 +52,7 @@ validityVsn = function(object){
     stop("'n' must be of length 1 and not NA.")
 
   if(any(is.na(object@refh)))
-    stop("'refh' must not contain NA values.")
+    warning("'refh' contains NA.")
   
   if(length(object@refsigma)!=1)
     stop("'refsigma' must be of length 1.")
@@ -111,7 +110,6 @@ setClass("vsnInput",
     lts.quantile = "numeric",
     subsample = "integer",
     verbose   = "logical",
-    returnData= "logical",
     pstart    = "array",     ## Start parameters (3D array: nrstrata * d * 2)
     cvg.niter = "integer",
     cvg.eps   = "numeric"),

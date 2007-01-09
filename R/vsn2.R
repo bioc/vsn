@@ -88,7 +88,13 @@ calcistrat = function(vp) {
   istrat[length(istrat)] = nrow(vp@x)*ncol(vp@x)  ## end point
   return(istrat)
 }
-         
+
+progress = function(i, imax) {
+  if(i>1)
+    cat("\b\b\b\b\b\b\b\b\b\b")
+  cat(sprintf("%3d", as.integer((1-((i-imax)/imax)^2)*100)), "% done.", sep="") ## 10 characters
+}
+ 
 ##-------------------------------------------------------------------------
 ## LTS robust modification of the ML estimator
 ##-------------------------------------------------------------------------
@@ -144,52 +150,45 @@ vsnLTS = function(v) {
 
     ## diagnostic plot (most useful for d=2)
     ## plot(hy, pch=".", col=2-sel, main=sprintf("iter=%d", iter))
-    ## browser()
     
     ## Convergence check
     ## after a suggestion from David Kreil, kreil@ebi.ac.uk
     if(v@cvg.eps>0) {
       cvgc    = max(abs(hy - oldhy), na.rm=TRUE)
       cvgcCnt = if(cvgc<v@cvg.eps) (cvgcCnt+1) else 0 
-      if (v@verbose)
-        cat(sprintf("iter %2d: cvgc=%.5f%%, par=", iter, cvgc),
-            sprintf("%9.3g",par), "\n")
+      ## cat(sprintf("iter %2d: cvgc=%.5f%, par=", iter, cvgc), sprintf("%9.3g",par), "\n")
       if(cvgcCnt>=3)
         break
       oldhy = hy
     }
 
     if(v@verbose)
-      cat("\b\b\b\b\b\b\b\b\b",
-       sprintf("%2d", as.integer(round((1-((iter-v@cvg.niter)/v@cvg.niter)^2)*100))),
-          "% done.", sep="")
+      progress(iter, v@cvg.niter)
 
   } ## end of for-loop
-  if(v@verbose) cat("\n")
-  return(list(par=par, hy=hy))
+  
+  if(v@verbose) {
+    progress(v@cvg.niter, v@cvg.niter)
+    cat("\n")
+  }
+  return(par)
 }
 
 ##----------------------------------------------------------------------------------
 ## vsnColumnByColumn
 ##----------------------------------------------------------------------------------
 vsnColumnByColumn = function(v) {
-  res = vsnLTS(v[,1])
+  p = vsnLTS(v[,1])
   n = ncol(v)
+  stopifnot(dim(p)[2]==1)
+  par = array(as.numeric(NA), dim=c(dim(p)[1], n, dim(p)[3]))
+  par[,1,] = p
   if(n>1) {
-    # create new arrays of appropriate size
-    stopifnot(dim(res$par)[2]==1, ncol(res$hy)==1)
-    par = array(as.numeric(NA), dim=c(dim(res$par)[1], n, dim(res$par)[3]))
-    hy  = matrix(as.numeric(NA), nrow=nrow(res$hy), ncol=n)
-    par[,1,] = res$par
-    hy[,1]   = res$hy
     for(j in 2:n) {
-      rj = vsnLTS(v[,j])
-      par[,j,] = rj$par
-      hy[,j]   = rj$hy
+      par[,j,] = vsnLTS(v[,j])
     }
-    res=list(par=par, hy=hy)
   } 
-  return(res)
+  return(par)
 }
 
 ##----------------------------------------------------------------------------------
@@ -218,9 +217,6 @@ vsnStrata = function(v, minDataPointsPerStratum=42) {
   else
     vsnLTS(v)
    
-  if(!is.null(ord))
-    res$hy[ord, ] = res$hy
-
   return(res)
 } 
 
@@ -250,15 +246,18 @@ vsnMatrix = function(x,
   lts.quantile = 0.9,
   subsample    = as.integer(0),
   verbose      = interactive(),
-  returnData   = TRUE,
   pstart,
   cvg.niter    = as.integer(7),
   cvg.eps      = 1e-3) {
 
+  if(missing(strata)) 
+    strata = factor(integer(0), levels="all")
+  
   if(missing(pstart)) {
     pstart = array(0, dim=c(nlevels(strata), ncol(x), 2))
     pstart[,,2] = rep(1/apply(x, 2, IQR, na.rm=TRUE), each=dim(pstart)[1])
   }
+  
   if(missing(reference)) {
     reference = new("vsn")
   } else {
@@ -268,16 +267,11 @@ vsnMatrix = function(x,
       stop(sprintf("The slot 'reference@refh' has length 0, but expected is n=%d", nrow(reference)))
   }
   
-  if(missing(strata)) {
-    strata = factor(integer(0), levels="all")
-  }
-  
   v = new("vsnInput",
     x      = x,
     strata = strata,
     pstart = pstart,
     reference = reference,
-    returnData = returnData,
     lts.quantile = lts.quantile,
     cvg.niter  = cvg.niter,
     cvg.eps   = cvg.eps,
@@ -288,10 +282,19 @@ vsnMatrix = function(x,
   ## Print welcome message
   if (verbose)
     cat("vsn: ", nrow(x), " x ", ncol(x), " matrix (", nlevels(strata), " strat",
-        ifelse(nlevels(strata)==1, "um", "a"), ").  0% done.", sep="")
+        ifelse(nlevels(strata)==1, "um", "a"), "). ", sep="")
 
-  res = vsnSample(v)
+  par = vsnSample(v)
+
+  hy = vsn2trsf(x, par, strata = if(length(strata)==0) rep(as.integer(1), nrow(x)) else as.integer(strata))
+  res = new("vsn", par=par, n=nrow(x), strata=strata, data=hy)
   
+  if(nrow(reference)==0) {
+    ## calculate reference if there wasn't one
+    res@refh = rowMeans(hy, na.rm=TRUE)
+    res@refsigma = mad(hy-res@refh, na.rm=TRUE)
+  }
+
   return(res)
 }
 
@@ -341,10 +344,10 @@ vsn2trsf = function(y, p, strata) {
 rowVars = function(x, mean, ...) {
   sqr     = function(x)  x*x
   n       = rowSums(!is.na(x))
-  n[n<=1] = NA
+  n[n<1] = NA
   if(missing(mean))
     mean=rowMeans(x, ...)
-  return(rowSums(sqr(x-mean), ...)/(n-1))
+  return(rowSums(sqr(x-mean), ...)/n)
 }
 
 

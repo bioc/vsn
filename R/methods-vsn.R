@@ -46,11 +46,11 @@ setMethod("show", signature("vsn"),
     cat(class(object), sprintf("object for n=%d features and d=%d samples.\n",
       nrow(object), ncol(object)))
     if(length(object@strata)>0)
-      cat(sprintf("strata: %d levels\n", nlevels(object@strata)))
+      cat(sprintf("strata: %d level%s.\n", nlevels(object@strata), c("", "s",)[1+(nlevels(object@strata)>1)]))
     if(nrow(object@data)>0)
-      cat(sprintf("data: %d x %d matrix\n", nrow(object@data), ncol(object(data))))
+      cat(sprintf("data: %d x %d matrix.\n", nrow(object@data), ncol(object@data)))
     if(length(object@refh)>0)
-      cat(sprintf("refsigma: %g\n", round(object@refsigma, 3)))
+      cat(sprintf("refsigma: %g.\n", round(object@refsigma, 3)))
   })
 
 setMethod("[", "vsn",
@@ -60,13 +60,15 @@ setMethod("[", "vsn",
     if(length(x@strata)>0)
       x@strata = x@strata[i,drop=FALSE]
     if(length(x@refh)>0)
-      x@refh = x@ref[i,drop=FALSE]
+      x@refh = x@refh[i,drop=FALSE]
     if(nrow(x@data)>0)
       x@data = x@data[i,,drop=FALSE]
 
     return(x)
   })
        
+setMethod("exprs", signature(object="vsn"),
+          function(object) object@data)
 
 #------------------------------------------------------------
 # methods for the generic function 'vsn2'
