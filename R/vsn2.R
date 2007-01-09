@@ -90,7 +90,7 @@ calcistrat = function(vp) {
 }
 
 progress = function(i, imax) {
-  if(i>1)
+  if(i>0)
     cat("\b\b\b\b\b\b\b\b\b\b")
   cat(sprintf("%3d", as.integer((1-((i-imax)/imax)^2)*100)), "% done.", sep="") ## 10 characters
 }
@@ -111,6 +111,9 @@ vsnLTS = function(v) {
 
   ## integer version of "v@strata"
   intStrat = if(length(v@strata)==0) rep(as.integer(1), nrow(v@x)) else as.integer(v@strata)
+
+  if(v@verbose)
+      progress(0, v@cvg.niter)
 
   for(iter in seq_len(v@cvg.niter)) {
     sv = if(iter==1) v else v[whsel, ]
