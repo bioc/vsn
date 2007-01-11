@@ -35,7 +35,8 @@ License: Artistic License 2.0
 URL: http://www.r-project.org, http://www.ebi.ac.uk/huber
 biocViews: Microarray, OneChannel, TwoChannel, Preprocessing
 Collate: AllClasses.R  AllGenerics.R
-	vsn2.R vsn.R vsnh.R getIntensityMatrix.R normalize.AffyBatch.vsn.R  
+	vsn2.R vsn.R vsnh.R getIntensityMatrix.R normalize.AffyBatch.vsn.R 
+        vsnLikelihood.R 
 	methods-vsnInput.R methods-vsn.R meanSdPlot-methods.R plotLikelihood.R vsnPlotPar.R
 	sagmbSimulateData.R  zzz.R
 

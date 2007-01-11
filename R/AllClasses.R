@@ -113,7 +113,17 @@ setClass("vsnInput",
     pstart    = "array",     ## Start parameters (3D array: nrstrata * d * 2)
     cvg.niter = "integer",
     cvg.eps   = "numeric"),
-         
-   validity = validityVsnInput)
+  prototype = list(
+    x = matrix(as.numeric(NA), nrow=0, ncol=0),
+    reference = new("vsn"),
+    strata = factor(integer(0), levels="all"),
+    ordered = FALSE,
+    lts.quantile = 1,
+    subsample = as.integer(0),
+    verbose = TRUE,
+    pstart = array(as.numeric(NA), dim=c(1,0,2)),
+    cvg.niter = as.integer(1),
+    cvg.eps  = 0),          
+  validity = validityVsnInput)
                   
 

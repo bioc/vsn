@@ -4,7 +4,7 @@ importFrom("stats", "predict")
 importFrom("methods", "show")
 importFrom("Biobase", "exprs")
 
-exportClasses("vsn")
+exportClasses("vsn", "vsnInput")
 export(
   ## Deprecated
   "vsn", "vsnh", "vsnPlotPar", "getIntensityMatrix",
@@ -13,7 +13,7 @@ export(
   "normalize.AffyBatch.vsn",
 
   ## New     
-  "vsnMatrix",
+  "vsnMatrix", "vsnLikelihood", 
   "sagmbAssess", "sagmbSimulateData", "plotLogLik")
 
 exportMethods("vsn2", "meanSdPlot",

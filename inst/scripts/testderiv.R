@@ -1,79 +1,52 @@
 ## Test gradient calculation in vsn C code
-##     both for the likelihood with given mu_k, sigma and for the profile likelihood.
+##     both for the likelihood with given mu_k, sigma and
+##     for the profile likelihood.
 ##
 
 library("vsn")
+options(error=recover)
 data("kidney")
 x  = exprs(kidney)
 
 nrpt  = 25 ## number of points p0 from which to consider
 nrstr = 2
 nrpar = 2*ncol(x)*nrstr
+eps   = 1e-4
 
-what=c("sqr","exp")[1]
-
-oldinvlambda = function(y) ifelse((1:nrpar)<=(ncol(x)*nrstr), y, log(y))
-newinvlambda = function(y) ifelse((1:nrpar)<=(ncol(x)*nrstr), y, 
-  switch(what,
-         stepexp =  ifelse(y<1, log(y)+1, y),
-         sqr = sqrt(y),
-         exp = log(y),
-         stop("Zapperlot")))
-
-eps    <- 1e-4
-istrat <- as.integer(seq(0, 1, length=ncol(x)*nrstr+1)*ncol(x)*nrow(x))
-
-df = array(NA, dim=c(nrpar, nrpt, 4))
+newinvlambda = function(y) ifelse((1:nrpar)<=(ncol(x)*nrstr), y, sqrt(y))
 norm = function(x) sqrt(sum(x*x))
 
-almostequal=function(x,y) stopifnot(max(abs(x-y)/abs(x+y))<1e-10)
+v = new("vsnInput", x=exprs(kidney),
+  pstart=array(as.numeric(NA), dim=c(nrstr, ncol(kidney), 2)),
+  strata=factor(seq(0, 1, length=nrow(kidney))<0.5), ordered=TRUE)
 
-testfun = function(what) {
-  switch(what,
-    ref = {
-      refh = numeric(rowMeans(x))
-      refsigma = mean(diff(t(x))^2)
-    },
-    profile = {
-      refh = refsigma = numeric(0)
-    },
-    stop("Bummer"))
-         
-  cat(what, "wait for", nrpt, "points: ")
+df = array(NA, dim=c(nrpar, nrpt, 2))
+
+doit = function(fun) {
+  cat("Wait for", nrpt, "points: ")
   for (ip in 1:nrpt) {
     cat(ip, "")
     p0 = runif(nrpar)+1.2
-    gro = .Call("vsn_c",      x, p0, istrat,     as.integer(1),      PACKAGE="vsn")[-1]
-    grn = .Call("vsn2_point", x, p0, istrat, numeric(0), numeric(0), PACKAGE="vsn")[-1]
-    ## almostequal(gro*olddinvlambdady(p0), grn*newdinvlambdady(p0))
+    df[,ip,1] = fun(p0)[-1]
 
-    df[,ip,1] = gro
-    df[,ip,3] = grn
     for(il in 1:nrpar) {
       dp = eps*(il==1:nrpar)
-      f1o = .Call("vsn_c",      x, p0-dp, istrat, as.integer(1),          PACKAGE="vsn")[1]
-      f2o = .Call("vsn_c",      x, p0+dp, istrat, as.integer(1),          PACKAGE="vsn")[1]
-      f1n = .Call("vsn2_point", x, p0-dp, istrat, numeric(0), numeric(0), PACKAGE="vsn")[1]
-      f2n = .Call("vsn2_point", x, p0+dp, istrat, numeric(0), numeric(0), PACKAGE="vsn")[1]
-      almostequal(f1o, f1n)
-      almostequal(f2o, f2n)
-      grn = (f2n-f1n)/norm(newinvlambda(p0+dp)-newinvlambda(p0-dp))
-      gro = (f2o-f1o)/norm(oldinvlambda(p0+dp)-oldinvlambda(p0-dp))
-      stopifnot(is.finite(grn), is.finite(gro))
-      df[il,ip,2]  = gro
-      df[il,ip,4]  = grn
+      fn = fun(cbind(p0-dp, p0+dp))[1, ]
+      grn = diff(fn)/norm(newinvlambda(p0+dp)-newinvlambda(p0-dp))
+      stopifnot(is.finite(grn))
+      df[il,ip,2]  = grn
     }
   }
   cat("\n\n")
 
   x11(width=14, height=7)
   par(mfrow=c(2, ncol(x)*nrstr+1))
-  k = c(3, 4)
+  k = c(1, 2)
   lj = list(offset=1:(ncol(x)*nrstr), factor=ncol(x)*nrstr+(1:(ncol(x)*nrstr)))
   for(j in seq(along=lj)){
     for(il in lj[[j]]) {
       plot(df[il,,k[1]], df[il,,k[2]], pch=16, xlab=paste(k[1]), ylab=paste(k[2]),
-           main=sprintf("%s %s %d", what, names(lj)[j], il))
+           main=sprintf("%s %d", names(lj)[j], il))
       abline(a=0, b=1, col="blue")
     }
     hist(df[lj[[j]],,k[1]]-df[lj[[j]],,k[2]], col="orange", xlab="difference",
@@ -83,5 +56,6 @@ testfun = function(what) {
 }
 
 graphics.off()
-testfun("profile")
-testfun("ref")
+
+doit(function(p) vsnLikelihood(v, p))
+doit(function(p) vsnLikelihood(v, p, refh = rowMeans(x), refsigma = mean(diff(t(x))^2)))

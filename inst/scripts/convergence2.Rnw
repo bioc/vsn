@@ -49,7 +49,7 @@ dothis = c("n: one stratum", "n: 8 strata", "d", "nrstrata",
            "de, lts.quantile=0.9", "de, lts.quantile=0.5",
            "up, lts.quantile=0.9", "up, lts.quantile=0.5",
            "fraction NA (d=8)", "fraction NA (d=2)",
-           "reference")[1:10]
+           "reference")[11]
 
 sim = function(..., what, lts.quantile=0.9, nrrep=20) {
   callpar = list(...)
@@ -242,18 +242,17 @@ and (b) BLA BLA. See Sections~\ref{sec:miss} and \ref{sec:inc}.}
 \section{Incremental normalization}\label{sec:inc}
 %------------------------------------------------------
 <<incr>>=
-library("vsn")
-options(error=recover)
-dat = sagmbSimulateData(n=10000, d=6, de=0, nrstrata=1, miss=0.01, log2scale=TRUE)
-v = vsn2(dat$y, lts.quantile=1)
-par(mfrow=c(2, 3))
-for(j in seq_len(ncol(v))) {
-  vj = vsn2(dat$y[,j], reference=v, lts.quantile=1)
+dat = sagmbSimulateData(n=10000, d=1, de=0, nrstrata=1, miss=0, log2scale=TRUE)
+v  = new("vsn", refh=dat$mu, refsigma=dat$sigma) 
+vr = vsn2(dat$y, reference=v, lts.quantile=1)
+
   ##plot(dat$hy[,j], exprs(v)[,j])
-  plot(dat$hy[,j], exprs(vj))
+  ## plot(dat$hy[,j], exprs(vj))
   ##plot(exprs(v)[,j], exprs(vj))
-  abline(a=0, b=1, col="blue")
-}
+  ##abline(a=0, b=1, col="blue")
+
+## v = vsn2(dat$y, lts.quantile=1)
+## par(mfrow=c(2, 3))
 @ 
 
 %-----------------------------------------------------

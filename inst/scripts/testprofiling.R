@@ -2,80 +2,45 @@
 
 library("vsn")
 data("kidney")
-x  = exprs(kidney)
 
-nrpar = 2*ncol(x)*nrstr
-istrat = as.integer(seq(0, 1, length=ncol(x)*nrstr+1)*ncol(x)*nrow(x))
-
-invlambda  = function(y) ifelse((1:nrpar)<=(ncol(x)*nrstr), y, 
 norm       = function(x) sqrt(sum(x*x))
 almostequal= function(x,y) stopifnot(max(abs(x-y)/abs(x+y))<1e-10)
 
-if(exists("vp"))
-  vp = vsn2(x, lts.quantile=1)
+x = exprs(kidney)
+nrstr = 1
+nrpar = 2*ncol(x)*nrstr
+istrat = as.integer(seq(0, 1, length=ncol(x)*nrstr+1)*ncol(x)*nrow(x))
 
+if(!exists("fit"))
+  fit = vsn2(x, lts.quantile=1)
 
+v = new("vsnInput", x=exprs(kidney),
+  pstart=array(as.numeric(NA), dim=c(1, ncol(kidney), 2)))
 
+nplot = 41
+par(mfrow=c(2, nrpar/2))
 
-#### CONTINUE HERE ### 
-
-
-
-  
-testfun = function(what) {
-  switch(what,
-    ref = {
-      refh = numeric(rowMeans(x))
-      refsigma = mean(diff(t(x))^2)
-    },
-    profile = {
-      refh = refsigma = numeric(0)
-    },
-    stop("Bummer"))
-         
-  cat(what, "wait for", nrpt, "points: ")
-  for (ip in 1:nrpt) {
-    cat(ip, "")
-    p0 = runif(nrpar)+1.2
-    gro = .Call("vsn_c",      x, p0, istrat,     as.integer(1),      PACKAGE="vsn")[-1]
-    grn = .Call("vsn2_point", x, p0, istrat, numeric(0), numeric(0), PACKAGE="vsn")[-1]
-    ## almostequal(gro*olddinvlambdady(p0), grn*newdinvlambdady(p0))
-
-    df[,ip,1] = gro
-    df[,ip,3] = grn
-    for(il in 1:nrpar) {
-      dp = eps*(il==1:nrpar)
-      f1o = .Call("vsn_c",      x, p0-dp, istrat, as.integer(1),          PACKAGE="vsn")[1]
-      f2o = .Call("vsn_c",      x, p0+dp, istrat, as.integer(1),          PACKAGE="vsn")[1]
-      f1n = .Call("vsn2_point", x, p0-dp, istrat, numeric(0), numeric(0), PACKAGE="vsn")[1]
-      f2n = .Call("vsn2_point", x, p0+dp, istrat, numeric(0), numeric(0), PACKAGE="vsn")[1]
-      almostequal(f1o, f1n)
-      almostequal(f2o, f2n)
-      grn = (f2n-f1n)/norm(newinvlambda(p0+dp)-newinvlambda(p0-dp))
-      gro = (f2o-f1o)/norm(oldinvlambda(p0+dp)-oldinvlambda(p0-dp))
-      stopifnot(is.finite(grn), is.finite(gro))
-      df[il,ip,2]  = gro
-      df[il,ip,4]  = grn
-    }
+for(i in seq_len(nrpar))  {
+  pars = matrix(fit@par, nrow=nrpar, ncol=nplot)
+  if(i<=ncol(x)*nrstr) {
+    pars[i,] = fit@par[i] +  (seq(-1, 1, length=nplot) * 0.1 *
+          diff(quantile(fit@data[,i], probs=c(0.01, 0.99))))
+    xlab = substitute(a[k], list(k=i))
+    logarg  = ""
+  } else {
+    pars[i,] = fit@par[i] * exp(seq(-1, 1, length=nplot))    
+    xlab = substitute(b[k], list(k=i-nrpar/2))
+    logarg  = "x"
   }
-  cat("\n\n")
 
-  x11(width=14, height=7)
-  par(mfrow=c(2, ncol(x)*nrstr+1))
-  k = c(3, 4)
-  lj = list(offset=1:(ncol(x)*nrstr), factor=ncol(x)*nrstr+(1:(ncol(x)*nrstr)))
-  for(j in seq(along=lj)){
-    for(il in lj[[j]]) {
-      plot(df[il,,k[1]], df[il,,k[2]], pch=16, xlab=paste(k[1]), ylab=paste(k[2]),
-           main=sprintf("%s %s %d", what, names(lj)[j], il))
-      abline(a=0, b=1, col="blue")
-    }
-    hist(df[lj[[j]],,k[1]]-df[lj[[j]],,k[2]], col="orange", xlab="difference",
-       main=paste(names(lj)[j], "s", sep=""), breaks=30)
-    abline(v=0, col="blue")
-  }
+  ## ll = vsnLikelihood(v, pars)
+  ll = vsnLikelihood(v, pars, refh=fit@refh, refsigma=fit@refsigma)
+
+  plot(pars[i,], ll[1, ], type="l",
+       xlab = xlab, log=logarg,
+       ylab = expression(-log(L)))
+  abline(v=fit@par[i], col="red")
 }
 
-graphics.off()
-testfun("profile")
-testfun("ref")
+
+

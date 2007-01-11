@@ -106,7 +106,7 @@ double invlambda(double y) {return(log(y));} */
   For the gradient, note that: 
     d/dx f(lambda(x)) = f'(lambda(x))*lambda'(x)
   
-  For the normal likelihood, see the vignette: incremental.Rnw
+  For the normal likelihood, see the vignette 'incremental.Rnw'
   For the profile likelihood, see the SAGMB 2003 paper, and my grey 
    notebook p. 206 for the gradient.
 -----------------------------------------------------------------------*/
@@ -371,9 +371,8 @@ double* setupLikelihoodstuff(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP S
 } 
 
 /*------------------------------------------------------------
-   vsn2_point: calculate the loglikelihood and gradient
-   This is mostly for debugging, see for example the script 
-   testderiv.R in the inst/scripts directory 
+   vsn2_point: R interface for calculation of loglikelihood and gradient
+   This is used by vsnLikelihood
 ------------------------------------------------------------*/
 SEXP vsn2_point(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP Srefsigma)
 {
@@ -386,13 +385,9 @@ SEXP vsn2_point(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP Srefsigma)
  
   res = allocVector(REALSXP, x.npar+1);
 
-  if(x.refh==NULL) {
-    REAL(res)[0] = loglik(x.npar, cpar, (void*) &x);
-    grad_loglik(x.npar, cpar, REAL(res)+1, (void*) &x);
-  } else {
-    /* REAL(res)[0] = refr_loglik(x.npar, cpar, (void*) &x);
-       refr_loglik_grad(x.npar, cpar, REAL(res)+1, (void*) &x); */
-  }
+  REAL(res)[0] = loglik(x.npar, cpar, (void*) &x);
+  grad_loglik(x.npar, cpar, REAL(res)+1, (void*) &x);
+
   return(res);
 }
 

@@ -78,3 +78,7 @@ setMethod("vsn2", "matrix", vsnMatrix)
 setMethod("vsn2", "numeric",
    function(x, reference, strata, ...)
       vsnMatrix(as.matrix(x, ncol=1), reference, strata, ...))
+
+setMethod("vsn2", "ExpressionSet",
+   function(x, reference, strata, ...)
+      vsnMatrix(exprs(x), reference, strata, ...))

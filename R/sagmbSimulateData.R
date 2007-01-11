@@ -6,7 +6,7 @@
 ##----------------------------------------------------------------------------
 sagmbSimulateData <- function(n=8064, d=2, de=0, up=0.5, nrstrata=1, miss=0, log2scale=FALSE) {
   stopifnot(is.numeric(n),  length(n)==1, n>=1)
-  stopifnot(is.numeric(d),  length(d)==1, d>=2) 
+  stopifnot(is.numeric(d),  length(d)==1, d>=1) 
   stopifnot(is.numeric(de), length(de)==1, de>=0, de<=1)
   stopifnot(is.numeric(up), length(up)==1, up>=0, up<=1)
   stopifnot(is.numeric(nrstrata), length(nrstrata)==1)
@@ -34,7 +34,7 @@ sagmbSimulateData <- function(n=8064, d=2, de=0, up=0.5, nrstrata=1, miss=0, log
   is.de  <- (runif(n)<de)
   hy     <- matrix(as.numeric(NA), nrow=n, ncol=d)
   hy[,1] <- mu + rnorm(n, sd=sigmaeps)    ## array 1 is a reference
-  for (j in 2:d) {
+  for (j in seq_len(d)[-1]) {
     s      <- 2 * as.numeric(runif(n)<up) - 1
     hy[,j] <- mu + as.numeric(is.de)*s*runif(n, min=0, max=2) + rnorm(n, sd=sigmaeps)
   }
@@ -49,7 +49,7 @@ sagmbSimulateData <- function(n=8064, d=2, de=0, up=0.5, nrstrata=1, miss=0, log
   if(miss>0)
     y[sample(length(y), length(y)*miss)] = as.numeric(NA)
   
-  return(list(y=y, hy=hy, is.de=is.de, strata=strata))
+  return(list(y=y, hy=hy, mu=mu, sigma=sigmaeps, par=pars, is.de=is.de, strata=strata))
 }
 
 ## assess

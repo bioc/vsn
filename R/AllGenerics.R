@@ -2,10 +2,8 @@ setGeneric("vsn2",
   function(x, reference, strata, ...)
    standardGeneric("vsn2")) 
 
-setGeneric("predict") ## imported from package stats
-setGeneric("exprs")   ## from Biobase
-
-setGeneric("nrow")    ## from base
+setGeneric("predict") ## S3 function imported from package stats
+setGeneric("nrow")    ## S3 from base
 setGeneric("ncol")   
 setGeneric("dim")    
 
