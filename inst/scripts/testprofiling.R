@@ -1,30 +1,41 @@
+##
 ## Test concordance of maxima of profile likelihood and normal likelihood
+##
 
 library("vsn")
-data("kidney")
 
-norm       = function(x) sqrt(sum(x*x))
-almostequal= function(x,y) stopifnot(max(abs(x-y)/abs(x+y))<1e-10)
-
-x = exprs(kidney)
+n = 10000
+d = 2
 nrstr = 1
-nrpar = 2*ncol(x)*nrstr
-istrat = as.integer(seq(0, 1, length=ncol(x)*nrstr+1)*ncol(x)*nrow(x))
+nrpar = 2*d*nrstr
+istrat = as.integer(seq(0, 1, length=d*nrstr+1)*d*n)
 
-if(!exists("fit"))
-  fit = vsn2(x, lts.quantile=1)
+if(!exists("fit")) {
+  dat = sagmbSimulateData(n=n, d=d, de=0, nrstrata=nrstr, miss=0, log2scale=TRUE)
+  fit = vsn2(dat$y, lts.quantile=1)
+  v = new("vsnInput", x=dat$y, pstart=array(as.numeric(NA), dim=c(nrstr, d, 2)))
+}
 
-v = new("vsnInput", x=exprs(kidney),
-  pstart=array(as.numeric(NA), dim=c(1, ncol(kidney), 2)))
+refh = fit@refh
+refsigma = fit@refsigma
+
+## calculate the log-likelihood in the pedestrian way:
+nll = function(y, p) {
+  hy = asinh(p[1]+p[2]*y)
+  ## plot(dat$mu, hy)  
+  sum(-((dat$mu - hy)/dat$sigma)^2
+      +log(p[2]/sqrt(1+(p[1]+p[2]*y)^2))
+      )
+}
 
 nplot = 41
-par(mfrow=c(2, nrpar/2))
+par(mfcol=c(2, nrpar))
 
 for(i in seq_len(nrpar))  {
   pars = matrix(fit@par, nrow=nrpar, ncol=nplot)
-  if(i<=ncol(x)*nrstr) {
+  if(i<=d*nrstr) {
     pars[i,] = fit@par[i] +  (seq(-1, 1, length=nplot) * 0.1 *
-          diff(quantile(fit@data[,i], probs=c(0.01, 0.99))))
+          diff(quantile(fit@hx[,i], probs=c(0.01, 0.99))))
     xlab = substitute(a[k], list(k=i))
     logarg  = ""
   } else {
@@ -32,14 +43,17 @@ for(i in seq_len(nrpar))  {
     xlab = substitute(b[k], list(k=i-nrpar/2))
     logarg  = "x"
   }
+  
+  for(what in 1:2){
+    ll = switch(what,
+      logLik(v, pars),                                ## without reference
+      logLik(v, pars, refh=refh, refsigma=refsigma)) ## with reference
 
-  ## ll = vsnLikelihood(v, pars)
-  ll = vsnLikelihood(v, pars, refh=fit@refh, refsigma=fit@refsigma)
-
-  plot(pars[i,], ll[1, ], type="l",
-       xlab = xlab, log=logarg,
-       ylab = expression(-log(L)))
-  abline(v=fit@par[i], col="red")
+    plot(pars[i,], ll[1, ], type="l",
+         xlab = xlab, log=logarg, main=round(ll[1, (ncol(ll)+1)/2], 1),
+         ylab = expression(-log(L)))
+    abline(v=fit@par[i], col="red")
+  } ## for what
 }
 
 

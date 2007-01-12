@@ -1,4 +1,4 @@
-%\VignetteIndexEntry{vsn - Likelihood Calculations}
+%\VignetteIndexEntry{Likelihood Calculations for vsn}
 %\VignetteDepends{vsn}
 %\VignetteKeywords{Expression Analysis}
 %\VignettePackage{vsn}
@@ -58,8 +58,7 @@ where $h(y)\equiv h(y,a,b) = \arsinh(a+by)$,
 \[
 \frac{dh}{dy}=\frac{b}{\sqrt{1+(a+by)^2}},
 \]
-and the integration is over a volume element of $y$-space (so that we get a 
-finite probability). The likelihood is
+and the integration is over a volume element of $y$-space. The likelihood is
 \[
 \left(\frac{1}{\sqrt{2\pi}\sigma}\right)^n
 \prod_{k=1}^n \exp\left\{-\left(\frac{h(y_k)-\mu_k}{\sigma}\right)^2\right\}

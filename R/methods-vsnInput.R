@@ -37,3 +37,7 @@ setMethod("show", signature("vsnInput"),
     else
       cat(sprintf("Has reference parameters; refsigma=%g\n", round(object@reference@refsigma, 3)))
   })
+
+
+setMethod("logLik", signature(object="vsnInput"),
+          function(object, ...) vsnLogLik(object, ...))

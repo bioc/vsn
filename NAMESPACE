@@ -3,6 +3,7 @@ useDynLib("vsn")
 importFrom("stats", "predict")
 importFrom("methods", "show")
 importFrom("Biobase", "exprs")
+importFrom("stats", "logLik")
 
 exportClasses("vsn", "vsnInput")
 export(
@@ -13,9 +14,9 @@ export(
   "normalize.AffyBatch.vsn",
 
   ## New     
-  "vsnMatrix", "vsnLikelihood", 
+  "vsnMatrix", 
   "sagmbAssess", "sagmbSimulateData", "plotLogLik")
 
 exportMethods("vsn2", "meanSdPlot",
-              "predict", "show", "exprs", "nrow", "ncol", "dim")
+              "predict", "logLik", "show", "exprs", "nrow", "ncol", "dim")
 

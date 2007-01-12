@@ -1,4 +1,4 @@
-%\VignetteIndexEntry{vsn - introduction}
+%\VignetteIndexEntry{Introduction to vsn}
 %\VignetteDepends{Biobase,vsn,affy,affydata,marray,multtest,limma,hgu95av2cdf}
 %\VignetteKeywords{Expression Analysis}
 %\VignettePackage{vsn}
@@ -35,9 +35,9 @@ pagecolor=darkblue,raiselinks,plainpages,pdftex]{hyperref}
 
 \begin{document}
 
-%------------------------------------------------------------
-\title{Robust calibration and variance stabilization with VSN}
-%------------------------------------------------------------
+%----------------------------------------------------------------------------------------
+\title{Introduction to robust calibration and variance stabilization with \Rpackage{vsn}}
+%----------------------------------------------------------------------------------------
 \author{Wolfgang Huber}
 \maketitle
 \tableofcontents

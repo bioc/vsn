@@ -20,7 +20,7 @@ vsnML = function(v, niter=4) {
 
   p = as.vector(v@pstart)
   istrat = calcistrat(v) ## pointers to the starts of strata
-  
+
   for (iter in seq_len(niter)) {
     o = .Call("vsn2_optim", v@x, p, istrat, v@reference@refh, v@reference@refsigma, PACKAGE="vsn")
     
@@ -267,7 +267,7 @@ vsnMatrix = function(x,
     if(nrow(reference)!=nrow(x))
       stop("'nrow(reference)' must be equal to 'nrow(x)'.")
     if(nrow(reference)!=length(reference@refh))
-      stop(sprintf("The slot 'reference@refh' has length 0, but expected is n=%d", nrow(reference)))
+      stop(sprintf("The slot 'reference@refh' has length %d, but expected is n=%d", nrow(reference)))
   }
   
   v = new("vsnInput",
@@ -289,13 +289,15 @@ vsnMatrix = function(x,
 
   par = vsnSample(v)
 
-  hy = vsn2trsf(x, par, strata = if(length(strata)==0) rep(as.integer(1), nrow(x)) else as.integer(strata))
-  res = new("vsn", par=par, n=nrow(x), strata=strata, data=hy)
+  hx = vsn2trsf(x, par, strata = if(length(strata)==0) rep(as.integer(1), nrow(x)) else as.integer(strata))
+
+  res = new("vsn", par=par, n=nrow(x), strata=strata,
+      hx=(hx-mean(log(2*par[,,2])))/log(2)) ## irrelevant affine transformation to make users happy.
   
   if(nrow(reference)==0) {
     ## calculate reference if there wasn't one
-    res@refh = rowMeans(hy, na.rm=TRUE)
-    res@refsigma = mad(hy-res@refh, na.rm=TRUE)
+    res@refh = rowMeans(hx, na.rm=TRUE)
+    res@refsigma = mad(hx-res@refh, na.rm=TRUE)
   }
 
   return(res)

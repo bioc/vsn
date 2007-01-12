@@ -39,7 +39,7 @@ validityVsnInput = function(object){
 
 ## strata may be of length 0 (in which case there are no strata).
 ## refh may be of length 0 (in which case there is no reference).
-## data may be of length 0 (in which case the data is not provided).
+## hx may be of length 0 (in which case the data is not provided).
 ## If any these slots is of length>0, then they must agree in size.
 validityVsn = function(object){
   if(any(is.na(object@par))||(length(dim(object@par))!=3))
@@ -57,8 +57,8 @@ validityVsn = function(object){
   if(length(object@refsigma)!=1)
     stop("'refsigma' must be of length 1.")
 
-  if(!equalOrZero(ncol(object@data), dim(object@par)[2]))
-    stop("'ncol(data)' and 'dim(object@par)[2]' must match.")
+  if(!equalOrZero(ncol(object@hx), dim(object@par)[2]))
+    stop("'ncol(hx)' and 'dim(object@par)[2]' must match.")
 
   if(!equalOrZero(length(object@strata), object@n))
     stop("'length(strata)' must match 'n'.")
@@ -66,8 +66,8 @@ validityVsn = function(object){
   if(!equalOrZero(length(object@refh), object@n))
     stop("'length(refh)' must match 'n'.")
 
-  if(!equalOrZero(nrow(object@data), object@n))
-    stop("'nrow(data)' must match 'n'.")
+  if(!equalOrZero(nrow(object@hx), object@n))
+    stop("'nrow(hx)' must match 'n'.")
 
   if(length(object@strata)>0)
     if(nlevels(object@strata)!=dim(object@par)[1])
@@ -86,14 +86,14 @@ setClass("vsn",
     strata = "factor", 
     refh   = "numeric",
     refsigma  = "numeric",
-    data   = "matrix"),
+    hx   = "matrix"),
   prototype = list(
     par    = array(0, dim=c(0,0,2)),
     n      = as.integer(0),
-    strata = factor(integer(0)),
+    strata = factor(integer(0), levels="all"),
     refh   = numeric(0),
     refsigma  = as.numeric(NA),
-    data   = matrix(0, nrow=0, ncol=0)),
+    hx   = matrix(0, nrow=0, ncol=0)),
   validity = validityVsn)
 
 ##------------------------------------------------------------

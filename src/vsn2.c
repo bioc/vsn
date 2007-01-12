@@ -29,16 +29,15 @@ typedef struct {
 
   double ssq;
 
-  double *refh;    /* reference values and sigma */
-  double refsigma;
+  double *refh;    /* reference values mu and sigma^2 */
+  double refsigsq; 
 
   /* Workspaces -  used to store intermediate results from the computation 
      of the likelihood function. These are reused in the computation of the 
      function gradient */
-
   double *ly;      /* affine transformed matrix: offs_ik + facs_ik * y_ik */
   double *asly;    /* transformed expression matrix: asinh(ly)            */
-  double *resid;  /* row centered version of asly                        */
+  double *resid;   /* row centered version of asly                        */
   double *dh;      /* another auxilliary array                            */
 
   double *lastpar;
@@ -52,20 +51,17 @@ typedef struct {
   However, the likelihood computations further below
   are all done using the asinh and natural log scale 
   --------------------------------------------------*/
-void vsn2trsf(vsn_data *px, double* par, double *hy)
+void calctrsf(vsn_data *px, double* par, double *hy)
 {
     int i, j, ns, s, nr, nc;
-    double z, fac, off, h0;      
-    double oolog2;
+    double z, fac, off;      
  
-    oolog2 = 1.0/log(2.0);
     nc = px->ncol;
     nr = px->nrow;
     ns = px->npar / (nc*2);
     
     for(i=0; i <nr; i++) {
       s  = (px->strat[i]) - 1;
-      h0 = log2(2*par[s + ns*nc]); 
       for(j=0; j<nc; j++) {
         z = px->y[i+ j*nr];
         if(ISNA(z)){
@@ -73,7 +69,7 @@ void vsn2trsf(vsn_data *px, double* par, double *hy)
 	} else {
 	  off = par[s + j*ns];
 	  fac = par[s + j*ns + ns*nc];
-          hy[i + j*nr] = oolog2*asinh(z*fac + off) - h0;
+          hy[i + j*nr] = asinh(z*fac + off);
 	}
       }
     }
@@ -156,7 +152,7 @@ double loglik(int n, double *par, void *ex)
   for(i=0; i<nr; i++){
 
     if(px->refh==NULL) {
-      /* profiling: mu =  arithmetic mean */
+      /* profiling: mu = arithmetic mean */
       mu = 0.0;
       ni = 0;   /* count the number of data points in this row i (excl. NA) */
       for(j=0; j < nc; j++){
@@ -169,7 +165,7 @@ double loglik(int n, double *par, void *ex)
       mu = (ni>0) ? (mu/ni) : NA_REAL;
       nt += ni;
     } else {
-      /* used the given parameter mu */
+      /* use the given parameter mu */
       mu = px->refh[i];
     }
 
@@ -194,9 +190,9 @@ double loglik(int n, double *par, void *ex)
     res = (px->ntot)*log(ssq)/2.0 - jac;
   } else {
     /* Negative log likelihood */
-    /* Omitting the constant term nr*log(sqrt(2.0*M_PI)*px->refsigma) 
+    /* Omitting the constant term nr*log(sqrt(2.0*M_PI)*sigma) 
        which is not relevant for the parameter optimization */
-    res = ssq/((px->refsigma)*(px->refsigma)) - jac;
+    res = ssq/(px->refsigsq) - jac;
   }
 
 #ifdef VSN_DEBUG
@@ -237,7 +233,7 @@ void grad_loglik(int n, double *par, double *gr, void *ex)
     vorfak = (px->ntot)/(px->ssq);
   } else {
     /* Negative log likelihood */
-   vorfak = 2.0/((px->refsigma)*(px->refsigma));
+   vorfak = 2.0/(px->refsigsq);
   } 
 
   for(j = 0; j < px->nrstrat; j++) {
@@ -336,16 +332,16 @@ double* setupLikelihoodstuff(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP S
 
   /* Process Srefh and Srefsigma; If Srefh has length 0, then we do
      the 2002 model. If it has length nr, normalize against reference */
-
   if(!(isReal(Srefh)&&(isReal(Srefsigma))))
     error("Invalid arguments: 'Srefh' and 'Srefsigma' must be real vectors.");
   if((LENGTH(Srefh)==nr)&&(LENGTH(Srefsigma)==1)) {
     px->refh = REAL(Srefh);
-    px->refsigma = REAL(Srefsigma)[0];
+    px->refsigsq = REAL(Srefsigma)[0];
+    px->refsigsq *= px->refsigsq;  /* square */
   } else {
     if(LENGTH(Srefh)==0) {
       px->refh = NULL;
-      px->refsigma = 0.0;
+      px->refsigsq = 0.0;
     } else {
       error("Invalid length of arguments 'Srefh', 'Srefsigma'.");
     }
@@ -473,7 +469,7 @@ SEXP vsn2_trsf(SEXP Sy, SEXP Spar, SEXP Sstrat)
   INTEGER(dimres)[1] = x.ncol;
   setAttrib(res, R_DimSymbol, dimres);
 
-  vsn2trsf(&x, REAL(Spar), REAL(res));
+  calctrsf(&x, REAL(Spar), REAL(res));
 
   UNPROTECT(1);
   return(res);
