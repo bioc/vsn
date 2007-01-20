@@ -11,7 +11,7 @@ vsn2trsf(x, p, strata)
 
 \arguments{
   \item{x, newdata}{Numeric matrix.}
-  \item{object}{An object of class \code{\link[vsn-class]{vsn}} that
+  \item{object}{An object of class \code{\link[vsn:vsn-class]{vsn}} that
     contains transformation parameters and strata information.}
   \item{p}{An array with the transformation parameters. If \code{strata} is
     specified, \code{p} is expected to be a 3d array, the first
@@ -35,9 +35,14 @@ vsn2trsf(x, p, strata)
 
 \examples{
 data("kidney")
-p = array(c(-0.1, -0.1, 0.003, 0.003), dim=c(1,2,2))
-tx = vsn2trsf(exprs(kidney), p)
-plot(tx, pch=".")
+param = array(c(-0.1, -0.1, 0.003, 0.003), dim=c(1,2,2))
+tk = vsn2trsf(exprs(kidney), param)
+plot(tk, pch=".")
+
+## see also the 'subsample' argument of vsn for an easier way to do this:
+fit = vsn2(kidney[sample(nrow(kidney), 500), ])
+tn = predict(fit, newdata=exprs(kidney))
+
 }
 
 \keyword{}

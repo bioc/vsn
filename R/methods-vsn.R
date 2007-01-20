@@ -10,10 +10,10 @@ setMethod("predict", signature("vsn"),
     ## Treat the different types of newdata. We do this manually here,
     ## unfortunately the generic function stats::predict does not allow
     ## dispatch on 'newdata' via S4
-    if(is.vector("newdata"))
+    if(is.vector(newdata))
       dim(newdata)=c(length(newdata), 1)
 
-    if(is(x, "ExpressionSet")){
+    if(is(newdata, "ExpressionSet")){
       stopifnot("'newdata' of class 'ExpressionSet' is not yet implemented, please supply a matrix.")
     }
     
@@ -32,6 +32,7 @@ setMethod("predict", signature("vsn"),
     
     hy = .Call("vsn2_trsf", newdata, as.vector(object@par), s, PACKAGE="vsn")
 
+    dim(hy) = dim(newdata)
     dimnames(hy) = dimnames(newdata)
     return(hy)
   })

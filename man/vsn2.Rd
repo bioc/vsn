@@ -26,16 +26,15 @@
 }
 \arguments{
   \item{x}{An object contain the data to which the model is to be
-    fitted. Methods exists for
-    \code{\link[ExpressionSet-class]{ExpressionSet}},
+    fitted. Methods exists for \code{\link{ExpressionSet-class}},
     \code{matrix} and \code{numeric}.}
-  \item{reference}{optional, a \code{\link[vsn-class]{vsn}} object from
+  \item{reference}{Optional, a \code{\link{vsn-class}} object from
     a previous fit. If this argument is specified, the data in \code{x}
     are normalized "towards" an existing set of reference arrays whose
     parameters are stored in the object \code{reference}. If this
     argument is not specified, then the data in \code{x} are normalized
     "among themselves". See details for a more formal explanation.}
-  \item{strata}{optional, a factor whose length is \code{nrow(x)}. Can
+  \item{strata}{Optional, a factor whose length is \code{nrow(x)}. Can
     be used for stratified normalization (i.e. separate offsets \code{a} and
     factors \code{b} for each level of \code{strata}). If missing, all
     rows of \code{x} are assumed to come from one stratum.}
@@ -49,26 +48,26 @@
     increase the performance at a negligible loss of precision.}
   \item{verbose}{Logical. If TRUE, some messages are printed.}
   \item{returnData}{Logical. If TRUE, the transformed data are returned
-    in the returned \code{\link[vsn-class]{vsn}} object.
+    in the returned \code{\link{vsn-class}} object.
     The option to set this \code{FALSE} allows saving of CPU and memory
     resources in some applications.}
-  \item{pstart}{Array. optional. Can be used to specify start values
+  \item{pstart}{Optional, array. Can be used to specify start values
     for the iterative parameter estimation algorithm. See 
     \code{\link{vsn2trsf}} for a description of the layout of the array.}
   \item{cvg.niter}{Integer. The number of iterations to be used in the least
     trimmed sum of squares regression.}
   \item{cvg.eps}{Numeric. A convergence treshold.}
-  \item{...}{Arguments that get passed on the \code{vsnMatrix}.}
+  \item{...}{Arguments that get passed on to \code{vsnMatrix}.}
 }
 \value{
-  An object of class \code{\link[vsn-class]{vsn}}.
+  An object of class \code{\link{vsn-class}}.
   The transformed data are on a glog scale to base 2. More precisely,
   the transformed data are subject to the transformation
-  $\asinh(a+bx)/\log(2)-c$, where
-  $\asinh(x)=\log(x+\sqrt{x^2+1})$ is also called the 'glog', and
-  the constant $c$ an overall constant offset that is computed such that for
+  asinh(a+bx)/log(2)-c, where
+  $\mbox{asinh}(x)=log(x+sqrt{x^2+1})$ is also called the 'glog', and
+  the constant c is an overall constant offset that is computed such that for
   large x the transformation approximately corresponds to the
-  $\log2$. It is inconsequential for all differential expression
+  $\log_2$ function. The offset c is inconsequential for all differential expression
   calculations, but many users like to see the data on a scale that they
   are familiar with.
 }
@@ -78,7 +77,7 @@
   parameters $\mu_k$ and $\sigma$ are fit from the data in \code{x}.
   This is the mode of operation described in the 2002 Bioinformatics
   paper and that was the only option in versions 1.X of this package.
-  If code{reference} is specified, the model parameters are taken from
+  If \code{reference} is specified, the model parameters are taken from
   it. This allows for 'incremental' normalization.
 }
 
