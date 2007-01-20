@@ -47,8 +47,8 @@ setMethod("show", signature("vsn"),
       nrow(object), ncol(object)))
     if(length(object@strata)>0)
       cat(sprintf("strata: %d level%s.\n", nlevels(object@strata), c("", "s",)[1+(nlevels(object@strata)>1)]))
-    if(nrow(object@data)>0)
-      cat(sprintf("data: %d x %d matrix.\n", nrow(object@data), ncol(object@data)))
+    if(nrow(object@hx)>0)
+      cat(sprintf("hx: %d x %d matrix.\n", nrow(object@hx), ncol(object@hx)))
     if(length(object@refh)>0)
       cat(sprintf("refsigma: %g.\n", round(object@refsigma, 3)))
   })
@@ -61,14 +61,14 @@ setMethod("[", "vsn",
       x@strata = x@strata[i,drop=FALSE]
     if(length(x@refh)>0)
       x@refh = x@refh[i,drop=FALSE]
-    if(nrow(x@data)>0)
-      x@data = x@data[i,,drop=FALSE]
+    if(nrow(x@hx)>0)
+      x@hx = x@hx[i,,drop=FALSE]
 
     return(x)
   })
        
 setMethod("exprs", signature(object="vsn"),
-          function(object) object@data)
+          function(object) object@hx)
 
 #------------------------------------------------------------
 # methods for the generic function 'vsn2'
@@ -76,9 +76,9 @@ setMethod("exprs", signature(object="vsn"),
 setMethod("vsn2", "matrix", vsnMatrix)
 
 setMethod("vsn2", "numeric",
-   function(x, reference, strata, ...)
+   function(x,  reference, strata, ...)
       vsnMatrix(as.matrix(x, ncol=1), reference, strata, ...))
 
 setMethod("vsn2", "ExpressionSet",
-   function(x, reference, strata, ...)
-      vsnMatrix(exprs(x), reference, strata, ...))
+   function(x,  reference, strata, ...)
+      vsnMatrix(exprs(x),  reference, strata, ...))

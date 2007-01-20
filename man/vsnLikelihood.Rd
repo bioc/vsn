@@ -1,13 +1,17 @@
-\name{vsnLikelihood}
-\alias{vsnLikelihood}
-\title{A function to calculate the negative log likelihood and its gradient}
-\description{A function to calculate the negative log likelihood and its gradient}
-\usage{vsnLikelihood(v, p)}
+\name{logLik-methods}
+\alias{logLik-methods}
+\alias{logLik,vsnInput-method}
+
+\title{Calculate the log likelihood and its gradient for
+  the vsn model}
+\description{Calculate the log likelihood and its gradient
+  for the vsn model}
+\usage{\S4method{logLik}{vsnInput}(object, p, refh, refsigma)}
 \arguments{
-  \item{v}{A \code{\link{vsnInput}} object.}
+  \item{object}{A \code{\link{vsnInput}} object.}
   \item{p}{A matrix whose columns are the set of parameters at which
     the likelihoods are to be evaluated.}
-  \item{refh}{Numeric vector, same length as \code{nrow(v)}.
+  \item{refh}{Numeric vector of the same length as \code{nrow(object)}.
     The arguments \code{refh} and \code{refsigma} must be either both present or
     both missing.}
   \item{refsigma}{Numeric scalar.}
@@ -43,7 +47,7 @@ fit = vsn2(kidney)
 
 p = sapply(exp(seq(-1, 1, length=31)), function(f) fit@par*c(1,1,f,1))
 
-ll = vsnLikelihood(v, p)
+ll = logLik(v, p)
 
 plot(p[3, ], ll[1, ], type="l", xlab=expression(b[1]), ylab=expression(-log(L)), log="x")
 abline(v=fit@par[3], col="red")

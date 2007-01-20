@@ -249,6 +249,7 @@ vsnMatrix = function(x,
   lts.quantile = 0.9,
   subsample    = as.integer(0),
   verbose      = interactive(),
+  returnData   = TRUE,
   pstart,
   cvg.niter    = as.integer(7),
   cvg.eps      = 1e-3) {
@@ -262,6 +263,8 @@ vsnMatrix = function(x,
   }
   
   if(missing(reference)) {
+    if(ncol(x)<=1)
+      stop("'x' needs to have 2 or more columns if no 'reference' is specified.")
     reference = new("vsn")
   } else {
     if(nrow(reference)!=nrow(x))
@@ -289,13 +292,23 @@ vsnMatrix = function(x,
 
   par = vsnSample(v)
 
-  hx = vsn2trsf(x, par, strata = if(length(strata)==0) rep(as.integer(1), nrow(x)) else as.integer(strata))
+  ## If necessary, calculate the data matrix transformed according to 'par'
+  if(returnData || (nrow(reference)==0))
+    trsfx = vsn2trsf(x, par, strata=
+      if(length(strata)==0) rep(as.integer(1), nrow(x)) else as.integer(strata))
 
-  res = new("vsn", par=par, n=nrow(x), strata=strata,
-      hx=(hx-mean(log(2*par[,,2])))/log(2)) ## irrelevant affine transformation to make users happy.
+  hx = if(returnData) {
+    ## irrelevant affine transformation to make users happy.
+    (trsfx-mean(log(2*par[,,2])))/log(2)
+  } else {
+    matrix(numeric(0), nrow=0, ncol=ncol(x))
+    
+  }
   
+  res = new("vsn", par=par, n=nrow(x), strata=strata, hx=hx) 
+  
+  ## Calculate reference if there wasn't one
   if(nrow(reference)==0) {
-    ## calculate reference if there wasn't one
     res@refh = rowMeans(hx, na.rm=TRUE)
     res@refsigma = mad(hx-res@refh, na.rm=TRUE)
   }
@@ -312,34 +325,34 @@ vsnMatrix = function(x,
 ## better comparability to the log2 transformation.
 ## It has no effect on the generalized log-ratios.
 ##--------------------------------------------------------------------
-vsn2trsf = function(y, p, strata) {
-  if (!is.matrix(y) || !is.numeric(y))
-    stop("'y' must be a numeric matrix.\n")
+vsn2trsf = function(x, p, strata) {
+  if (!is.matrix(x) || !is.numeric(x))
+    stop("'x' must be a numeric matrix.\n")
   
   if (!is.array(p) || !is.numeric(p) || any(is.na(p)))
     stop("'p' must be an array with no NAs.\n")
 
   if(missing(strata)) {
-    strata <- rep(as.integer(1), nrow(y))
+    strata <- rep(as.integer(1), nrow(x))
   } else {
     if(!is.integer(strata) || !is.vector(strata) || 
-       length(strata)!=nrow(y) || any(is.na(strata)))
-      stop("'strata' must be an integer vector of length nrow(y) with no NAs.")
+       length(strata)!=nrow(x) || any(is.na(strata)))
+      stop("'strata' must be an integer vector of length nrow(x) with no NAs.")
   }
   nrstrata <- max(strata)
   
   if(nrstrata==1 && length(dim(p))==2)
     dim(p) <- c(1, dim(p))
   
-  if(length(dim(p))!=3 || dim(p)[1]!=nrstrata || dim(p)[2]!=ncol(y) || dim(p)[3]!=2)
+  if(length(dim(p))!=3 || dim(p)[1]!=nrstrata || dim(p)[2]!=ncol(x) || dim(p)[3]!=2)
     stop("'p' has wrong dimensions.")
   if (any(p[,,2]<=0))
     stop("'p' contains invalid values: factors must be non-negative.")
 
-  hy = .Call("vsn2_trsf", y, as.vector(p), strata, PACKAGE="vsn")
+  hx = .Call("vsn2_trsf", x, as.vector(p), strata, PACKAGE="vsn")
 
-  dimnames(hy) = dimnames(y)
-  return(hy)
+  dimnames(hx) = dimnames(x)
+  return(hx)
 }
 
 ##----------------------------------------------------------
