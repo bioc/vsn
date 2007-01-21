@@ -1,4 +1,4 @@
-plotVsnLogLik = function(object, p, whichp=1:2, expand=1, ngrid=31, ...) {
+plotVsnLogLik = function(object, p, whichp=1:2, expand=1, ngrid=31, fun=logLik, ...) {
 
   stopifnot(length(whichp)==2)
 
@@ -14,10 +14,10 @@ plotVsnLogLik = function(object, p, whichp=1:2, expand=1, ngrid=31, ...) {
     aorb = z %/% d
     stopifnot(aorb %in% c(0,1))
     if(aorb==0) {
-      delta = quantile(object@x[,i], probs=0.045)*expand[1]
+      delta = diff(quantile(object@x[,i], probs=c(0.49,0.51)))*expand[1]
       p[whichp[k]] + seq(-delta, +delta, length=ngrid)
     } else {
-      delta = log(sqrt(2))*expand[2]
+      delta = log(1.2)*expand[2]
       p[whichp[k]] * exp(seq(-delta, delta, length=ngrid))
     }
   })
@@ -27,7 +27,7 @@ plotVsnLogLik = function(object, p, whichp=1:2, expand=1, ngrid=31, ...) {
   for(i in 1:2)
     psamp[whichp[i], ] = pgrid[, i]
 
-  ll = logLik(object, psamp, ...)
+  ll = fun(object, psamp, ...)
   pgrid$logLik = ll[1, ]
 
   pkgs = c("lattice", "RColorBrewer")

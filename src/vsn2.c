@@ -192,7 +192,7 @@ double loglik(int n, double *par, void *ex)
     /* Negative log likelihood */
     /* Omitting the constant term nr*log(sqrt(2.0*M_PI)*sigma) 
        which is not relevant for the parameter optimization */
-    res = ssq/(px->refsigsq) - jac;
+    res = ssq/(2.0*px->refsigsq) - jac;
   }
 
 #ifdef VSN_DEBUG
@@ -233,7 +233,7 @@ void grad_loglik(int n, double *par, double *gr, void *ex)
     vorfak = (px->ntot)/(px->ssq);
   } else {
     /* Negative log likelihood */
-   vorfak = 2.0/(px->refsigsq);
+   vorfak = 1.0/(px->refsigsq);
   } 
 
   for(j = 0; j < px->nrstrat; j++) {

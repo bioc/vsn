@@ -8,7 +8,8 @@ ML estimators:
 
 testmlest.R is a script that checks whether the ML estimate of the
 parameters a and b, if mu_k and sigma are known, is correct, based on
-simulated data.
+simulated data. It also plots the likelihood landscape around the 
+true parameters.
 
 testderiv.R tests whether the explicit gradient of the neg
 loglikelihood that is used by in the vsn code accords with the
