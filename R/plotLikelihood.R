@@ -1,52 +1,41 @@
-plotLogLik = function(x, strata, p0, wh, n=31) {
+plotVsnLogLik = function(object, p, whichp=1:2, expand=1, ngrid=31, ...) {
 
-  stopifnot(is.matrix(wh), nrow(wh)==2, ncol(wh)==3)
-  
-  v = new("vsnInput",
-    x = x,
-    strata = strata,
-    pstart = p0,
-    lts.quantile = 1,
-    cvg.niter  = as.integer(10),
-    cvg.eps   = 0,
-    subsample = as.integer(0),
-    verbose   = FALSE,
-    ordered   = FALSE)
+  stopifnot(length(whichp)==2)
 
-  if((length(v@strata)>0)&&(nlevels(v@strata)>1)) {
-    ord = order(v@strata)
-    v   = v[ord,]
-  }
-  v@ordered = TRUE
+  if(length(expand)==1)
+    expand=rep(expand,2)
 
-  ll = matrix(as.numeric(NA), nrow=n, ncol=n)
-  istrat = calcistrat(v)
+  d = ncol(object)
+  stopifnot(2*d*nlevels(object@strata)==length(p))
 
-  pwh = p0[wh]
-  psteps = matrix(as.numeric(NA), ncol=nrow(wh), nrow=n)
-  for(i in 1:ncol(psteps))
-    psteps[,i] = switch(as.integer(wh[i, 3]),
-            { delta = quantile(x[, wh[i, 2]], probs=0.05)
-              pwh[i] + seq(-delta, +delta, length=n) },
-            { pwh[i] * exp(seq(-log(sqrt(2)), log(sqrt(2)), length=n)) },
-             stop("Zapperlot"))
- 
-  for(j in seq_len(n)) {
-    p0[wh[1,,drop=FALSE]] = psteps[j,1]
-    for(i in seq_len(n)) {
-      p0[wh[2,,drop=FALSE]] = psteps[i,2]
-      ll[i,j] = .Call("vsn2_point", x, as.vector(p0), istrat,
-          v@reference@refh, v@reference@refsigma, PACKAGE="vsn")[1]
+  psteps = sapply(1:2, function(k) {
+    z = ((whichp[k]-1) %/% nlevels(object@strata))
+    i = (z %% d) + 1
+    aorb = z %/% d
+    stopifnot(aorb %in% c(0,1))
+    if(aorb==0) {
+      delta = quantile(object@x[,i], probs=0.045)*expand[1]
+      p[whichp[k]] + seq(-delta, +delta, length=ngrid)
+    } else {
+      delta = log(sqrt(2))*expand[2]
+      p[whichp[k]] * exp(seq(-delta, delta, length=ngrid))
     }
-  }
-  
-  if(require("lattice"))
-    print(levelplot(z~p1*p2,
-      data=data.frame(z=as.vector(ll), p1=psteps[col(ll), 1], p2=psteps[row(ll), 2]),
-      xlab=sprintf("par[%d,%d,%d]", wh[1,1], wh[1,2], wh[1,3]),
-      ylab=sprintf("par[%d,%d,%d]", wh[2,1], wh[2,2], wh[2,3])))
+  })
+
+  pgrid = expand.grid(psteps[,1], psteps[,2], KEEP.OUT.ATTRS = FALSE)
+  psamp = matrix(p, nrow=length(p), ncol=nrow(pgrid))
+  for(i in 1:2)
+    psamp[whichp[i], ] = pgrid[, i]
+
+  ll = logLik(object, psamp, ...)
+  pgrid$logLik = ll[1, ]
+
+  pkgs = c("lattice", "RColorBrewer")
+  if(all(sapply(pkgs, function(p) do.call("require", args=list(p, character.only=TRUE)))))
+    print(levelplot(logLik ~ Var1*Var2, data=pgrid,
+                    col.regions=colorRampPalette(brewer.pal(9,"YlOrRd"))(128)))
   else
-    warning("lattice package is not available, cannot call 'levelplot'.")
+    warning("packages ", paste(pkgs, collapse=", "), " are not available, cannot call 'levelplot'.")
   
-  return(invisible(ll))
+  return(invisible(pgrid))
 }    

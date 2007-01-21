@@ -6,7 +6,10 @@
   the vsn model}
 \description{Calculate the log likelihood and its gradient
   for the vsn model}
-\usage{\S4method{logLik}{vsnInput}(object, p, refh, refsigma)}
+\usage{
+\S4method{logLik}{vsnInput}(object, p, refh, refsigma)
+plotVsnLogLik(object, p, whichp=1:2, expand=1, ngrid=31, ...)
+}
 \arguments{
   \item{object}{A \code{\link{vsnInput}} object.}
   \item{p}{A matrix whose columns are the set of parameters at which

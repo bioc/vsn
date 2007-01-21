@@ -15,7 +15,7 @@ export(
 
   ## New     
   "vsnMatrix", "vsn2trsf",
-  "sagmbAssess", "sagmbSimulateData", "plotLogLik")
+  "sagmbAssess", "sagmbSimulateData", "plotVsnLogLik")
 
 exportMethods("vsn2", "meanSdPlot",
               "predict", "logLik", "show", "exprs", "nrow", "ncol", "dim")

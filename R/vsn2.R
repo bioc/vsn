@@ -309,8 +309,10 @@ vsnMatrix = function(x,
   
   ## Calculate reference if there wasn't one
   if(nrow(reference)==0) {
-    res@refh = rowMeans(hx, na.rm=TRUE)
-    res@refsigma = mad(hx-res@refh, na.rm=TRUE)
+    ## note: these parameters are calculated on trsfx, not on hx,
+    ##  this seems to be the least confusing, overall.
+    res@refh = rowMeans(trsfx, na.rm=TRUE)
+    res@refsigma = mad(trsfx-res@refh, na.rm=TRUE)
   }
 
   return(res)
@@ -318,12 +320,7 @@ vsnMatrix = function(x,
 
 
 ##---------------------------------------------------------------------
-## The "arsinh" transformation
-##
-## Note: the constant -log2(2*facs[1]) is added to the transformed data
-## in order to achieve h_1(y) \approx log2(y) for y\to\infty, that is,
-## better comparability to the log2 transformation.
-## It has no effect on the generalized log-ratios.
+## The glog transformation
 ##--------------------------------------------------------------------
 vsn2trsf = function(x, p, strata) {
   if (!is.matrix(x) || !is.numeric(x))

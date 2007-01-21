@@ -62,9 +62,12 @@ setMethod("[", "vsn",
       x@strata = x@strata[i,drop=FALSE]
     if(length(x@refh)>0)
       x@refh = x@refh[i,drop=FALSE]
-    if(nrow(x@hx)>0)
+    if(nrow(x@hx)>0) {
       x@hx = x@hx[i,,drop=FALSE]
-
+      x@n= nrow(x@hx)
+    } else {
+      x@n = length(seq_len(x@n)[i])
+    }
     return(x)
   })
        
