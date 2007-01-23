@@ -20,9 +20,7 @@
 }
 \usage{
 \S4method{vsn2}{ExpressionSet}(x, reference, strata, ...)
-\S4method{predict}{vsn}(object, newdata)
 justvsn(x, ...)
-
 
 vsnMatrix(x,
   reference,
@@ -72,12 +70,6 @@ vsnMatrix(x,
     trimmed sum of squares regression.}
   \item{cvg.eps}{Numeric. A convergence treshold.}
   \item{...}{Arguments that get passed on to \code{vsnMatrix}.}
-  \item{object}{An object of class \code{\link{vsn-class}}, typically
-    the result of a previous call to \code{vsn2}.}
-  \item{newdata}{Data to which an existing fit is to be applied to.
-    A typical use case is when the fit is made to a set of
-    "housekeeping" genes (FIXME - wording here is clumsy) and then
-    the transformation to be applied to a full set of data.}
 }
 \value{
   An object of class \code{\link{vsn-class}}.
