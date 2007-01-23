@@ -5,11 +5,26 @@
 \alias{vsn2,numeric-method}
 \alias{vsn2,ExpressionSet-method}
 \alias{vsnMatrix}
+\alias{justvsn}
 
 \title{Fit the vsn model}
-\description{Fit the vsn model.
-  This is the main function of this package, see also the vignette vsn.pdf.}
-\usage{vsnMatrix(x,
+\description{\code{vsn2} fits the vsn model to (raw microarray) data
+  in an \code{\link{ExpressionSet-class}} and
+  returns a \code{\link{vsn-class}} object with the fit parameters and
+  the transformed data matrix. \code{predict} applies the model
+  and returns an \code{\link{ExpressionSet-class}} object.
+  \code{\link{justvsn}} is a simple wrapper that 
+  and returns an \code{\link{ExpressionSet-class}}. 
+  These are the main functions of this package, see also the vignette
+  vsn.pdf. 
+}
+\usage{
+\S4method{vsn2}{ExpressionSet}(x, reference, strata, ...)
+\S4method{predict}{vsn}(object, newdata)
+justvsn(x, ...)
+
+
+vsnMatrix(x,
   reference,
   strata,
   lts.quantile = 0.9,
@@ -20,7 +35,6 @@
   cvg.niter    = as.integer(7),
   cvg.eps      = 1e-3)
 
-\S4method{vsn2}{ExpressionSet}(x, reference, strata, ...)
 \S4method{vsn2}{matrix}(x, reference, strata, ...)
 \S4method{vsn2}{numeric}(x, reference, strata, ...)
 }
@@ -58,6 +72,12 @@
     trimmed sum of squares regression.}
   \item{cvg.eps}{Numeric. A convergence treshold.}
   \item{...}{Arguments that get passed on to \code{vsnMatrix}.}
+  \item{object}{An object of class \code{\link{vsn-class}}, typically
+    the result of a previous call to \code{vsn2}.}
+  \item{newdata}{Data to which an existing fit is to be applied to.
+    A typical use case is when the fit is made to a set of
+    "housekeeping" genes (FIXME - wording here is clumsy) and then
+    the transformation to be applied to a full set of data.}
 }
 \value{
   An object of class \code{\link{vsn-class}}.
