@@ -5,14 +5,18 @@
 \title{Apply the vsn transformation to data}
 \description{Apply the vsn transformation to data.}
 \usage{
-vsn2trsf(x, p, strata)
 \S4method{predict}{vsn}(object, newdata)
+vsn2trsf(x, p, strata)
 }
 
 \arguments{
-  \item{x, newdata}{Numeric matrix.}
   \item{object}{An object of class \code{\link[vsn:vsn-class]{vsn}} that
-    contains transformation parameters and strata information.}
+    contains transformation parameters and strata information, typically
+    this is the result of a previous call to \code{vsn2}.}
+  \item{newdata}{Numeric matrix, the data to which an existing fit is to be applied to.
+    A typical use case is when the fit is made to a set of
+    control features and then the transformation is to be applied to the full set of data.}
+  \item{x}{Numeric matrix.}
   \item{p}{An array with the transformation parameters. If \code{strata} is
     specified, \code{p} is expected to be a 3d array, the first
     dimension corresponds to the levels of \code{strata},
