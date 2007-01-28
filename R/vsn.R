@@ -19,7 +19,7 @@ vsn = function(intensities,
                 pstart,
                 strata) {
   
-  .Deprecated(msg=VSN_DEPR_MSG)
+  ## .Deprecated(msg=VSN_DEPR_MSG)
   
   y = getIntensityMatrix(intensities, verbose)
   d = ncol(y)
