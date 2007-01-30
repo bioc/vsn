@@ -19,15 +19,6 @@ if(!exists("fit")) {
 refh = fit@refh
 refsigma = fit@refsigma
 
-## calculate the log-likelihood in the pedestrian way:
-nll = function(y, p) {
-  hy = asinh(p[1]+p[2]*y)
-  ## plot(dat$mu, hy)  
-  sum(-((dat$mu - hy)/dat$sigma)^2
-      +log(p[2]/sqrt(1+(p[1]+p[2]*y)^2))
-      )
-}
-
 nplot = 41
 par(mfcol=c(2, nrpar))
 
@@ -46,7 +37,7 @@ for(i in seq_len(nrpar))  {
   
   for(what in 1:2){
     ll = switch(what,
-      logLik(v, pars),                                ## without reference
+      logLik(v, pars),                               ## without reference
       logLik(v, pars, refh=refh, refsigma=refsigma)) ## with reference
 
     plot(pars[i,], ll[1, ], type="l",

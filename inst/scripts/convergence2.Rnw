@@ -45,11 +45,12 @@ library("vsn")
 set.seed(0x1234)
 options(error=recover)
 
-dothis = c("n: one stratum", "n: 8 strata", "d", "nrstrata",
+dothis = c("n: one stratum", "n: 8 strata", 
+           "d", "nrstrata",
            "de, lts.quantile=0.9", "de, lts.quantile=0.5",
            "up, lts.quantile=0.9", "up, lts.quantile=0.5",
            "fraction NA (d=8)", "fraction NA (d=2)",
-           "reference")[11]
+           "reference")
 
 sim = function(..., what, lts.quantile=0.9, nrrep=20) {
   callpar = list(...)
@@ -67,7 +68,7 @@ sim = function(..., what, lts.quantile=0.9, nrrep=20) {
         sim = do.call("sagmbSimulateData", simpar)
         ny  = vsn2(sim$y, strata=factor(sim$strata), 
           lts.quantile=lts.quantile, verbose=!TRUE)
-        res[r, i] = sagmbAssess(ny@data, sim)     
+        res[r, i] = sagmbAssess(ny@hx, sim)     
         ##
         ## if(res[r,i]>0.045) {
         ##  z=plotLogLik(si$y, factor(si$strata), ny@par, wh=rbind(c(1,1,1),c(1,1,2)), n=31)
@@ -176,8 +177,8 @@ differentially expressed genes is not that large. See Figure~\ref{figdiff}.
 %
 <<figdiff, fig=TRUE, include=FALSE, prefix=FALSE, width=11, height=5.5>>=
 de  = (0:6)/10
-res1 = sim(de=de, what="de, lts.quantile=0.9")
-res2 = sim(de=de, lts.quantile=0.5, what="de, lts.quantile=0.5")
+res1 = sim(de=de, nrstrata=2, what="de, lts.quantile=0.9")
+res2 = sim(de=de, nrstrata=2, lts.quantile=0.5, what="de, lts.quantile=0.5")
 myPlot2(de, list(res1, res2))
 @
 %
@@ -187,8 +188,8 @@ while the estimation goes up the more unbalanced the situation becomes.
 %
 <<figup, fig=TRUE, include=FALSE, prefix=FALSE>>=
 up  = (0:8)/8
-res1 = sim(up=up, de=0.2, what="up, lts.quantile=0.9")
-res2 = sim(up=up, de=0.2, lts.quantile=0.5, what="up, lts.quantile=0.5")
+res1 = sim(up=up, nrstrata=2, de=0.2, what="up, lts.quantile=0.9")
+res2 = sim(up=up, nrstrata=2, de=0.2, lts.quantile=0.5, what="up, lts.quantile=0.5")
 myPlot2(up, list(res1, res2))
 @
 %
@@ -216,13 +217,13 @@ see Section~\ref{sec:de}.}
 \section{Missing values}\label{sec:miss}
 %------------------------------------------------------
 
-<<figmiss>>=
+<<figmiss, fig=TRUE, include=FALSE, prefix=FALSE>>=
 miss = seq(0, 0.75, length=7)
 res = sim(miss=miss, d=8, what="fraction NA (d=8)")
 myPlot(miss, res, log="y")
 @ 
 %
-<<figmiss2>>=
+<<figmiss2, fig=TRUE, include=FALSE, prefix=FALSE>>=
 miss = seq(0, 0.1, length=5)
 res = sim(miss=miss, d=2, what="fraction NA (d=2)")
 myPlot(miss, res, log="y")
@@ -233,8 +234,8 @@ myPlot(miss, res, log="y")
 \includegraphics[width=0.5\textwidth]{figmiss1}
 \includegraphics[width=0.5\textwidth]{figmiss2}
 \caption{\label{figds}%
-Estimation error as a function of (a) the fraction of missing data points
-and (b) BLA BLA. See Sections~\ref{sec:miss} and \ref{sec:inc}.}
+Estimation error as a function of the fraction of missing data points,
+see Section~\ref{sec:miss}.}
 \end{center}
 \end{figure}
 
@@ -242,23 +243,44 @@ and (b) BLA BLA. See Sections~\ref{sec:miss} and \ref{sec:inc}.}
 \section{Incremental normalization}\label{sec:inc}
 %------------------------------------------------------
 <<incr>>=
-dat = sagmbSimulateData(n=10000, d=1, de=0, nrstrata=1, miss=0, log2scale=TRUE)
-v  = new("vsn", refh=dat$mu, refsigma=dat$sigma) 
-vr = vsn2(dat$y, reference=v, lts.quantile=1)
+dat = sagmbSimulateData(n=10000, d=12, de=0, nrstrata=1, miss=0, log2scale=TRUE)
+v  = new("vsn", refh=dat$mu, refsigma=dat$sigma, n=length(dat$mu)) 
+fit = vsn2(dat$y, lts.quantile=1, verbose=FALSE)
 
-  ##plot(dat$hy[,j], exprs(v)[,j])
-  ## plot(dat$hy[,j], exprs(vj))
-  ##plot(exprs(v)[,j], exprs(vj))
-  ##abline(a=0, b=1, col="blue")
-
-## v = vsn2(dat$y, lts.quantile=1)
-## par(mfrow=c(2, 3))
+parRef = array(as.numeric(NA), dim=dim(fit@par))
+for(j in 1:ncol(dat$y)) {
+  vj = vsn2(dat$y[,j], reference=v, lts.quantile=1, verbose=FALSE)
+  parRef[,j,] = vj@par
+}
 @ 
+
+<<figincr, fig=TRUE, include=FALSE, prefix=FALSE, width=9, height=9>>=
+par(mfcol=c(2,2))
+for(k in 1:2) {
+ plot(dat$par[1,,k], parRef[1,,k], main=paste("True vs ref-fitted", c("offset", "factor")[k]))
+ abline(a=0, b=1)
+ plot(fit@par[1,,k], parRef[1,,k], main=paste("profile-fitted vs ref-fitted", c("offset", "factor")[k]))
+ abline(a=0, b=1)
+}
+@ 
+
+\begin{figure}[tbp]
+\begin{center}
+\includegraphics[width=.8\textwidth]{figincr}
+\caption{\label{figincr}%
+Comparison of parameters fitted from incremental normalisation ($y$-axis) with
+true parameters ($x$-axis, upper row) and with
+parameters fitted from joint profile-likelihood normalisation ($x$-axis, lower row);
+see Section~\ref{sec:inc}.}
+\end{center}
+\end{figure}
 
 %-----------------------------------------------------
 \section{Subsampling}\label{sec:sample}
 %------------------------------------------------------
-\textbf{TODO}
+\textbf{TODO}: Some sort of test that checks for correct functioning 
+of the subsampling if there are multiple strata.
+
 <<sample>>=
 
 @ 

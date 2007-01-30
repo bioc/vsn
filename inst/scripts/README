@@ -2,7 +2,6 @@ convergence2.Rnw is the most comprehensive test suite. It assesses the
 accuracy of fitted transformations versus the known true ones, using
 simulated data.
 
-
 Then there are some more basic tests and debugging platforms for the
 ML estimators:
 

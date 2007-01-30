@@ -57,5 +57,5 @@ doit = function(fun) {
 
 graphics.off()
 
-doit(function(p) vsnLikelihood(v, p))
-doit(function(p) vsnLikelihood(v, p, refh = rowMeans(x), refsigma = mean(diff(t(x))^2)))
+doit(function(p) logLik(v, p))
+doit(function(p) logLik(v, p, refh = rowMeans(x), refsigma = mean(diff(t(x))^2)))

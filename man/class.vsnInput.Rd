@@ -1,21 +1,19 @@
-\name{vsn}
+\name{vsnInput}
 \docType{class}
-\alias{class:vsn}
-\alias{vsn-class}
+\alias{class:vsnInput}
+\alias{vsnInput-class}
 
 
 \title{
-  Class to contain result of a vsn fit
+  Class to contain input data and parameters for the model
 }
 
 \description{
-  Class to contain result of a vsn fit
+  Class to contain input data and parameters for the model
 }
 
 \section{Creating Objects}{
-  \code{new("vsn")}
-  
-  \code{vsn2(x)} with \code{x} being an \code{\link{ExpressionSet}}.
+  \code{new("vsnInput")}
 }
 
 \section{Slots}{
