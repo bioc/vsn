@@ -10,7 +10,7 @@ vsn2trsf(x, p, strata)
 }
 
 \arguments{
-  \item{object}{An object of class \code{\link[vsn:vsn-class]{vsn}} that
+  \item{object}{An object of class \code{\linkS4class{vsn}} that
     contains transformation parameters and strata information, typically
     this is the result of a previous call to \code{vsn2}.}
   \item{newdata}{Numeric matrix, the data to which an existing fit is to be applied to.

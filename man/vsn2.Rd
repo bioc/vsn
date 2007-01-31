@@ -9,12 +9,12 @@
 
 \title{Fit the vsn model}
 \description{\code{vsn2} fits the vsn model to (raw microarray) data
-  in an \code{\link{ExpressionSet-class}} and
-  returns a \code{\link{vsn-class}} object with the fit parameters and
+  in an \code{\linkS4class{ExpressionSet}} and
+  returns a \code{\linkS4class{vsn}} object with the fit parameters and
   the transformed data matrix. \code{predict} applies the model
-  and returns an \code{\link{ExpressionSet-class}} object.
+  and returns an \code{\linkS4class{ExpressionSet}} object.
   \code{\link{justvsn}} is a simple wrapper that 
-  and returns an \code{\link{ExpressionSet-class}}. 
+  and returns an \code{\linkS4class{ExpressionSet}}. 
   These are the main functions of this package, see also the vignette
   vsn.pdf. 
 }
@@ -38,9 +38,9 @@ vsnMatrix(x,
 }
 \arguments{
   \item{x}{An object contain the data to which the model is to be
-    fitted. Methods exists for \code{\link{ExpressionSet-class}},
+    fitted. Methods exists for \code{\linkS4class{ExpressionSet}},
     \code{matrix} and \code{numeric}.}
-  \item{reference}{Optional, a \code{\link{vsn-class}} object from
+  \item{reference}{Optional, a \code{\linkS4class{vsn}} object from
     a previous fit. If this argument is specified, the data in \code{x}
     are normalized "towards" an existing set of reference arrays whose
     parameters are stored in the object \code{reference}. If this
@@ -60,7 +60,7 @@ vsnMatrix(x,
     increase the performance at a negligible loss of precision.}
   \item{verbose}{Logical. If TRUE, some messages are printed.}
   \item{returnData}{Logical. If TRUE, the transformed data are returned
-    in the returned \code{\link{vsn-class}} object.
+    in the returned \code{\linkS4class{vsn}} object.
     The option to set this \code{FALSE} allows saving of CPU and memory
     resources in some applications.}
   \item{pstart}{Optional, array. Can be used to specify start values
@@ -72,7 +72,7 @@ vsnMatrix(x,
   \item{...}{Arguments that get passed on to \code{vsnMatrix}.}
 }
 \value{
-  An object of class \code{\link{vsn-class}}.
+  An object of class \code{\linkS4class{vsn}}.
   The transformed data are on a glog scale to base 2. More precisely,
   the transformed data are subject to the transformation
   asinh(a+bx)/log(2)-c, where

@@ -3,6 +3,13 @@
 \alias{class:vsn}
 \alias{vsn-class}
 
+\alias{[,vsn-method} 
+\alias{dim,vsn-method} 
+\alias{nrow,vsn-method} 
+\alias{ncol,vsn-method} 
+\alias{show,vsn-method} 
+\alias{exprs,vsn-method} 
+
 
 \title{
   Class to contain result of a vsn fit
@@ -14,16 +21,38 @@
 
 \section{Creating Objects}{
   \code{new("vsn")}
-  
-  \code{vsn2(x)} with \code{x} being an \code{\link{ExpressionSet}}.
+  \code{vsn2(x)} with \code{x} being an \code{\linkS4class{ExpressionSet}}.
 }
 
 \section{Slots}{
-  TO DO
+ \describe{
+  \item{\code{par}:}{A 3D array of size (number of strata) x (number of
+    columns of the data matrix) x 2 containing fitted normalization parameters
+    (see vignette).}
+  \item{\code{n}:}{An integer scalar containing n,
+    the number of rows of the data matrix.}
+  \item{\code{strata}:}{A factor of length 0 or n. If its length is
+    n, then its levels correspond to different normalization strata
+    (see vignette).}
+  \item{\code{refh}:}{A numeric vector of length 0 or n. If its length
+    is n, then these are the fitted parameters $\hat{\mu}_k$, $k=1,...,n$.}
+  \item{\code{refsigma}:}{A numeric scalar, $\hat{\sigma}$.}
+  \item{\code{hx}:}{A numeric matrix with 0 or n rows. If the number of
+    rows is n, then \code{hx} contains the transformed data matrix.}
+  }
 }
+
+
 \section{Methods}{
-  TO DO
-}
+  \describe{
+    \item{\code{[}}{Subset}
+    \item{\code{dim}}{Get dimensions of data matrix.}
+    \item{\code{nrow}}{Get number of rows of data matrix.}
+    \item{\code{ncol}}{Get number of columns of data matrix.}
+    \item{\code{show}}{Print a summary of the object}
+    \item{\code{exprs}}{Accessor to slot \code{hx}.}
+}}
+
 
 \author{Wolfgang Huber \url{http://www.ebi.ac.uk/huber}}
 
@@ -32,6 +61,11 @@
 }
 
 \examples{
+  data("kidney")
+  v = vsn2(kidney)
+  show(v)
+  dim(v)
+  v[1:10, ]
 }
 
 \keyword{classes}
