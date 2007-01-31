@@ -25,7 +25,8 @@
 \maketitle
 \tableofcontents
 
-The purpose of this vignette is to demonstrate that the software in
+\section{Overview}
+The purpose of this vignette is to assess that the software in
 \Rpackage{vsn} actually does what it is supposed to do according to the
 mathematical theory. And to see \textit{how fast} (or slow, depending on your
 point of view) and \textit{how accurately} it does that.
@@ -34,8 +35,8 @@ There are two functions \Rfunction{sagmbSimulateData} and
 \Rfunction{sagmbAssess} that can be used to generate simulated data and assess
 the difference between the 'true' and 'estimated' data calibration and
 transformation by \Rpackage{vsn}. This vignette demonstrates some examples. 
-Reference~\cite{HuberSAGMB2003} describes in more detail (i) the
-simulation model, (ii) the assessment strategy, and (iii) a comprehensive
+Please refer to reference~\cite{HuberSAGMB2003} for more detail on the
+simulation model,  the assessment strategy and a comprehensive
 suite of assessments with respect to the number of features \Robject{n}, the
 number of arrays \Robject{d}, the fraction of differentially expressed genes
 \Robject{de}, and the fraction of up-regulated genes \Robject{up}.
@@ -131,8 +132,7 @@ the estimation error should decrease roughly as $n^{-1/2}$.}
 \section{Number of samples $d$}\label{sec:d}
 %--------------------------------------------------
 Fig.~\ref{figds}a shows the estimation error as a function of the number of
-samples $d$. Initially, it also decreases slightly with $d$, but eventually
-reaches a plateau. This is because the number of parameters that need to be
+samples $d$. This curve is essentially flat. This is because the number of parameters that need to be
 estimated is proportional to $d$, so the "number of data points per parameter"
 is constant in this plot (in contrast to Fig.~\ref{fign}).
 %
@@ -186,7 +186,7 @@ myPlot2(de, list(res1, res2))
 expressed genes.  The best results are obtained for \Robject{up}$\approx0.5$,
 while the estimation goes up the more unbalanced the situation becomes.
 %
-<<figup, fig=TRUE, include=FALSE, prefix=FALSE>>=
+<<figup, fig=TRUE, include=FALSE, prefix=FALSE, width=11, height=5.5>>=
 up  = (0:8)/8
 res1 = sim(up=up, nrstrata=2, de=0.2, what="up, lts.quantile=0.9")
 res2 = sim(up=up, nrstrata=2, de=0.2, lts.quantile=0.5, what="up, lts.quantile=0.5")
@@ -217,13 +217,13 @@ see Section~\ref{sec:de}.}
 \section{Missing values}\label{sec:miss}
 %------------------------------------------------------
 
-<<figmiss1, fig=TRUE, include=FALSE, prefix=FALSE>>=
+<<figmiss1, fig=TRUE, include=FALSE, prefix=FALSE, width=5, height=5>>=
 miss = seq(0, 0.75, length=7)
 res = sim(miss=miss, d=8, what="fraction NA (d=8)")
 myPlot(miss, res, log="y")
 @ 
 %
-<<figmiss2, fig=TRUE, include=FALSE, prefix=FALSE>>=
+<<figmiss2, fig=TRUE, include=FALSE, prefix=FALSE, width=5, height=5>>=
 miss = seq(0, 0.1, length=5)
 res = sim(miss=miss, d=2, what="fraction NA (d=2)")
 myPlot(miss, res, log="y")
@@ -231,8 +231,8 @@ myPlot(miss, res, log="y")
 
 \begin{figure}[tbp]
 \begin{center}
-\includegraphics[width=0.5\textwidth]{figmiss1}
-\includegraphics[width=0.5\textwidth]{figmiss2}
+\includegraphics[width=0.49\textwidth]{figmiss1}
+\includegraphics[width=0.49\textwidth]{figmiss2}
 \caption{\label{figmiss}%
 Estimation error as a function of the fraction of missing data points,
 see Section~\ref{sec:miss}.}
@@ -257,16 +257,16 @@ for(j in 1:ncol(dat$y)) {
 <<figincr, fig=TRUE, include=FALSE, prefix=FALSE, width=9, height=9>>=
 par(mfcol=c(2,2))
 for(k in 1:2) {
- plot(dat$par[1,,k], parRef[1,,k], main=paste("True vs ref-fitted", c("offset", "factor")[k]))
+ plot(dat$par[1,,k], parRef[1,,k], xlab="True", ylab="Reference fit", main=c("offset", "factor")[k])
  abline(a=0, b=1)
- plot(fit@par[1,,k], parRef[1,,k], main=paste("profile-fitted vs ref-fitted", c("offset", "factor")[k]))
+ plot(fit@par[1,,k], parRef[1,,k], xlab="Profile Likelihood fit", ylab="Reference fit", main=c("offset", "factor")[k])
  abline(a=0, b=1)
 }
 @ 
 
 \begin{figure}[tbp]
 \begin{center}
-\includegraphics[width=.8\textwidth]{figincr}
+\includegraphics[width=\textwidth]{figincr}
 \caption{\label{figincr}%
 Comparison of parameters fitted from incremental normalisation ($y$-axis) with
 true parameters ($x$-axis, upper row) and with
