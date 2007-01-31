@@ -206,7 +206,7 @@ see Section~\ref{sec:de}.}
 \begin{figure}[tbp]
 \begin{center}
 \includegraphics[width=\textwidth]{figup}
-\caption{\label{figds}%
+\caption{\label{figup}%
 Estimation error as a function of the fraction of up-regulated genes. 
 for two different settings of \Robject{lts.quantile};
 see Section~\ref{sec:de}.}
@@ -217,7 +217,7 @@ see Section~\ref{sec:de}.}
 \section{Missing values}\label{sec:miss}
 %------------------------------------------------------
 
-<<figmiss, fig=TRUE, include=FALSE, prefix=FALSE>>=
+<<figmiss1, fig=TRUE, include=FALSE, prefix=FALSE>>=
 miss = seq(0, 0.75, length=7)
 res = sim(miss=miss, d=8, what="fraction NA (d=8)")
 myPlot(miss, res, log="y")
@@ -233,7 +233,7 @@ myPlot(miss, res, log="y")
 \begin{center}
 \includegraphics[width=0.5\textwidth]{figmiss1}
 \includegraphics[width=0.5\textwidth]{figmiss2}
-\caption{\label{figds}%
+\caption{\label{figmiss}%
 Estimation error as a function of the fraction of missing data points,
 see Section~\ref{sec:miss}.}
 \end{center}
