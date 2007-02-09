@@ -3,20 +3,24 @@
 #  (see below for methods for the generic function 'vsn2')
 #------------------------------------------------------------
 setMethod("predict", signature("vsn"),
-  function(object, newdata) {
+  function(object, newdata, log2scale=TRUE) {
 
     stopifnot(validObject(object))
 
     ## Treat the different types of newdata. We do this manually here,
     ## unfortunately the generic function stats::predict does not allow
-    ## dispatch on 'newdata' via S4
+    ## to dispatch on 'newdata' via S4
+    if(is(newdata, "ExpressionSet")){
+      res = newdata
+      exprs(res) = predict(object, exprs(newdata))
+      return(res)
+    }
+    
+    ## If we get here, 'object' must be either a matrix or a vector
     if(is.vector(newdata))
       dim(newdata)=c(length(newdata), 1)
 
-    if(is(newdata, "ExpressionSet")){
-      stopifnot("'newdata' of class 'ExpressionSet' is not yet implemented, please supply a matrix.")
-    }
-    
+    returnClass = "matrix"
     stopifnot(is.matrix(newdata))
     if(storage.mode(newdata) != "double")
       storage.mode(newdata) = "double"
@@ -32,6 +36,9 @@ setMethod("predict", signature("vsn"),
     
     hy = .Call("vsn2_trsf", newdata, as.vector(object@par), s, PACKAGE="vsn")
 
+    if(log2scale)
+      hy = trsf2log2scale(hy, object@par)
+    
     dim(hy) = dim(newdata)
     dimnames(hy) = dimnames(newdata)
     return(hy)

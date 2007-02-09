@@ -14,9 +14,9 @@
   the transformed data matrix. \code{predict} applies the model
   and returns an \code{\linkS4class{ExpressionSet}} object.
   \code{\link{justvsn}} is a simple wrapper that 
-  and returns an \code{\linkS4class{ExpressionSet}}. 
+  takes and returns either an \code{\linkS4class{ExpressionSet}} or a \code{matrix}. 
   These are the main functions of this package, see also the vignette
-  vsn.pdf. 
+  \emph{Introduction to vsn}.
 }
 \usage{
 \S4method{vsn2}{ExpressionSet}(x, reference, strata, ...)
@@ -75,12 +75,12 @@ vsnMatrix(x,
   An object of class \code{\linkS4class{vsn}}.
   The transformed data are on a glog scale to base 2. More precisely,
   the transformed data are subject to the transformation
-  asinh(a+bx)/log(2)-c, where
+  asinh(a+bx)/log(2)+c, where
   $\mbox{asinh}(x)=log(x+sqrt{x^2+1})$ is also called the 'glog', and
   the constant c is an overall constant offset that is computed such that for
   large x the transformation approximately corresponds to the
   $\log_2$ function. The offset c is inconsequential for all differential expression
-  calculations, but many users like to see the data on a scale that they
+  calculations, but many users like to see the data in a range that they
   are familiar with.
 }
 
@@ -97,9 +97,18 @@ vsnMatrix(x,
 
 \examples{
 data("kidney")
+
+## use "vsn2" to produce a "vsn" object
 fit = vsn2(kidney)
-plot(exprs(fit), pch=".")
+nkid = predict(fit, newdata=kidney)
+plot(exprs(nkid), pch=".")
 abline(a=0, b=1, col="red")
+
+## justvsn
+nkid2 = justvsn(kidney)
+
+stopifnot(identical(exprs(nkid), exprs(nkid2)))
+
 }
 
 \keyword{}

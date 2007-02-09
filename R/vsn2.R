@@ -299,10 +299,9 @@ vsnMatrix = function(x,
 
   hx = if(returnData) {
     ## irrelevant affine transformation to make users happy.
-    (trsfx-mean(log(2*par[,,2])))/log(2)
+    trsf2log2scale(trsfx, par)
   } else {
     matrix(numeric(0), nrow=0, ncol=ncol(x))
-    
   }
   
   res = new("vsn", par=par, n=nrow(x), strata=strata, hx=hx) 
@@ -318,6 +317,9 @@ vsnMatrix = function(x,
   return(res)
 }
 
+
+trsf2log2scale = function(x, par)
+  (x-mean(log(2*par[,,2])))/log(2)
 
 ##---------------------------------------------------------------------
 ## The glog transformation

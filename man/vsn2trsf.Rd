@@ -5,7 +5,7 @@
 \title{Apply the vsn transformation to data}
 \description{Apply the vsn transformation to data.}
 \usage{
-\S4method{predict}{vsn}(object, newdata)
+\S4method{predict}{vsn}(object, newdata, log2scale=TRUE)
 vsn2trsf(x, p, strata)
 }
 
@@ -13,9 +13,18 @@ vsn2trsf(x, p, strata)
   \item{object}{An object of class \code{\linkS4class{vsn}} that
     contains transformation parameters and strata information, typically
     this is the result of a previous call to \code{vsn2}.}
-  \item{newdata}{Numeric matrix, the data to which an existing fit is to be applied to.
+  \item{newdata}{Numeric \code{matrix}, \code{vector} or
+    \code{ExpressionSet-class} with the data to which an existing fit is to be applied to.
     A typical use case is when the fit is made to a set of
-    control features and then the transformation is to be applied to the full set of data.}
+    control features and then the transformation is to be applied to the
+    full set of data.
+    If \code{newdata} is a vector, it is considered a matrix with one
+    column and \code{nrow(newdata)} rows.}
+  \item{log2scale}{If \code{TRUE}, the data are returned on the glog
+    scale to base 2, and an overall offset c is added (see \emph{Value}
+    section of the \code{\link{vsn2}} manual page). If \code{FALSE}, the
+    data are returned on the glog scale to base e, and no offset is
+    added.}
   \item{x}{Numeric matrix.}
   \item{p}{An array with the transformation parameters. If \code{strata} is
     specified, \code{p} is expected to be a 3d array, the first
@@ -29,10 +38,10 @@ vsn2trsf(x, p, strata)
     factors \code{b} for each level of \code{strata}).}
 }
 \value{
-  A matrix of the same size as \code{x}.
-}
-
-\details{.
+  For \code{vsn2trsf}, a matrix of the same size as \code{x}.
+  For \code{predict}, a matrix if \code{newdata} was a matrix, and an
+  \code{ExpressionSet}, \code{newdata} was an
+  \code{ExpressionSet}. Dimnames and metadata are preserved.
 }
 
 \author{Wolfgang Huber \url{http://www.ebi.ac.uk/huber}}

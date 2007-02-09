@@ -14,7 +14,7 @@ export(
   "normalize.AffyBatch.vsn",
 
   ## New     
-  "vsnMatrix", "vsn2trsf",
+  "vsnMatrix", "vsn2trsf", "justvsn",
   "sagmbAssess", "sagmbSimulateData", "plotVsnLogLik")
 
 exportMethods("vsn2", "meanSdPlot",
