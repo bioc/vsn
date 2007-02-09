@@ -1,12 +1,17 @@
 ## ----------------------------------------------------------------------
-## This file contains the documentation and R commands that were used to
-## prepare the example data in the data subdirectory of the package
+## This file contains the steps that were used 
+## 1.+2. to prepare the example datasets "lymphoma" and "kidney"
+##       of the package in 2002
+## 3.+4. update them from exprSet to ExpressionSet on 9 Feb 2007.
 ## ----------------------------------------------------------------------
 dataout   = "../../data"
-library(Biobase)
+lym = file.path(dataout, 'lymphoma.RData')
+kid = file.path(dataout, 'kidney.RData')
+
+library("Biobase")
 
 ## ------------------------------------------------------------
-## 1. lymphoma
+## 1. create lymphoma
 ## ------------------------------------------------------------
 samples   = read.delim("lymphomasamples.txt", as.is=T)
 datain    = "/home/whuber/h/VSN/alizadeh"
@@ -37,10 +42,10 @@ lymphoma = new("exprSet",
       pData     = pd,
       varLabels = list(name="Name of the Chip", sample="Sample")))
     
-save(lymphoma, file=file.path(dataout, 'lymphoma.RData'), compress=TRUE)
+save(lymphoma, file=lym, compress=TRUE)
 
 ## ------------------------------------------------------------
-## 2. kidney
+## 2. create kidney
 ## ------------------------------------------------------------
 datain = "/net/herkules/raid4/home/whuber/Kidney2"
 thehyb = 90
@@ -57,4 +62,44 @@ kidney = new("exprSet",
     pData = data.frame(channel = c("green", "red")),
     varLabels = list(channel="green: 532 nm, dye=Cy3; red: 635 nm, dye=Cy5")))
 
-save(kidney, file=file.path(dataout, 'kidney.RData'), compress=TRUE)
+save(kidney, file=kid, compress=TRUE)
+
+
+
+
+## ------------------------------------------------------------
+## 3. create lymphoma
+## ------------------------------------------------------------
+load(lym)
+pd = pData(lymphoma)
+ex = exprs(lymphoma)
+
+pd$dye = factor(paste("Cy", rep(c(3L, 5L), 8), sep=""))
+
+rownames(pd) = colnames(ex) = paste(pd$name, pd$sample, sep=".")
+
+vmd = data.frame(labelDescription=I(c("Array ID", "Sample", "Dye")))
+rownames(vmd) = colnames(pd)
+ad = new("AnnotatedDataFrame", data=pd, varMetadata=vmd)
+
+lymphoma = new("ExpressionSet", exprs=ex, phenoData=ad)
+
+save(lymphoma, file=lym)
+
+
+## ------------------------------------------------------------
+## 4. update kidney
+## ------------------------------------------------------------
+load(kid)
+
+pd =  pData(kidney)
+ex =  exprs(kidney)
+rownames(pd) = colnames(ex)
+
+vmd = data.frame(labelDescription=I("The scanner channel Cy3 or Cy5"))
+rownames(vmd) = colnames(pd)
+ad = new("AnnotatedDataFrame", data=pd, varMetadata=vmd)
+    
+kidney = new("ExpressionSet", exprs=ex, phenoData=ad)
+
+save(kidney, file=kid)
