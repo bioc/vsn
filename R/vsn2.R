@@ -256,6 +256,8 @@ vsnMatrix = function(x,
 
   if(missing(strata)) 
     strata = factor(integer(0), levels="all")
+
+  storage.mode(x) = "double"
   
   if(missing(pstart)) {
     pstart = array(0, dim=c(nlevels(strata), ncol(x), 2))

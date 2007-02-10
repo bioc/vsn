@@ -345,10 +345,25 @@ they are transformed to the logarithm base 2 scale. This way
 \Robject{vsn} can be called from the limma package through the
 function \Robject{normalizeBetweenArrays}:
 
-<<limma1,eval=FALSE>>= 
+<<limma1, results=hide>>= 
 library("limma")
-MA <- normalizeBetweenArrays(RG, method="vsn")
+lymRG = new("RGList", list(
+          R=exprs(lymphoma)[, lymphoma$dye=="Cy5"],
+          G=exprs(lymphoma)[, lymphoma$dye=="Cy3"]))
+lymMA <- normalizeBetweenArrays(lymRG, method="vsn")
 @
+
+
+<<limma2, echo=FALSE, results=hide>>=
+lmat <- normalizeBetweenArrays(exprs(lymphoma), method="vsn")
+lmatM <-  lmat[, lymphoma$dye=="Cy3"]-lmat[, lymphoma$dye=="Cy5"]
+lmatA <- (lmat[, lymphoma$dye=="Cy3"]+lmat[, lymphoma$dye=="Cy5"])/2
+tol = 1e-2
+stopifnot(max(abs(lymMA$A-lmatA))<tol, max(abs(lymMA$M-lmatM))<tol)
+@ 
+
+\textbf{FIXME}: 1. comment on background estimates (Rb, Gb)
+2. test the print-tip specific normalization call.
 
 Note that \Robject{RG} should contain raw intensities, i.\,e., prior
 log-transformation or any normalization. The returned intensities and
@@ -366,10 +381,10 @@ pinId <- function(x)
 @
 
 and call
-
 <<limma3,eval=FALSE>>=
 MA <- normalizeBetweenArrays(RG, method="vsn", strata=pinId(thelayout))
 @
+
 
 %---------------------------------------------------------------------
 \section{The calibration parameters} 
