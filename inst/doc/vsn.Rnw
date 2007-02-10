@@ -8,7 +8,7 @@
 \definecolor{darkblue}{rgb}{0.0,0.0,0.75}
 \usepackage[%
 baseurl={http://www.bioconductor.org},%
-pdftitle={Robust calibration and variance stabilization with VSN},%
+pdftitle={Introduction to robust calibration and variance stabilization with vsn},%
 pdfauthor={Wolfgang Huber},%
 pdfsubject={vsn},%
 pdfkeywords={Bioconductor},%
@@ -19,6 +19,7 @@ pagecolor=darkblue,raiselinks,plainpages,pdftex]{hyperref}
 % newcommand
 %------------------------------------------------------------
 \newcommand{\arsinh}{\mathop{\mathgroup\symoperators arsinh}\nolimits}
+\newcommand{\glog}{\mathop{\mathgroup\symoperators glog}\nolimits}
 \newcommand{\Robject}[1]{\texttt{#1}}
 \newcommand{\Rpackage}[1]{\textit{#1}}
 \newcommand{\Rclass}[1]{\textit{#1}}
@@ -51,6 +52,7 @@ library("affy")
 library("marray")
 library("multtest")
 library("limma")
+library("vsn")
 oldopt <- options(digits=3)
 on.exit( {options(oldopt)} )
 @ 
@@ -59,27 +61,59 @@ on.exit( {options(oldopt)} )
 \section{Getting started: brief overview}
 %------------------------------------------------------------ 
 \Rpackage{vsn} is a method to preprocess microarray intensity data.
-Calling \Rpackage{vsn} can be as simple as
-
-<<dummyex1,eval=FALSE>>=
-e2 <- vsn(e1)
+This can be as simple as
+%
+<<overv1, eval=FALSE>>=
+library("vsn")
+data("kidney")
+xnorm = justvsn(kidney)
 @
+%
+where \Robject{kidney} is an \Rclass{ExpressionSet} object with
+unnormalized data and \Robject{xnorm} the resulting
+\Rclass{ExpressionSet} with calibrated and $\glog_2$-transformed
+data.
 
-where \Robject{e1} is an \Robject{exprSet} with raw data and
-\Robject{e2} one with calibrated and \textit{glog}-transformed data.
-\Robject{e1} can also be a matrix, a data frame with numeric columns only,
-or an object of class \Rclass{marrayRaw}. It contains the raw intensity
-measurements from the DNA probes on a series of microarrays (with rows
-corresponding to probes, columns to arrays and/or dyes).
+\Rpackage{vsn} is a \emph{model-based} method, and the more explicit way of 
+doing the above task is
+%
+<<overv2, eval=FALSE>>=
+fit <- vsn2(kidney)
+ynorm <- predict(fit, kidney)
+@
+%
+where \Robject{fit} is an object of class \Rclass{vsn} that contains
+the fitted calibration and transformation parameters (see
+Section~\ref{sec:calib} for more details on these).  The method
+\Rfunction{predict} can be used to apply the fit to the data. Often,
+there is no need for making these separate steps explicit, and that is
+why there is the function \Rfunction{justvsn}. The two-step protocol
+is useful, for instance, when you want to fit the parameters on a
+subset of the data, e.\,g.\ a set some control or spike-in features,
+and then apply the model to the complete set of data. Furthermore, it
+allows further inspection of the \Robject{fit} object, e.\,g.\ for the
+purposes of quality assessment.
+%
+<<>>=
+identical(xnorm, ynorm)
+@ 
+<<>>=
+stopifnot(identical(xnorm, ynorm), identical(exprs(xnorm), exprs(fit)))
+@ 
+%
+Beside \Rclass{ExpressionSet}s, there are also methods for handling matrices, 
+\Rclass{RGList} objects from the \Rpackage{limma} package and
+\Rclass{AffyBatch} objects from the \Rpackage{affy} package.
+%%%% FIXME
 
-The so-called \textit{glog} (short for 
-\textit{\textbf{generalized logarithm}}) is a function that is like the
-natural logarithm for large values (large compared to the background noise),
+The so-called $\glog_2$ (short for \textit{\textbf{generalized logarithm}}) 
+is a function that is like the logarithm (to base 2) for large values 
+(large compared to the amplitude of the background noise),
 but is less steep for smaller values.  Differences between the transformed
 values are the \textit{\textbf{generalized log-ratios}}. These are 
 \emph{shrinkage estimators} of the natural logarithm of the fold change. 
 For example,
-
+%
 <<dummyex2,eval=FALSE>>=
 M <- exprs(e2)[,i] - exprs(e2)[,j]
 @
@@ -387,7 +421,7 @@ MA <- normalizeBetweenArrays(RG, method="vsn", strata=pinId(thelayout))
 
 
 %---------------------------------------------------------------------
-\section{The calibration parameters} 
+\section{The calibration parameters} \label{sec:calib}
 %---------------------------------------------------------------------
 If $y_{ki}$ is the matrix of uncalibrated data, with $k$ indexing the
 rows and $i$ the columns, then the calibrated data $y_{ki}'$ is
