@@ -41,7 +41,7 @@ number of arrays \Robject{d}, the fraction of differentially expressed genes
 %
 <<setup, results=hide, echo=FALSE>>=
 library("vsn")
-set.seed(0x1234)
+set.seed(0xabcd)
 options(error=recover)
 
 sim = function(..., lts.quantile=0.9, nrrep=20) {
@@ -226,12 +226,12 @@ In this Section, we check the impact of missing values on the performance
 of the estimator. \Robject{miss} is the fraction of missing values in
 the overall 
 %
-<<figmiss1>>=
+<<figmiss>>=
 makeFig("figmiss", 2, 1, {
 miss1 = seq(0, 0.5, length=6)
-res1 = sim(miss=miss, d=8)
+res1 = sim(miss=miss1, d=8)
 miss1 = seq(0, 0.1, length=6)
-res2 = sim(miss=miss, d=2)
+res2 = sim(miss=miss2, d=2)
 myPlot2(list(miss1, miss2), list("fraction NA (d=8)"=res1, "b) fraction NA (d=2)"=res2))
 })
 @ 
@@ -276,10 +276,12 @@ for(j in 1:ncol(dat$y)) {
 makeFig("figincr", 2, 2, {
 par(mfcol=c(2,2))
 for(k in 1:2) {
-  plot(dat$par[1,,k], parRef[1,,k], xlab="True", ylab="Reference fit", main=c("offset", "factor")[k])
-  abline(a=0, b=1)
-  plot(fit@par[1,,k], parRef[1,,k], xlab="Profile Likelihood fit", ylab="Reference fit", main=c("offset", "factor")[k])
-  abline(a=0, b=1)
+  plot(dat$par[1,,k], parRef[1,,k], pch=16, xlab="True", ylab="Reference fit", 
+    main=c("offset", "factor")[k])
+  abline(a=0, b=1, col="orange")
+  plot(fit@par[1,,k], parRef[1,,k], pch=16, xlab="Profile Likelihood fit", ylab="Reference fit", 
+    main=c("offset", "factor")[k])
+  abline(a=0, b=1, col="orange")
 }
 })
 @ 
@@ -298,7 +300,7 @@ see Section~\ref{sec:inc}.}
 %-----------------------------------------------------
 \section{Subsampling}\label{sec:sample}
 %------------------------------------------------------
-\textbf{TODO}: Some sort of test that checks for correct functioning 
+\textbf{TODO}: Some sort of test that verifies the correct functioning 
 of the subsampling if there are multiple strata.
 
 %% <<sample>>=
