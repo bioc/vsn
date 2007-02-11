@@ -134,7 +134,8 @@ is constant in this plot (in contrast to Fig.~\ref{fign}).
 %
 <<figd>>=
 makeFig("figd", 1, 1, {
-  res = sim(d=2^seq(1, 5))
+  d = 2^seq(1, 5)
+  res = sim(d=d)
   myPlot(d, res, main="a) d")
 })
 @
