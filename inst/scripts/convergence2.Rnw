@@ -82,10 +82,11 @@ myPlot2 = function(n, rl) {
 makeFig = function(name, width, height, expr) {
   pdfname = paste(name, "pdf", sep=".")
   if(!file.exists(pdfname)) {
-    pdf(file=pdfname, width=width, height=height)
+    pdf(file=pdfname, width=4*width, height=4*height)
     expr
     dev.off()
   }
+  invisible(pdfname)
 }
 @
 
@@ -98,25 +99,23 @@ as a function of the number of features $n$. If \Rfunction{vsn} works correctly,
 the estimation error should decrease roughly as $n^{-1/2}$.
 %
 <<fign1>>=
-makeFig("fign1", 5, 5, {
-## with one stratum
-n   = 1000*2^seq(-2, 5)
-res = sim(n=n)
-myPlot(n, res, main="n: one stratum")
+n = 1000*2^seq(-2, 5)
+makeFig("fign1", 1, 1, {
+  res = sim(n=n)
+  myPlot(n, res, main="n: one stratum")
 })
 @
 <<fign2>>=
-makeFig("fign2", 5, 5, {
-## with 8 strata
-res = sim(n=n, nrstrata=8)
-myPlot(n, res, main="n: 8 strata")
+makeFig("fign2", 1, 1, {
+  res = sim(n=n, nrstrata=8)
+  myPlot(n, res, main="n: 8 strata")
 })
 @
 %
 \begin{figure}[tbp]
 \begin{center}
-\includegraphics[width=0.5\textwidth]{fign1}
-\includegraphics[width=0.5\textwidth]{fign2}
+\includegraphics[width=0.49\textwidth]{fign1}
+\includegraphics[width=0.49\textwidth]{fign2}
 \caption{\label{fign}%
 Estimation error as a function of the number of features $n$. 
 If \Rfunction{vsn} works correctly,
@@ -133,10 +132,9 @@ estimated is proportional to $d$, so the "number of data points per parameter"
 is constant in this plot (in contrast to Fig.~\ref{fign}).
 %
 <<figd>>=
-makeFig("figd", 5, 5, {
-d   = 2^seq(1, 5)
-res = sim(d=d)
-myPlot(d, res, main="d")
+makeFig("figd", 1, 1, {
+  res = sim(d=2^seq(1, 5))
+  myPlot(d, res, main="a) d")
 })
 @
 %--------------------------------------------------
@@ -145,20 +143,20 @@ myPlot(d, res, main="d")
 In Fig.~\ref{figds}b, we see the estimation error as a function of the number of strata. It
 should increase, since for each stratum, we need to estimate separate
 parameters, and if the overall number of features does not change, more strata
-means less and less data per parameters.
+means less data per parameter.
 %
 <<fignrstrata>>=
-makeFig("fignrstrata", 5, 5, {
+makeFig("fignrstrata", 1, 1, {
 nrstrata = 2^seq(0, 4)
 res = sim(nrstrata=nrstrata)
-myPlot(nrstrata, res, main="nrstrata")
+myPlot(nrstrata, res, main="b) nrstrata")
 })
 @
 %
 \begin{figure}[tbp]
 \begin{center}
-\includegraphics[width=0.5\textwidth]{figd}
-\includegraphics[width=0.5\textwidth]{fignrstrata}
+\includegraphics[width=0.49\textwidth]{figd}
+\includegraphics[width=0.49\textwidth]{fignrstrata}
 \caption{\label{figds}%
 Estimation error as a function of (a) the number of samples
 and (b) the number of strata. See Sections~\ref{sec:d} and \ref{sec:nrstrata}.}
@@ -171,12 +169,13 @@ and (b) the number of strata. See Sections~\ref{sec:d} and \ref{sec:nrstrata}.}
 In the following code, \Robject{de} is the fraction of differentially expressed genes.
 We run the simulation both with default settings \Robject{lts.quantile=0.9} and 
 the more robust \Robject{lts.quantile=0.5}.
-The reason why \Robject{lts.quantile=0.5} is not the default is that the estimator 
+The reason why \Robject{lts.quantile=0.5} is not the default is that 
+the estimator with \Robject{lts.quantile=0.9} 
 is more efficient (more precise with less data) \textit{if} the fraction of 
 differentially expressed genes is not that large. See Figure~\ref{figdiff}.
 %
 <<figdiff>>=
-makeFig("figdiff", 10, 5, {
+makeFig("figdiff", 2, 1, {
 de  = (0:6)/10
 res1 = sim(de=de, nrstrata=2)
 res2 = sim(de=de, nrstrata=2, lts.quantile=0.5)
@@ -184,16 +183,17 @@ myPlot2(de, list("de, lts.quantile=0.9"=res1, "de, lts.quantile=0.5"=res2))
 })
 @
 %
+In the next code chunk, 
 \Robject{up} is the fraction of up-regulated genes among the differentially
 expressed genes.  The best results are obtained for \Robject{up}$\approx0.5$,
-while the estimation goes up the more unbalanced the situation becomes.
+while the estimation error becomes larger the more unbalanced the situation becomes.
 %
 <<figup>>=
-makeFig("figup", 10, 5, {
+makeFig("figup", 2, 1, {
 up  = (0:8)/8
 res1 = sim(up=up, nrstrata=2, de=0.2)
 res2 = sim(up=up, nrstrata=2, de=0.2, lts.quantile=0.5)
-myPlot2(up, list("up, lts.quantile=0.9"=res1, "up, lts.quantile=0.5"=res2))
+myPlot2(up, list("a) up, lts.quantile=0.9"=res1, "b) up, lts.quantile=0.5"=res2))
 })
 @
 %
@@ -202,8 +202,9 @@ myPlot2(up, list("up, lts.quantile=0.9"=res1, "up, lts.quantile=0.5"=res2))
 \includegraphics[width=\textwidth]{figdiff}
 \caption{\label{figdiff}%
 Estimation error as a function of the number of differentially expressed genes,
-for two different settings of \Robject{lts.quantile};
-see Section~\ref{sec:de}.}
+for two different settings of \Robject{lts.quantile}. Note how a) is better
+for small values auf \Robject{de} (0 and 0.1), but becomes worse for larger
+values of \Robject{de}. See Section~\ref{sec:de}.}
 \end{center}
 \end{figure}
 
@@ -211,7 +212,7 @@ see Section~\ref{sec:de}.}
 \begin{center}
 \includegraphics[width=\textwidth]{figup}
 \caption{\label{figup}%
-Estimation error as a function of the fraction of up-regulated genes. 
+Estimation error as a function of the fraction of up-regulated genes, 
 for two different settings of \Robject{lts.quantile};
 see Section~\ref{sec:de}.}
 \end{center}
@@ -220,27 +221,22 @@ see Section~\ref{sec:de}.}
 %-----------------------------------------------------
 \section{Missing values}\label{sec:miss}
 %------------------------------------------------------
-
+In this Section, we check the impact of missing values on the performance 
+of the estimator. \Robject{miss} is the fraction of missing values in
+the overall 
+%
 <<figmiss1>>=
-makeFig("figmiss1", 5, 5, {
-miss = seq(0, 0.75, length=7)
-res = sim(miss=miss, d=8)
-myPlot(miss, res, log="y", main="fraction NA (d=8)")
+makeFig("figmiss", 2, 1, {
+miss = seq(0, 0.5, length=6)
+res1 = sim(miss=miss, d=8)
+res2 = sim(miss=miss, d=2)
+myPlot2(miss, list("fraction NA (d=8)"=res1, "b) fraction NA (d=2)"=res2))
 })
 @ 
 %
-<<figmiss2>>=
-makeFig("figmiss2", 5, 5, {
-miss = seq(0, 0.1, length=5)
-res = sim(miss=miss, d=2)
-myPlot(miss, res, log="y", main="fraction NA (d=2)")
-})
-@ 
-
 \begin{figure}[tbp]
 \begin{center}
-\includegraphics[width=0.49\textwidth]{figmiss1}
-\includegraphics[width=0.49\textwidth]{figmiss2}
+\includegraphics[width=\textwidth]{figmiss}
 \caption{\label{figmiss}%
 Estimation error as a function of the fraction of missing data points,
 see Section~\ref{sec:miss}.}
@@ -250,20 +246,32 @@ see Section~\ref{sec:miss}.}
 %-----------------------------------------------------
 \section{Incremental normalization}\label{sec:inc}
 %------------------------------------------------------
-<<incr>>=
+First, let's simulate a dataset with 10000 features, 12 arrays, 
+and no differentially expressed genes (in order to be able to look
+at the ML estimates rather than their robustified modifications).
+%
+<<incr1>>=
 dat = sagmbSimulateData(n=10000, d=12, de=0, nrstrata=1, miss=0, log2scale=TRUE)
 v  = new("vsn", refh=dat$mu, refsigma=dat$sigma, n=length(dat$mu)) 
 fit = vsn2(dat$y, lts.quantile=1, verbose=FALSE)
-
+@ 
+%
+\Robject{fit} contains the maximum profile likelihood estimate of 
+the \Rpackage{vsn} model.
+Then we use the \emph{incremental mode} of \Rpackage{vsn} to estimate,
+in turn for each array individually, the parameters. 
+The results are shown in Figure~\ref{figincr}.
+%
+<<incr2>>=
 parRef = array(as.numeric(NA), dim=dim(fit@par))
 for(j in 1:ncol(dat$y)) {
   vj = vsn2(dat$y[,j], reference=v, lts.quantile=1, verbose=FALSE)
   parRef[,j,] = vj@par
 }
 @ 
-
+%
 <<figincr>>=
-makeFig("figincr", 10, 10, {
+makeFig("figincr", 2, 2, {
 par(mfcol=c(2,2))
 for(k in 1:2) {
   plot(dat$par[1,,k], parRef[1,,k], xlab="True", ylab="Reference fit", main=c("offset", "factor")[k])
@@ -273,7 +281,7 @@ for(k in 1:2) {
 }
 })
 @ 
-
+%
 \begin{figure}[tbp]
 \begin{center}
 \includegraphics[width=\textwidth]{figincr}
@@ -291,9 +299,9 @@ see Section~\ref{sec:inc}.}
 \textbf{TODO}: Some sort of test that checks for correct functioning 
 of the subsampling if there are multiple strata.
 
-<<sample>>=
-
-@ 
+%% <<sample>>=
+%% 
+%%  @ 
 
 %-----------------------------------------------------
 \begin{thebibliography}{10}
