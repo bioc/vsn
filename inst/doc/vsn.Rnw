@@ -43,17 +43,13 @@ pagecolor=darkblue,raiselinks,plainpages,pdftex]{hyperref}
 \maketitle
 \tableofcontents
 
-<<no.nonsense,eval=FALSE,echo=FALSE,results=hide>>=
-q(save="no")
-@
-
 <<setup,echo=FALSE,results=hide>>=
 library("affy")
 library("marray")
 library("multtest")
 library("limma")
 library("vsn")
-oldopt <- options(digits=3)
+oldopt = options(digits=3)
 on.exit( {options(oldopt)} )
 @ 
 
@@ -78,8 +74,8 @@ data.
 doing the above task is
 %
 <<overv2>>=
-fit <- vsn2(kidney)
-ynorm <- predict(fit, kidney)
+fit = vsn2(kidney)
+ynorm = predict(fit, kidney)
 @
 %
 where \Robject{fit} is an object of class \Rclass{vsn} that contains
@@ -95,10 +91,10 @@ allows further inspection of the \Robject{fit} object, e.\,g.\ for the
 purposes of quality assessment.
 %
 <<over3>>=
-##identical(xnorm, ynorm)
+identical(exprs(xnorm), exprs(ynorm))
 @ 
 <<overv4, echo=FALSE>>=
-##stopifnot(identical(xnorm, ynorm), identical(exprs(xnorm), exprs(fit)))
+stopifnot(identical(exprs(xnorm), exprs(ynorm)), identical(exprs(xnorm), exprs(fit)))
 @ 
 %
 Beside \Rclass{ExpressionSet}s, there are also methods for handling matrices, 
@@ -114,7 +110,24 @@ values are the \textit{\textbf{generalized log-ratios}}. These are
 \emph{shrinkage estimators} of the natural logarithm of the fold change. 
 For example,
 %
-<<dummyex2,eval=FALSE>>=
+<<overv5>>=
+
+afkid = vsn:::trsf2log2scale(log2(fit@par[,,1] + exprs(kidney) * rep(fit@par[,,2], each=nrow(kidney))), 
+ fit@par)
+
+par(mfrow=c(1,3))
+Av = rowMeans(exprs(ynorm))
+Aq = rowMeans(afkid)
+Mv = t(diff(t(exprs(ynorm))))
+Mq = t(diff(t(afkid)))
+
+plot(Av, Mv, pch=".", ylim=c(-1,1)*5, col=ifelse(is.na(Aq), "darkorange", "black")); abline(h=0, col="blue")
+plot(Aq, Mq, pch=".", ylim=c(-1,1)*5); abline(h=0, col="blue")
+
+rv = rank(Av)
+matplot(rv, cbind(Mv, Mq), pch=".")
+abline(a=0, b=1, col="blue")
+
 M <- exprs(e2)[,i] - exprs(e2)[,j]
 @
 
@@ -152,6 +165,10 @@ of the variance on the mean intensity. There may be other factors influencing
 the variance, such as gene-inherent properties, or changes of the tightness of
 transcriptional control in different conditions.  If necessary, these need to
 be addressed by other methods.}.
+
+%------------------------------------------------------------
+\section{The relationship between vsn and background correction} 
+%------------------------------------------------------------
 
 %------------------------------------------------------------
 \section{Running vsn on data from a single two-color array} 
