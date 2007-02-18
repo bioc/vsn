@@ -1,21 +1,18 @@
-all:    vsn incremental convergence2 clean
+all: vsn incremental convergence2 clean
 
-vsn:    vsn.tex
+vsn: vsn.tex
 	pdflatex vsn
-        bibtex vsn
-        pdflatex vsn
-        pdflatex vsn
+	pdflatex vsn
 
 incremental: incremental.tex
-        pdflatex incremental	
-        bibtex incremental
-        pdflatex incremental
+	pdflatex incremental	
+	pdflatex incremental
 
 convergence2: convergence2.tex
-	cp -p ../scripts/convergence2.pdf 
+	cp -p ../scripts/convergence2.pdf .
 
 clean:
-        rm -f *.out *.bbl *.log *.aux *.blg *.brf *.toc *.tex
-        rm -f *.dvi *.ps vsn-* incremental-* 
+	rm -f *.out *.bbl *.log *.aux *.blg *.brf *.toc *.tex
+	rm -f *.dvi *.ps vsn-* incremental-* 
 
 
