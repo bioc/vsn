@@ -49,17 +49,15 @@ library("marray")
 library("multtest")
 library("limma")
 library("vsn")
-oldopt = options(digits=3)
-on.exit( {options(oldopt)} )
 @ 
 
 %------------------------------------------------------------
-\section{Getting started: brief overview}
+\section{Getting started: brief overview}\label{sec:overv}
 %------------------------------------------------------------ 
 \Rpackage{vsn} is a method to preprocess microarray intensity data.
 This can be as simple as
 %
-<<overv1>>=
+<<overv1, results=hide>>=
 library("vsn")
 data("kidney")
 xnorm = justvsn(kidney)
@@ -69,11 +67,18 @@ where \Robject{kidney} is an \Rclass{ExpressionSet} object with
 unnormalized data and \Robject{xnorm} the resulting
 \Rclass{ExpressionSet} with calibrated and $\glog_2$-transformed
 data.
+%
+<<overv2>>=
+M <- exprs(xnorm)[,1] - exprs(xnorm)[,2]
+@
+%
+produces the vector of generalized log-ratios between the 
+data in the first and second column.
 
 \Rpackage{vsn} is a \emph{model-based} method, and the more explicit way of 
 doing the above task is
 %
-<<overv2>>=
+<<overv3, results=hide>>=
 fit = vsn2(kidney)
 ynorm = predict(fit, kidney)
 @
@@ -83,124 +88,100 @@ the fitted calibration and transformation parameters (see
 Section~\ref{sec:calib} for more details on these).  The method
 \Rfunction{predict} can be used to apply the fit to the data. Often,
 there is no need for making these separate steps explicit, and that is
-why there is the function \Rfunction{justvsn}. The two-step protocol
-is useful, for instance, when you want to fit the parameters on a
+why there is the function \Rfunction{justvsn}. 
+\Robject{xnorm} and \Robject{ynorm} are identical.
+The two-step protocol
+is useful when you want to fit the parameters on a
 subset of the data, e.\,g.\ a set some control or spike-in features,
 and then apply the model to the complete set of data. Furthermore, it
 allows further inspection of the \Robject{fit} object, e.\,g.\ for the
 purposes of quality assessment.
 %
-<<over3>>=
-identical(exprs(xnorm), exprs(ynorm))
 @ 
-<<overv4, echo=FALSE>>=
+<<overv5, echo=FALSE, results=hide>>=
 stopifnot(identical(exprs(xnorm), exprs(ynorm)), identical(exprs(xnorm), exprs(fit)))
 @ 
 %
-Beside \Rclass{ExpressionSet}s, there are also methods for handling matrices, 
+Beside \Rclass{ExpressionSet}s, there 
+\textit{will also be}
+%are also 
+methods for handling matrices, 
 \Rclass{RGList} objects from the \Rpackage{limma} package and
 \Rclass{AffyBatch} objects from the \Rpackage{affy} package.
-%%%% FIXME
+\textit{FIXME: this vignette and the package are currently (Jan-Mar 2007) 
+being revised, some sections may be broken or incomplete, please bear 
+with me, I intend to fix all this for the 2.0 release.}
 
 The so-called $\glog_2$ (short for \textit{\textbf{generalized logarithm}}) 
 is a function that is like the logarithm (to base 2) for large values 
 (large compared to the amplitude of the background noise),
 but is less steep for smaller values.  Differences between the transformed
 values are the \textit{\textbf{generalized log-ratios}}. These are 
-\emph{shrinkage estimators} of the natural logarithm of the fold change. 
-For example,
-%
-<<overv5>>=
+\emph{shrinkage estimators} of the logarithm of the fold change.
+The usual \emph{log-ratio} is another example for an estimator\footnote{%
+In statistics, the term \emph{estimator} is used to denote an algorithm
+that calculates a value from a set of measured data. 
+This value is intended to correspond to a parameter of the 
+underlying distribution that generated the data. Depending on the amount of the 
+available data and the quality of the estimator, the 
+correspondence between the estimated value and the true value may be more 
+or less faithful. For example, the arithmetic mean and the median are two 
+different estimators of the expectation value of a distribution.}
+of log fold change. 
+There is also a close relationship between \emph{background correction} of 
+the intensities and the variance properties of these different estimators. Please
+see Section~\ref{sec:shrink} for more explanation of these issues. 
 
-afkid = vsn:::trsf2log2scale(log2(fit@par[,,1] + exprs(kidney) * rep(fit@par[,,2], each=nrow(kidney))), 
- fit@par)
-
-par(mfrow=c(1,3))
-Av = rowMeans(exprs(ynorm))
-Aq = rowMeans(afkid)
-Mv = t(diff(t(exprs(ynorm))))
-Mq = t(diff(t(afkid)))
-
-plot(Av, Mv, pch=".", ylim=c(-1,1)*5, col=ifelse(is.na(Aq), "darkorange", "black")); abline(h=0, col="blue")
-plot(Aq, Mq, pch=".", ylim=c(-1,1)*5); abline(h=0, col="blue")
-
-rv = rank(Av)
-matplot(rv, cbind(Mv, Mq), pch=".")
-abline(a=0, b=1, col="blue")
-
-M <- exprs(e2)[,i] - exprs(e2)[,j]
-@
-
-produces the vector of generalized log-ratios between samples $i$ and
-$j$. Notes that these are to base \textit{e}. If you want to convert them to
-base 2, divide them by log(2). If you want to know the estimated the fold
-change, exponentiate:
-
-<<dummyex3,eval=FALSE>>=
-M.base2 <- M/log(2)
-fold.change <- exp(M)
-@
-
-Generalized log-ratios can be viewed as a \textit{shrinkage estimator}: they
-are always smaller than or equal to the naive log-ratios; equality is
-asymptotically reached if the probe intensities are large both for samples $i$
-and $j$. Their advantage is that they do not suffer from the variance
-divergence of the naive log-ratios at small intensities: they remain
-well-defined and statistically meaningful when the data come close to zero or
-even become negative.  Please consult the references for more on the
-mathematical-methodical background
-~\cite{HuberISMB2002,HSG2002,HuberSAGMB2003}.
-
-
-In short, each column is calibrated by an affine transformation\footnote{It is
-possible to stratify the transformations within columns, see the \Robject{strata}
-parameter of \Rfunction{vsn}.}, then the whole data are transformed by a
+How does \Rpackage{vsn} work? In short, each column is calibrated by
+an affine transformation\footnote{It is possible to stratify the
+transformations within columns, see the \Robject{strata} parameter of
+\Rfunction{vsn}.}, then the whole data are transformed by a logarithm-like
 variance-stabilizing transformation.  After this, systematic array- or
 dye-biases should be removed, and the variance should be approximately
 independent of the mean intensity.  Many statistical methods such as
-hypothesis tests, ANOVA modeling, clustering, or classification work better or
-are easier to use if the variance of the data is roughly the same for all
-observations\footnote{Note that \Rpackage{vsn} only addresses the dependence
-of the variance on the mean intensity. There may be other factors influencing
-the variance, such as gene-inherent properties, or changes of the tightness of
-transcriptional control in different conditions.  If necessary, these need to
-be addressed by other methods.}.
-
-%------------------------------------------------------------
-\section{The relationship between vsn and background correction} 
-%------------------------------------------------------------
+hypothesis tests, ANOVA modeling, clustering, or classification work
+better or are easier to use if the variance of the data is roughly the
+same for all observations\footnote{Note that \Rpackage{vsn} only
+addresses the dependence of the variance on the mean intensity. There
+may be other factors influencing the variance, such as gene-inherent
+properties, or changes of the tightness of transcriptional control in
+different conditions.  If necessary, these need to be addressed by
+other methods.}.
 
 %------------------------------------------------------------
 \section{Running vsn on data from a single two-color array} 
 %------------------------------------------------------------
-The package includes example data from a cDNA array on which two
-biologically very similar samples, one labeled in green (Cy3), one
-in red (Cy5), were hybridized.
-<<lib,results=hide>>= 
-library("vsn") 
-data("kidney") 
-@ 
-The two columns of the matrix \Robject{exprs(kidney)} contain the
-green and red intensities, respectively. Let's try out \Robject{vsn} on
-these example data. In Fig.~\ref{vsn-nkid-scp} you can see the
-scatterplot of the calibrated and transformed data. For comparison,
-the scatterplot of the log-transformed raw intensities is also shown.
-<<nkid-calc, results=hide>>=
-nkid <- vsn(kidney)
-@
+The dataset \Robject{kidney} from Section~\ref{sec:overv} contains
+example data from a single cDNA array on which two biologically
+similar samples, one labeled in green (Cy3), one in red (Cy5), were
+hybridized.  The two columns of the matrix \Robject{exprs(kidney)}
+contain the green and red intensities, respectively. A local 
+background estimate\footnote{%
+See Section~\ref{sec:shrink} for more on the relationship between 
+background correction and variance stabilizing transformations.} 
+was calculated by the image analysis software and subtracted, hence 
+some of the intensities in \Robject{kidney} are close to zero or 
+negative. In
+Figure~\ref{vsn-nkid-scp} you can see the scatterplot of the
+calibrated and transformed data. For comparison, the scatterplot of
+the log-transformed raw intensities is also shown.
+%
 <<nkid-scp,include=FALSE,fig=TRUE,width=8,height=4>>=
 par(mfrow=c(1,2))
-log.na = function(x) log(ifelse(x>0, x, NA))
-plot(exprs(nkid), main = "vsn", pch = ".")
-plot(log.na(exprs(kidney)), main = "raw", pch = ".")
+select <- 0==rowSums(exprs(kidney)<=0)
+plot(exprs(xnorm), main = "a) vsn", pch = ".", col=ifelse(select, "black", "orange"))
+plot(log2(exprs(kidney)[select, ]), main = "b) raw", pch = ".")
 @
-\myincfig{vsn-nkid-scp}{\textwidth}{Scatterplots of the kidney example
-data}
-\Robject{vsn} returns the transformed intensities in an object of
-class \Rclass{exprSet}. Its slot \Robject{exprs} is a matrix of the
-same size as the input data.  The plot in Fig.~\ref{vsn-nkid-scp}
-shows the complete set of $n=9216$ red and green intensities, without
-any thresholding or masking of data points.  To verify the variance
+\myincfig{vsn-nkid-scp}{\textwidth}{%
+Scatterplots of the kidney example data. 
+a) normalized and transformed with \Rpackage{vsn}, 
+b) original data, $\log_2$-transformed.
+Panel a shows the data from the complete set of \Sexpr{nrow(kidney)} 
+spots on the array, panel b only the \Sexpr{sum(select)} spots for which
+\Robject{select} (see code chuck in the main text) is \Robject{TRUE}. 
+Those spots which are missing in panel b are colored in orange in panel a.}
+%
+To verify the variance
 stabilization, there is the function \Robject{meanSdPlot}. For each
 probe $k=1,\ldots,n$ it shows the estimated standard deviation
 $\hat{\sigma}_k$ on the $y$-axis versus the rank of the average
@@ -211,8 +192,8 @@ $\hat{\mu}_k$ on the $x$-axis,
 \end{equation}
 <<nkid-sdmean,include=FALSE,fig=TRUE,width=8,height=4,results=hide>>=
 par(mfrow=c(1,2))
-meanSdPlot(nkid, ranks=TRUE)
-meanSdPlot(nkid, ranks=FALSE)
+meanSdPlot(xnorm, ranks=TRUE)
+meanSdPlot(xnorm, ranks=FALSE)
 @
 \myincfig{vsn-nkid-sdmean}{\textwidth}{Standard deviation versus rank
 of the mean, and the mean, respectively}
@@ -232,31 +213,14 @@ along the $x$-axis. A plot in which the $x$-axis shows the average
 intensities themselves is obtained by calling the \Robject{plot}
 command with the argument \Robject{ranks=FALSE}.
 
-The parameter estimation in \Robject{vsn} works in an iterative
-manner.  To verify that the iterations have converged, you can call
-the function \Robject{vsnPlotPar}.
-<<nkid-iter,include=FALSE,fig=TRUE,width=8,height=4,results=hide>>=
-par(mfrow=c(1,2))
-vsnPlotPar(nkid, "offsets")
-vsnPlotPar(nkid, "factors")
-@
-\myincfig{vsn-nkid-iter}{\textwidth}{Iteration trajectory of the calibration
-and transformation parameters} The plots in Fig.~\ref{vsn-nkid-iter} show the
-values of the estimated calibration and variance stabilization parameters on
-the $y$-axis as a function of the iteration index. All curves should reach a
-plateau before the last iteration. If this is not the case, the number of
-iterations may be increased through the parameter \Robject{iter}.  It
-could also indicate a data quality problem, see Section~\ref{sec.qc}.
-
-The generalized log-ratios for this experiment
-can be obtained for further processing through
-<<nkid-histM,include=FALSE,fig=TRUE,results=hide>>=
-M <- exprs(nkid)[,2] - exprs(nkid)[,1] 
+The histogram of the \Robject{M}-values is shown in 
+Figure~\ref{vsn-nkid-histM}.
+%
+<<nkid-histM,include=FALSE,echo=FALSE,fig=TRUE,results=hide,width=5,height=5>>=
 hist(M, breaks=50, col="#d95f0e")
 @
 \myincfig{vsn-nkid-histM}{0.4\textwidth}{Histogram of generalized 
-log-ratios for the kidney example data}
-The histogram is shown in Fig.~\ref{vsn-nkid-iter}.
+log-ratios \Robject{M} for the kidney example data.}
 
 %------------------------------------------------------------
 \section{Running vsn on data from multiple arrays 
@@ -477,20 +441,16 @@ stratum $s$ and sample $i$.
 
 We can access the calibration and transformation parameters through
 <<nkid-calib1>>=
-prep <- preproc(description(nkid))
-names(prep)
-prep$vsnParams
+fit@par
 @
-% $ for ESS
-The \Robject{description} slot of an \Rclass{exprSet} is an object of
-class \Rclass{MIAME}, and may contain annotation data pertinent to the
-experiment represented by the object. For an exprSet with $d$ sample 
-and $n_s$ probe strata % (see Section~\ref{sec.strata}),
-\Robject{prep\$vsnParams} is a numeric array with dimensions $(n_s, d, 2)$. 
-\Robject{prep\$vsnParams[s, i, 1]} is what was called $a_{si}$ in
-Eqn.~(\ref{eq.transf}), and
-\Robject{prep\$vsnParams[s, i, 2]} is $b_{si}$. Compare the 
-numbers printed above with the final values in Fig.~\ref{vsn-nkid-iter}.
+% 
+For a dataset with $d$ samples and $s$ strata,
+\Robject{fit@par} is a numeric array with dimensions $(s, d, 2)$. 
+For the example data that was used in Section~\ref{sec:overv} to generate 
+\Robject{fit}, $d=2$ and $s=1$.
+\Robject{fit@par[s, i, 1]}, the first line in the results of the above code chunk, 
+is what was called $a_{si}$ in Eqn.~(\ref{eq.transf}), and
+\Robject{fit@par[s, i, 2]}, the second line, is $b_{si}$. 
 
 %---------------------------------------------------------------------
 \subsection{More on calibration} 
@@ -527,7 +487,7 @@ before.  The result is shown in Fig.~\ref{vsn-nkid-calib4}.
 
 
 %-------------------------------------------------------------------
-\section{Assessing vsn}
+\section{Assessing vsn and comparing it to other methods}
 %-------------------------------------------------------------------
 The function \Robject{vsn} is a parameter estimation algorithm that fits the
 parameters for a certain model. In order to see how good the estimator is, we
@@ -600,6 +560,78 @@ t2 <- mt.teststat(mn@maM, classlabel)
 qqplot(t1, t2, xlab="t (vsn)", ylab="t (global median)", main="QQ plot", pch=".")
 abline(a=0,b=1,col="blue")
 @
+
+%------------------------------------------------------------
+\section{vsn, shrinkage and background correction} \label{sec:shrink}
+%------------------------------------------------------------
+%
+<<calcshrink, echo=FALSE>>=
+fc = 0.5
+x2 = seq(0.5, 15, by=0.5)
+x1 = x2/fc
+m = s = numeric(length(x1))
+n  = 20000
+sa = 1
+b  = 1
+sb = 0.1
+sdeta = 0.1
+for(i in 1:length(x1)){
+  z1 = sa*rnorm(n)+x1[i]*b*exp(sb*rnorm(n))
+  z2 = sa*rnorm(n)+x2[i]*b*exp(sb*rnorm(n))
+  if(i%%2==1) {
+    q = log(z1/z2)
+    m[i] = mean(q, na.rm=TRUE)
+    s[i] = sd(q, na.rm=TRUE)
+  } else {
+    h = (asinh(z1/(sa*b/sb))-asinh(z2/(sa*b/sb)))
+    m[i] = mean(h)
+    s[i] = sd(h)
+  }
+}
+
+colq = c("black", "blue")
+lty  = 1
+pch  = c(20,18)
+cex  = 1.4
+lwd  = 2
+@ 
+%
+<<figshrink, fig=TRUE, echo=FALSE, include=TRUE, width=5, height=5>>=
+mai  = par("mai"); mai[3]=0; par(mai)
+plot(x2, m, ylim=c(-1.2,2), type="n", xlab=expression(x[2]), ylab="")
+abline(h=-log(fc), col="red", lwd=lwd, lty=1)
+abline(h=0, col="black", lwd=1, lty=2)
+points(x2, m, pch=pch, col=colq, cex=cex)
+segments(x2, m-2*s, x2, m+2*s, lwd=lwd, col=colq, lty=lty)
+legend(8.75, -0.1, c("q","h"), col=colq, pch=pch, lty=lty, lwd=lwd)
+@
+%
+\myincfig{vsn-figshrink}{0.5\textwidth}{%
+The shrinkage property of the generalized log-ratio.  
+Blue diamonds and error bars correspond to mean and standard
+deviation of the generalized log-ratio $h$, as obtained from \Rpackage{vsn}, 
+black dots and error bars to the naive log-ratio $q$.  
+For this figure, data were simulated generated from the 
+additive-multiplicative error model~\cite{RockeDurbin2001,HuberSAGMB2003,HuberWiley2004}.
+The horizontal line corresponds to the true log-ratio $\log(2)\approx0.693$.
+For intensities $x_2$ that are larger than about ten times the additive noise 
+level $\sigma_a$, generalized log-ratio $h$ and naive log-ratio $q$ coincide. 
+For smaller intensities, we can see a \textit{variance-bias trade-off}: 
+$q$ has no bias but a huge variance, thus an estimate of the 
+fold change based on a limited set of data can be arbitrarily off.
+In contrast, $h$ keeps a constant variance -- for the 
+price of systematically underestimating the true fold change.}
+
+Generalized log-ratios can be viewed as a \textit{shrinkage estimator}: they
+are always smaller than or equal to the naive log-ratios; equality is
+asymptotically reached if the probe intensities are large both for samples $i$
+and $j$. Their advantage is that they do not suffer from the variance
+divergence of the naive log-ratios at small intensities: they remain
+well-defined and statistically meaningful when the data come close to zero or
+even become negative.  Please consult the references for more on the
+mathematical-methodical background~\cite{HuberISMB2002,HSG2002,HuberSAGMB2003}.
+
+
 
 %---------------------------------------------------------
 \section{Quality assessment}\label{sec.qc}
@@ -703,9 +735,6 @@ file". For cDNA data, we recommend to use only background adjustment
 procedures that estimate the background independent of the observed
 foreground intensity.
 
-<<setdown,echo=FALSE,results=hide>>=
-options(oldopt)
-@
 
 \begin{thebibliography}{10}
 
@@ -718,9 +747,10 @@ W. Huber, A. von Heydebreck, H. {S\"ultmann}, A. Poustka, and M. Vingron.
 \bibitem{HSG2002}
 W. Huber, A. von Heydebreck, and M. Vingron.
 \newblock Analysis of microarray gene expression data.
-\newblock To appear in the \textit{Handbook of Statistical Genetics}, 2003.
+\newblock \textit{Handbook of Statistical Genetics}, 
 Eds.: D. J. Balding, M. Bishop, C. Cannings. 
-John Wiley \& Sons, Inc., 
+John Wiley \& Sons, Inc. (2003).
+\textit{(preprint available from author)}
 
 \bibitem{HuberSAGMB2003}
 W. Huber, A. von Heydebreck, H. {S\"ultmann}, A. Poustka, and M. Vingron.
@@ -729,6 +759,13 @@ of microarray data.
 \newblock \textit{Statistical Applications in Genetics and Molecular Biology}, 
 Vol. 2: No. 1, Article 3, 2003. 
 http://www.bepress.com/sagmb/vol2/iss1/art3
+
+\bibitem{HuberWiley2004}
+W. Huber, A. von Heydebreck, and M. Vingron.
+\newblock Error models for microarray intensities.
+\newblock \textit{Encyclopedia of Genomics, Proteomics and Bioinformatics}, 
+John Wiley \& Sons, Inc. (2004).
+\textit{(preprint available from author)}
 
 \bibitem{RockeDurbin2001}
 David~M. Rocke and Blythe Durbin.
