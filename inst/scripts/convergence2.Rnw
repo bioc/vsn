@@ -25,9 +25,9 @@
 
 \section{Overview}
 The purpose of this vignette is to assess that the software in
-\Rpackage{vsn} actually does what it is supposed to do according to the
-mathematical theory. And to see \textit{how fast} (or slow, depending on your
-point of view) and \textit{how accurately} it does that.
+\Rpackage{vsn} does what it is intended do, and in particular, 
+to assess the performance of the parameter estimation on simulated 
+data where the true parameters are known.
 
 There are two functions \Rfunction{sagmbSimulateData} and
 \Rfunction{sagmbAssess} that can be used to generate simulated data and assess
@@ -42,9 +42,9 @@ number of arrays \Robject{d}, the fraction of differentially expressed genes
 <<setup, results=hide, echo=FALSE>>=
 library("vsn")
 set.seed(0xabcd)
-options(error=recover)
+options(error=recover, warn=2)
 
-sim = function(..., lts.quantile=0.9, nrrep=20) {
+sim = function(..., lts.quantile=0.9, nrrep=30) {
   callpar = list(...)
   ll      = listLen(callpar)
   stopifnot(ll[1]>=1, all(ll[-1]==1))
@@ -65,7 +65,7 @@ sim = function(..., lts.quantile=0.9, nrrep=20) {
 } ## sim
 
 myPlot = function(n, res, log="xy", ...) {
-  matplot(n, t(res), pch=20, log=log, ylab='r.m.s. error', col="#909090", xlab=deparse(substitute(n)), ...)
+  matplot(n, t(res), pch=20, log=log, ylab='r.m.s. error', col="orange", xlab=deparse(substitute(n)), ...)
   lines(n, colMeans(res), col="blue")
 }
 
@@ -73,9 +73,9 @@ myPlot2 = function(n, rl) {
   par(mfrow=c(1,2))
   ylim=range(unlist(rl))
   for(i in seq(along=rl)) {
-    x = if(length(n)==1) n else n[[i]]
+    x = if(is.list(n)) n[[i]] else n
     matplot(x, t(rl[[i]]), pch=20, ylab='r.m.s. error', xlab=deparse(substitute(n)),
-            log="y", ylim=ylim, col="#909090", main=names(rl)[i])
+            log="y", ylim=ylim, col="orange", main=names(rl)[i])
     lines(x, colMeans(rl[[i]]), col="blue")
   }
 }
@@ -99,14 +99,15 @@ the root mean squared difference between true and estimated transformed data)
 as a function of the number of features $n$. If \Rfunction{vsn} works correctly,
 the estimation error should decrease roughly as $n^{-1/2}$.
 %
-<<fign1>>=
+<<fign1, results=hide>>=
 n = 1000*2^seq(-2, 5)
 makeFig("fign1", 1, 1, {
   res = sim(n=n)
   myPlot(n, res, main="n: one stratum")
 })
 @
-<<fign2>>=
+<<fign2, results=hide>>=
+n = 1000*2^seq(0, 5)
 makeFig("fign2", 1, 1, {
   res = sim(n=n, nrstrata=8)
   myPlot(n, res, main="n: 8 strata")
@@ -132,7 +133,7 @@ samples $d$. This curve is essentially flat. This is because the number of param
 estimated is proportional to $d$, so the "number of data points per parameter"
 is constant in this plot (in contrast to Fig.~\ref{fign}).
 %
-<<figd>>=
+<<figd, results=hide>>=
 makeFig("figd", 1, 1, {
   d = 2^seq(1, 5)
   res = sim(d=d)
@@ -147,7 +148,7 @@ should increase, since for each stratum, we need to estimate separate
 parameters, and if the overall number of features does not change, more strata
 means less data per parameter.
 %
-<<fignrstrata>>=
+<<fignrstrata, results=hide>>=
 makeFig("fignrstrata", 1, 1, {
 nrstrata = 2^seq(0, 4)
 res = sim(nrstrata=nrstrata)
@@ -176,7 +177,7 @@ the estimator with \Robject{lts.quantile=0.9}
 is more efficient (more precise with less data) \textit{if} the fraction of 
 differentially expressed genes is not that large. See Figure~\ref{figdiff}.
 %
-<<figdiff>>=
+<<figdiff, results=hide>>=
 makeFig("figdiff", 2, 1, {
 de  = (0:6)/10
 res1 = sim(de=de, nrstrata=2)
@@ -190,7 +191,7 @@ In the next code chunk,
 expressed genes.  The best results are obtained for \Robject{up}$\approx0.5$,
 while the estimation error becomes larger the more unbalanced the situation becomes.
 %
-<<figup>>=
+<<figup, results=hide>>=
 makeFig("figup", 2, 1, {
 up  = (0:8)/8
 res1 = sim(up=up, nrstrata=2, de=0.2)
@@ -227,11 +228,11 @@ In this Section, we check the impact of missing values on the performance
 of the estimator. \Robject{miss} is the fraction of missing values in
 the overall 
 %
-<<figmiss>>=
+<<figmiss, results=hide>>=
 makeFig("figmiss", 2, 1, {
 miss1 = seq(0, 0.5, length=6)
 res1 = sim(miss=miss1, d=8)
-miss1 = seq(0, 0.1, length=6)
+miss2 = seq(0, 0.1, length=6)
 res2 = sim(miss=miss2, d=2)
 myPlot2(list(miss1, miss2), list("fraction NA (d=8)"=res1, "b) fraction NA (d=2)"=res2))
 })
@@ -273,7 +274,7 @@ for(j in 1:ncol(dat$y)) {
 }
 @ 
 %
-<<figincr>>=
+<<figincr, results=hide>>=
 makeFig("figincr", 2, 2, {
 par(mfcol=c(2,2))
 for(k in 1:2) {
@@ -301,7 +302,7 @@ see Section~\ref{sec:inc}.}
 %-----------------------------------------------------
 \section{Subsampling}\label{sec:sample}
 %------------------------------------------------------
-\textbf{TODO}: Some sort of test that verifies the correct functioning 
+\textbf{TODO}: A test that verifies the correct functioning 
 of the subsampling if there are multiple strata.
 
 %% <<sample>>=
