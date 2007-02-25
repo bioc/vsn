@@ -198,22 +198,14 @@ vsnColumnByColumn = function(v) {
 ## vsnStrata: if necessary,
 ## reorder the rows of the matrix so that each stratum sits in a contiguous block
 ##----------------------------------------------------------------------------------
-vsnStrata = function(v, minDataPointsPerStratum=42) {
+vsnStrata = function(v) {
 
   ord = NULL
-  if(length(v@strata)>0) {
-    if(nlevels(v@strata)>1) {
-      if(any(table(v@strata) < minDataPointsPerStratum))
-        warning("*** There are less than ", minDataPointsPerStratum, " data points in ",
-                "some of the strata.\n*** The fitted parameters may be unreliable.\n",
-                "*** You could try to reduce the number of strata.\n")
-    
-      ## reorder the rows of the matrix so that each stratum sits in a contiguous block
-      ord = order(v@strata)
-      v   = v[ord,]
-    }
-    v@ordered = TRUE
+  if(nlevels(v@strata)>1) {
+    ## reorder the rows of the matrix so that each stratum sits in a contiguous block
+    v = v[order(v@strata),]
   }
+  v@ordered = TRUE
 
   res = if(length(v@reference@refh)>0)
     vsnColumnByColumn(v)
@@ -247,22 +239,27 @@ vsnMatrix = function(x,
   reference,
   strata,
   lts.quantile = 0.9,
-  subsample    = as.integer(0),
+  subsample    = 0L,
   verbose      = interactive(),
   returnData   = TRUE,
   pstart,
-  cvg.niter    = as.integer(7),
+  cvg.niter    = 7L,
   cvg.eps      = 1e-3) {
+
+  storage.mode(x) = "double"
 
   if(missing(strata)) 
     strata = factor(integer(0), levels="all")
 
-  storage.mode(x) = "double"
+  minDataPointsPerStratum = 42L
+  stratasplit = split(seq_len(nrow(x)), strata)
+  if(!(identical(names(stratasplit), levels(strata)) &&
+       all(listLen(stratasplit)>minDataPointsPerStratum)))
+    stop("One or more of the strata contain less than ", minDataPointsPerStratum, " elements.\n",
+         "Please reduce the number of strata so that there is enough in each stratum.\n")
   
-  if(missing(pstart)) {
-    pstart = array(0, dim=c(nlevels(strata), ncol(x), 2))
-    pstart[,,2] = rep(1/apply(x, 2, IQR, na.rm=TRUE), each=dim(pstart)[1])
-  }
+  if(missing(pstart))
+    pstart = pstartHeuristic(x, stratasplit)
   
   if(missing(reference)) {
     if(ncol(x)<=1)
@@ -369,5 +366,20 @@ rowVars = function(x, mean, ...) {
   return(rowSums(sqr(x-mean), ...)/n)
 }
 
-
-
+##
+## A heuristic to set the start parameters for offset and scale.
+## We choose them such that the 10% quantile is at 2 and the
+## 75% quantile at 10. No particular reason for this, if anyone
+## has a better idea, please tell me.
+##
+pstartHeuristic = function(x, sp) {
+  pstart = array(0, dim=c(length(sp), ncol(x), 2L))
+  for(i in seq_along(sp)) {
+    for(j in seq_len(ncol(x))) {
+      rg = quantile(x[sp[[i]], j], probs=c(0.10, 0.75), na.rm=TRUE)
+      z = 8/(rg[2]-rg[1])
+      pstart[i,j,] = c(2-rg[1]*z, z)
+    }
+  }
+  return(pstart)
+}
