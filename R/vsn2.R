@@ -52,11 +52,15 @@ vsnML = function(v, niter=4) {
          "columns of the data matrix are exactly co-linear or affine dependent.",
          "Please verify the data to make sure there were no mix-ups.")), collapse="\n"), "\n")
   
-  par =  array(o[-length(o)], dim=dim(v@pstart))
+  par = array(o[-length(o)], dim=dim(v@pstart))
   if (any(par[,,2]<0))
     stop("Likelihood optimization produced negative parameter estimates.\n",
          "Please contact the package maintainer.\n")
 
+  ## calculate gradient
+  ll = logLik(v, cbind(par), v@reference@refh, v@reference@refsigma)
+  ## browser()
+  
   return(par)
 }
 
@@ -252,7 +256,7 @@ vsnMatrix = function(x,
     strata = factor(integer(0), levels="all")
 
   minDataPointsPerStratum = 42L
-  stratasplit = split(seq_len(nrow(x)), strata)
+  stratasplit = if(length(strata)>0) split(seq_len(nrow(x)), strata) else list(all=seq_len(nrow(x)))
   if(!(identical(names(stratasplit), levels(strata)) &&
        all(listLen(stratasplit)>minDataPointsPerStratum)))
     stop("One or more of the strata contain less than ", minDataPointsPerStratum, " elements.\n",

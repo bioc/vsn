@@ -9,7 +9,7 @@
   for the vsn model. \code{plotVsnLogLik} makes a false color plot for
   a 2D section of the likelihood landscape.}
 \usage{
-\S4method{logLik}{vsnInput}(object, p, refh, refsigma)
+\S4method{logLik}{vsnInput}(object, p, refh=numeric(0), refsigma=as.numeric(NA))
 
 plotVsnLogLik(object, p, whichp=1:2, expand=1, ngrid=31, fun=logLik, ...)
 }
@@ -17,9 +17,9 @@ plotVsnLogLik(object, p, whichp=1:2, expand=1, ngrid=31, fun=logLik, ...)
   \item{object}{A \code{\link{vsnInput}} object.}
   \item{p}{A matrix whose columns are the set of parameters at which
     the likelihoods are to be evaluated.}
-  \item{refh}{Numeric vector of the same length as \code{nrow(object)}.
-    The arguments \code{refh} and \code{refsigma} must be either both present or
-    both missing. See \code{\link{vsn2}}.}
+  \item{refh}{Numeric vector of length 0 or \code{nrow(object)}.
+    If the length is 0, there is no reference and and \code{refsigma} must be
+    missing. See \code{\link{vsn2}}.}
   \item{refsigma}{Numeric scalar.}
   \item{whichp}{Numeric vector of length 2, with the indices of those
     two parameters in \code{p} along which the section is to be taken.}

@@ -26,11 +26,11 @@ vsnMatrix(x,
   reference,
   strata,
   lts.quantile = 0.9,
-  subsample    = as.integer(0),
+  subsample    = 0L,
   verbose      = interactive(),
   returnData   = TRUE,
   pstart,
-  cvg.niter    = as.integer(7),
+  cvg.niter    = 7L,
   cvg.eps      = 1e-3)
 
 \S4method{vsn2}{matrix}(x, reference, strata, ...)
