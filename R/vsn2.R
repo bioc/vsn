@@ -57,8 +57,10 @@ vsnML = function(v, niter=4) {
     stop("Likelihood optimization produced negative parameter estimates.\n",
          "Please contact the package maintainer.\n")
 
-  ## calculate gradient
-  ll = logLik(v, cbind(par), v@reference@refh, v@reference@refsigma)
+  ## calculate gradient, hessian
+  ## ll = logLik(v, cbind(par), v@reference@refh, v@reference@refsigma)
+  ## hh = vsnHessian(v, par, v@reference@refh, v@reference@refsigma)
+  ## plotVsnLogLik(v, cbind(par), whichp=1:2)
   ## browser()
   
   return(par)
