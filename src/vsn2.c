@@ -400,7 +400,7 @@ SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP Srefsigma)
   SEXP res;
   vsn_data x;
 
-  lmm      = 10;   
+  lmm      = 20;   
   fail     = 0;
 
   /* L-BFGS-B uses these two termination criteria:
@@ -413,12 +413,12 @@ SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP Srefsigma)
 
      See L-BFGS-B: Fortran Subroutines for Large-Scale Bound Constrained
      Optimization, C. Zhu, R.H. Byrd, P. Lu and J. Nocedal (1996) */
-  factr    = 1000.0; 
+  factr    = 1e4; 
   pgtol    = 1e-5;
+  maxit    = 200000;
  
   fncount  = 0;
   grcount  = 0;
-  maxit    = 40000;
   trace    = 0;    /* 6; */
   nREPORT  = 1;
 
