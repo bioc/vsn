@@ -6,14 +6,13 @@
 library("vsn")
 options(error=recover)
 data("kidney")
-x  = exprs(kidney)
+x = exprs(kidney)
 
 nrpt  = 25 ## number of points p0 from which to consider
 nrstr = 2
 nrpar = 2*ncol(x)*nrstr
 eps   = 1e-4
 
-newinvlambda = function(y) ifelse((1:nrpar)<=(ncol(x)*nrstr), y, sqrt(y))
 norm = function(x) sqrt(sum(x*x))
 
 v = new("vsnInput", x=exprs(kidney),
@@ -32,9 +31,10 @@ doit = function(fun) {
     for(il in 1:nrpar) {
       dp = eps*(il==1:nrpar)
       fn = fun(cbind(p0-dp, p0+dp))[1, ]
-      grn = diff(fn)/norm(newinvlambda(p0+dp)-newinvlambda(p0-dp))
+      grn = diff(fn)/norm(2*dp)
       stopifnot(is.finite(grn))
       df[il,ip,2]  = grn
+      ##browser()
     }
   }
   cat("\n\n")
@@ -58,4 +58,4 @@ doit = function(fun) {
 graphics.off()
 
 doit(function(p) logLik(v, p))
-doit(function(p) logLik(v, p, refh = rowMeans(x), refsigma = mean(diff(t(x))^2)))
+doit(function(p) logLik(v, p, refh = rowMeans(x), refsigma = mean(diff(t(x)))))

@@ -76,31 +76,9 @@ void calctrsf(vsn_data *px, double* par, double *hy)
     return;
 }
 
-double lambda(double x)    { return(x*x);}
-double dlambdadx(double x) { return(2.0*x);}
-double invlambda(double y) { return(sqrt(y));}
-
-/* double lambda(double x)    { if(x<1) {return(exp(x-1));} else {return(x);}}
-double dlambdadx(double x) { if(x<1) {return(exp(x-1));} else {return(1.0);}}
-double invlambda(double y) { if(y<1) {return(log(y)+1.0);} else {return(y);}} */
-
-/* double lambda(double x)    {return(fabs(x));}
-double dlambdadx(double x) {return(x>0 ? 1.0 : -1.0);}
-double invlambda(double y) {return(y);} */
-
-/* double lambda(double x)    {return(exp(x));}
-double dlambdadx(double x) {return(exp(x));}
-double invlambda(double y) {return(log(y));} */
-
 /*----------------------------------------------------------------------
   The function to be optimized:
-  offs[j] for j=0,..,nrstrat-1 are the offsets, lambda(facs[j]) the factors. 
-  Here, lambda(x) is a monotonous, continuous, differentiable and strictly 
-  positive function.
-  By running the minimization on the parameters transformed by lambda, 
-  the constraint that the factors need to be >0 is automatically satisfied. 
-  For the gradient, note that: 
-    d/dx f(lambda(x)) = f'(lambda(x))*lambda'(x)
+  offs[j] for j=0,..,nrstrat-1 are the offsets, facs[j] the factors. 
   
   For the normal likelihood, see the vignette 'incremental.Rnw'
   For the profile likelihood, see the SAGMB 2003 paper, and my grey 
@@ -127,7 +105,7 @@ double loglik(int n, double *par, void *ex)
 
   jac = 0.0;
   for(j=0; j < px->nrstrat; j++){
-    fj = lambda(facs[j]);
+    fj = facs[j];
     oj = offs[j];
     for(i = px->strat[j]; i < px->strat[j+1]; i++){
       z = px->y[i];
@@ -253,9 +231,9 @@ void grad_loglik(int n, double *par, double *gr, void *ex)
 	nj++;
       }
     } /* for k */
-    s4 -= (double)nj / lambda(facs[j]);
+    s4 -= (double)nj / facs[j];
     gr[j]             =  vorfak * s1 + s3;
-    gr[px->nrstrat+j] = (vorfak * s2 + s4) * dlambdadx(facs[j]); /* chain rule */
+    gr[px->nrstrat+j] = (vorfak * s2 + s4);
   }
 
 
@@ -306,8 +284,7 @@ void setupEverybody(SEXP Sy, SEXP Spar, SEXP Sstrat, vsn_data* px)
 }
 
 /* This setup function is used by vsn2_optim, vsn2_point (but not by vsn2_trsf) */
-/* It sets up workspaces, processes the Sstrat parameters,
-   and does the parameter transformation (lambda)  */
+/* It sets up workspaces and processes the Sstrat parameters  */
 
 double* setupLikelihoodstuff(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP Srefsigma, vsn_data* px) 
 {  
@@ -354,15 +331,14 @@ double* setupLikelihoodstuff(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP S
   px->dh      = (double *) R_alloc(nr*nc,  sizeof(double));
   px->lastpar = (double *) R_alloc(np, sizeof(double));
 
-  /* parameters: transform the factors using "lambda" (see above) */
+  /* parameters  */
   cpar = (double *) R_alloc(np, sizeof(double));
-  for(i=0; i < ns; i++) 
+  for(i=0; i < 2*ns; i++) 
     cpar[i] = REAL(Spar)[i];
-  for(i=ns; i < 2*ns; i++) {
-    if(REAL(Spar)[i] <=0 )
+  for(i=ns; i < 2*ns; i++)
+    if(cpar[i] <=0 )
       error("'Spar': factors must be >0.");
-    cpar[i] = invlambda(REAL(Spar)[i]);
-  }
+  
   return(cpar);
 } 
 
@@ -413,8 +389,8 @@ SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP Srefsigma)
 
      See L-BFGS-B: Fortran Subroutines for Large-Scale Bound Constrained
      Optimization, C. Zhu, R.H. Byrd, P. Lu and J. Nocedal (1996) */
-  factr    = 1e4; 
-  pgtol    = 1e-5;
+  factr    = 4e4; 
+  pgtol    = 2e-5;
   maxit    = 200000;
  
   fncount  = 0;
@@ -430,12 +406,23 @@ SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP Srefsigma)
   scale   = (double *) R_alloc(x.npar, sizeof(double));
   nbd     = (int *)    R_alloc(x.npar, sizeof(int));
 	  
+  /* nbd is an integer array of dimension n.
+     On entry nbd represents the type of bounds imposed on the
+     variables, and must be specified as follows:
+        nbd(i)=0 if x(i) is unbounded,
+               1 if x(i) has only a lower bound,
+               2 if x(i) has both lower and upper bounds, and
+               3 if x(i) has only an upper bound. */
+
   for(i=0; i<x.npar; i++) {
-    lower[i]  = 0.;
-    upper[i]  = 0.;
-    scale[i]  = 1.;
-    nbd[i]    = 0;   /* see below in the Readme file */
+    lower[i] = pgtol;
+    upper[i] = 0.;
+    scale[i] = 1.;
   } 
+  for(i=0; i<x.nrstrat; i++) {
+    nbd[i]           = 0;
+    nbd[i+x.nrstrat] = 1; /* lower bound for factors */
+  }
   
   /* optimize (see below for documentation of the function arguments) */
   lbfgsb(x.npar, lmm, cpar, lower, upper, nbd, &fmin, 
@@ -445,10 +432,8 @@ SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP Srefsigma)
 
   /* write new values in result */
   res = allocVector(REALSXP, x.npar+1);
-  for(i=0; i < x.nrstrat; i++) 
+  for(i=0; i < x.npar; i++) 
     REAL(res)[i] = cpar[i];
-  for(i=x.nrstrat; i < 2*x.nrstrat; i++) 
-    REAL(res)[i] = lambda(cpar[i]);
   REAL(res)[x.npar] = (double) fail;
 	  
   return(res);
