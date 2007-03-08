@@ -14,7 +14,8 @@ vsn2trsf(x, p, strata)
     contains transformation parameters and strata information, typically
     this is the result of a previous call to \code{vsn2}.}
   \item{newdata}{Numeric \code{matrix}, \code{vector} or
-    \code{ExpressionSet-class} with the data to which an existing fit is to be applied to.
+    \code{\linkS4class{ExpressionSet}} with the data to which an
+    existing fit is to be applied to.
     A typical use case is when the fit is made to a set of
     control features and then the transformation is to be applied to the
     full set of data.

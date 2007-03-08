@@ -52,7 +52,7 @@ library("vsn")
 @ 
 
 %------------------------------------------------------------
-\section{Getting started: brief overview}\label{sec:overv}
+\section{Getting started: a brief overview}\label{sec:overv}
 %------------------------------------------------------------ 
 \Rpackage{vsn} is a method to preprocess microarray intensity data.
 This can be as simple as
