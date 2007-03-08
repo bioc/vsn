@@ -10,15 +10,16 @@ options(error=recover)
 n = 500*(2^(1:7))
 set.seed(569)
 dat = sagmbSimulateData(n=n[length(n)], d=1, de=0, nrstrata=1, miss=0, log2scale=TRUE)
-ref = new("vsn", n=length(dat$mu), refh=dat$mu, refsigma=dat$sigma)
+ref = new("vsn", n=length(dat$mu), refh=dat$mu, refsigma=dat$sigma, par=dat$par)
 vin = new("vsnInput", x=dat$y, pstart=array(as.numeric(NA), dim=c(1,1,2)), lts.quantile = 1)
 
 ## series of fits with ascending amounts of data
 fitpar = sapply(n, function(k) {
   subs = 1:k
   fit = vsn2(dat$y[subs,], reference=ref[subs,], lts.quantile=1, verbose=FALSE)
-  c(fit@par,
-    mad(abs(dat$hy[subs,]-fit@hx)))
+  m = mad(abs(dat$hy[subs,]-fit@hx))
+##  browser()
+  c(fit@par,m)
 })
 
 graphics.off()
