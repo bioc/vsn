@@ -304,7 +304,7 @@ vsnMatrix = function(x,
 
   hx = if(returnData) {
     ## irrelevant affine transformation to make users happy.
-    trsf2log2scale(trsfx, par)
+    trsf2log2scale(trsfx, if(nrow(reference)==0) par else reference@par)
   } else {
     matrix(numeric(0), nrow=0, ncol=ncol(x))
   }
