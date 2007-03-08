@@ -10,7 +10,7 @@ setGeneric("dim")
 
 setGeneric("meanSdPlot",
   function(x, ranks = TRUE, xlab = ifelse(ranks, "rank(mean)", "mean"),
-           ylab = "sd", pch = ".", col, ...)
+           ylab = "sd", pch = ".", ...)
    standardGeneric("meanSdPlot"))
 
 
