@@ -4,7 +4,7 @@ justvsn=function(x, ...) {
   return(x)
 }
 
-typeInfo(justvsn) = SimultaneousTypeSpecification(
-    TypedSignature(x="ExpressionSet"),
-    returnType="ExpressionSet")
+##typeInfo(justvsn) = SimultaneousTypeSpecification(
+##    TypedSignature(x="ExpressionSet"),
+##    returnType="ExpressionSet")
 
