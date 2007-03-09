@@ -3,3 +3,8 @@ justvsn=function(x, ...) {
   exprs(x) = fit@hx
   return(x)
 }
+
+typeInfo(justvsn) = SimultaneousTypeSpecification(
+    TypedSignature(x="ExpressionSet"),
+    returnType="ExpressionSet")
+
