@@ -5,7 +5,6 @@
 \alias{vsn2,numeric-method}
 \alias{vsn2,ExpressionSet-method}
 \alias{vsnMatrix}
-\alias{justvsn}
 
 \title{Fit the vsn model}
 \description{\code{vsn2} fits the vsn model to (raw microarray) data
@@ -13,14 +12,13 @@
   returns a \code{\linkS4class{vsn}} object with the fit parameters and
   the transformed data matrix. \code{predict} applies a fitted model
   to data and returns an \code{\linkS4class{ExpressionSet}} object.
-  \code{\link{justvsn}} is a simple wrapper that 
-  takes and returns an \code{\linkS4class{ExpressionSet}}.
+  See \code{\link{justvsn}} for a simple wrapper that 
+  takes and returns an \code{\linkS4class{ExpressionSet}},
   These are the main functions of this package, see also the vignette
   \emph{Introduction to vsn}.
 }
 \usage{
 \S4method{vsn2}{ExpressionSet}(x, reference, strata, ...)
-justvsn(x, ...)
 
 vsnMatrix(x,
   reference,
@@ -94,6 +92,8 @@ vsnMatrix(x,
   \emph{Likelihood Calculations for vsn}.
 }
 
+\seealso{\code{link{justvsn}}}
+
 \author{Wolfgang Huber \url{http://www.ebi.ac.uk/huber}}
 
 \examples{
@@ -104,11 +104,6 @@ fit = vsn2(kidney)
 nkid = predict(fit, newdata=kidney)
 plot(exprs(nkid), pch=".")
 abline(a=0, b=1, col="red")
-
-## justvsn
-nkid2 = justvsn(kidney)
-
-stopifnot(identical(exprs(nkid), exprs(nkid2)))
 
 }
 
