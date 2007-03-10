@@ -10,7 +10,7 @@
 \description{\code{vsn2} fits the vsn model to (raw microarray) data
   e.g. in an \code{\linkS4class{ExpressionSet}} and
   returns a \code{\linkS4class{vsn}} object with the fit parameters and
-  the transformed data matrix. \code{predict} applies a fitted model
+  the transformed data matrix. \code{\link[vsn:vsn2trsf]{predict}} applies a fitted model
   to data and returns an \code{\linkS4class{ExpressionSet}} object.
   See \code{\link{justvsn}} for a simple wrapper that 
   takes and returns an \code{\linkS4class{ExpressionSet}},
