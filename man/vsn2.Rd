@@ -7,14 +7,17 @@
 \alias{vsnMatrix}
 
 \title{Fit the vsn model}
-\description{\code{vsn2} fits the vsn model to (raw microarray) data
-  e.g. in an \code{\linkS4class{ExpressionSet}} and
+\description{\code{vsn2} fits the vsn model to the data matrix
+  in an \code{\linkS4class{ExpressionSet}} and
   returns a \code{\linkS4class{vsn}} object with the fit parameters and
-  the transformed data matrix. \code{\link[vsn:vsn2trsf]{predict}} applies a fitted model
+  the transformed data matrix.
+  The data matrix contains, typically, feature intensity readings from a
+  microarray. There are also \code{vsn2} methods for numeric matrices and vectors.
+  \code{\link[vsn:vsn2trsf]{predict}} applies a fitted model
   to data and returns an \code{\linkS4class{ExpressionSet}} object.
-  See \code{\link{justvsn}} for a simple wrapper that 
-  takes and returns an \code{\linkS4class{ExpressionSet}},
-  These are the main functions of this package, see also the vignette
+  \code{\link{justvsn}} is a simple wrapper that 
+  takes and returns an \code{\linkS4class{ExpressionSet}}.
+  These are the main functions of this package. An overview is given in the vignette
   \emph{Introduction to vsn}.
 }
 \usage{
@@ -53,8 +56,9 @@ vsnMatrix(x,
     0.5 and 1. A value of 1 corresponds to ordinary least sum of squares
     regression.}
   \item{subsample}{Integer of length 1. If specified, the model parameters are
-    estimated from a subsample of the data only, the transformation is
-    then applied to all data. For large datasets, this can greatly
+    estimated from a subsample of the data of size \code{subsample}
+    only, yet the fitted transformation is
+    then applied to all data. For large datasets, this can substantially
     reduce the CPU time and memory consumption at a negligible loss of precision.}
   \item{verbose}{Logical. If TRUE, some messages are printed.}
   \item{returnData}{Logical. If TRUE, the transformed data are returned
@@ -92,19 +96,18 @@ vsnMatrix(x,
   \emph{Likelihood Calculations for vsn}.
 }
 
-\seealso{\code{link{justvsn}}}
+\seealso{\code{\link{justvsn}}, \code{\link[vsn:vsn2trsf]{predict}}}
 
 \author{Wolfgang Huber \url{http://www.ebi.ac.uk/huber}}
 
 \examples{
 data("kidney")
 
-## use "vsn2" to produce a "vsn" object
-fit = vsn2(kidney)
-nkid = predict(fit, newdata=kidney)
+fit = vsn2(kidney)                   ## fit
+nkid = predict(fit, newdata=kidney)  ## apply fit
+
 plot(exprs(nkid), pch=".")
 abline(a=0, b=1, col="red")
-
 }
 
 \keyword{}

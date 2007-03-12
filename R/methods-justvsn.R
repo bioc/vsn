@@ -22,7 +22,10 @@ setMethod("justvsn", "AffyBatch",
     })
 
 setMethod("justvsn", "RGList",
-   function(x,  reference, strata, ...) {
+   function(x,  reference, strata, backgroundsubtract=FALSE, ...) {
+     if(!(is.logical(backgroundsubtract)&&(length(backgroundsubtract)==1)&&(!is.na(backgroundsubtract))))
+       stop("'backgroundsubtract' must be a logical of length 1 and not NA.")
+     
       # fit = vsnMatrix(exprs(x),  reference, strata, ...)
 
       warning("Not Implemented")

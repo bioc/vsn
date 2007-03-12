@@ -1,5 +1,5 @@
 %\VignetteIndexEntry{Introduction to vsn}
-%\VignetteDepends{Biobase,vsn,affy,affydata,marray,multtest,limma,hgu95av2cdf}
+%\VignetteDepends{vsn,affydata,hgu95av2cdf}
 %\VignetteKeywords{Expression Analysis}
 %\VignettePackage{vsn}
 
@@ -89,7 +89,7 @@ Section~\ref{sec:calib} for more details on these).  The method
 \Rfunction{predict} can be used to apply the fit to the data. Often,
 there is no need for making these separate steps explicit, and that is
 why there is the function \Rfunction{justvsn}. 
-\Robject{xnorm} and \Robject{ynorm} are identical.
+Hence, the returned values in the objects \Robject{xnorm} and \Robject{ynorm} are identical.
 The two-step protocol
 is useful when you want to fit the parameters on a
 subset of the data, e.\,g.\ a set some control or spike-in features,

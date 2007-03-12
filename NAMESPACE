@@ -5,6 +5,10 @@ importFrom("methods", "show")
 importFrom("Biobase", "exprs")
 importFrom("stats", "logLik")
 
+## These two packages do not bother to have name spaces, have to put them in 'Depends' field.
+## importFrom("affy", "AffyBatch")
+## importFrom("limma", "RGList")
+
 exportClasses("vsn", "vsnInput")
 export(
   ## Deprecated
