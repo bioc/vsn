@@ -1,10 +1,10 @@
 setGeneric("vsn2",
-  function(x, reference, strata, ...)
-   standardGeneric("vsn2")) 
+  def = function(x, reference, strata, ...) standardGeneric("vsn2"),
+  valueClass = "vsn")
 
 setGeneric("justvsn",
-  function(x, reference, strata, ...)
-   standardGeneric("justvsn")) 
+  def = function(x, reference, strata, ...) standardGeneric("justvsn"),
+  valueClass = "ExpressionSet")
 
 setGeneric("predict") ## S3 function imported from package stats
 setGeneric("nrow")    ## S3 from base
