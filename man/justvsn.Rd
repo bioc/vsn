@@ -21,12 +21,14 @@ justvsn(x, reference, strata, ...)
 \arguments{
   \item{x}{An object containing the data to which the model is to be
     fitted. Methods exist for \code{\linkS4class{ExpressionSet}},
-    \code{\linkS4class{AffyBatch}} and
-    \code{\link[limma:rglist]{RGList}}.}
+    \code{\linkS4class{AffyBatch}} (from the \code{affy} package) and
+    \code{\link[limma:rglist]{RGList}} (from the \code{limma} package).}
   \item{reference, strata, ...}{As in \code{\link{vsn2}}.}
-  \item{backgroundsubtract}{Logical of length 1, indicating whether
+  \item{backgroundsubtract}{Logical of length 1, it applies only to the
+    method for \code{\link[limma:rglist]{RGList}} objects and indicates whether
     local background estimates in the \code{Rb} and \code{Gb} slots of
     \code{x} should be subtracted before fitting vsn.}
+}
 
 \details{
   See \code{\link{vsn2}}.
@@ -45,7 +47,7 @@ justvsn(x, reference, strata, ...)
   summaries are calculated with the medianpolish algorithm of
   \code{\link{rma}}.
   
-  If  \code{x} is an \code{\link[limma:rglist]{RGList}}.
+  If \code{x} is an \code{\link[limma:rglist]{RGList}}.
   
 }
 
