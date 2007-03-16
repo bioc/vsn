@@ -45,9 +45,9 @@ justvsn(x, reference, strata, ...)
   background correction and between-array normalization is done by
   \code{\link{vsn2}} on the perfect match (PM) values only. Probeset
   summaries are calculated with the medianpolish algorithm of
-  \code{\link{rma}}.
+  \code{\link[affy:rma]{rma}}.
   
-  If \code{x} is an \code{\link[limma:rglist]{RGList}}.
+  If \code{x} is an \code{\link[limma:rglist]{RGList}}, ....
   
 }
 
@@ -58,16 +58,27 @@ justvsn(x, reference, strata, ...)
 \author{Wolfgang Huber \url{http://www.ebi.ac.uk/huber}}
 
 \examples{
-data("kidney")
-
+##--------------------------------------------------
 ## use "vsn2" to produce a "vsn" object
+##--------------------------------------------------
+data("kidney")
 fit = vsn2(kidney)
 nkid = predict(fit, newdata=kidney)
 
-## justvsn
+##--------------------------------------------------
+## justvsn on ExpressionSet
+##--------------------------------------------------
 nkid2 = justvsn(kidney)
-
 stopifnot(identical(exprs(nkid), exprs(nkid2)))
+
+##--------------------------------------------------
+## justvsn on AffyBatch
+##--------------------------------------------------
+data("affybatch.example")
+data("cdfenv.example")
+eabe = justvsn(affybatch.example)
+
+
 
 }
 

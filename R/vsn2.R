@@ -231,7 +231,7 @@ vsnSample = function(v) {
       sp = split(seq(along=v@strata), v@strata)
       wh = unlist(lapply(sp, sample, size=v@subsample))
     } else {
-      wh = sample(length(v@strata), size=v@subsample)
+      wh = sample(nrow(v), size=v@subsample)
     }
     v = v[wh, ]
   } 
@@ -249,8 +249,8 @@ vsnMatrix = function(x,
   verbose      = interactive(),
   returnData   = TRUE,
   pstart,
-  cvg.niter    = 7L,
-  cvg.eps      = 1e-3) {
+  cvg.niter    = 5L,
+  cvg.eps      = 5e-3) {
 
   storage.mode(x) = "double"
 

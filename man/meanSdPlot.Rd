@@ -4,6 +4,7 @@
 \alias{meanSdPlot-methods}
 \alias{meanSdPlot,matrix-method}
 \alias{meanSdPlot,ExpressionSet-method}
+\alias{meanSdPlot,vsn-method}
 \alias{meanSdPlot,exprSet-method}
 \title{Plot row standard deviations versus row means}
 
@@ -21,7 +22,8 @@ meanSdPlot(x,
 \arguments{
   \item{x}{An object of class
     \code{\link{matrix}}, 
-    \code{\linkS4class{ExpressionSet}} or
+    \code{\linkS4class{ExpressionSet}},
+    \code{\linkS4class{vsn}} or
     \code{\linkS4class{exprSet}} (deprecated).}
 \item{ranks}{Logical, indicating whether the x-axis (means) should be plotted
   on the original scale (\code{FALSE}) or on the rank scale (\code{TRUE}). The latter

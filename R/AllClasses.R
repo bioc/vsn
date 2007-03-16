@@ -15,9 +15,9 @@ validLogical = function(ob, nm) {
 equalOrZero = function(i, j) ((i==j)||(i==0))
 
 validityVsnInput = function(object){
-  validScalar(object, "subsample", min=-Inf)
+  validScalar(object, "subsample", min=0, max=nrow(object))
   validScalar(object, "cvg.niter", min=1)
-  validScalar(object, "cvg.eps")
+  validScalar(object, "cvg.eps",   min=0)
   validScalar(object, "lts.quantile", min=0.5, max=1)
   validLogical(object, "verbose")
   validLogical(object, "ordered")
@@ -33,6 +33,7 @@ validityVsnInput = function(object){
   
   if(!all(dim(object@pstart)==c(nlevels(object@strata), ncol(object@x), 2)))
     stop("Invalid dimensions of 'pstart'.")
+
   return(TRUE)
 }
 

@@ -31,7 +31,7 @@ setMethod("meanSdPlot", signature="matrix", definition =
 })
 
 ## ==========================================================================
-## meanSdPlot method for ExpressionSet and exprSet
+## meanSdPlot method for ExpressionSet, exprSet, vsn
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 setMethod("meanSdPlot", signature="ExpressionSet", definition =
    function(x, ranks=TRUE, xlab = ifelse(ranks, "rank(mean)", "mean"),
@@ -45,3 +45,7 @@ setMethod("meanSdPlot", signature="exprSet", definition =
      meanSdPlot(exprs(x), ...)
    })
 
+setMethod("meanSdPlot", signature="vsn", definition =
+   function(x, ranks=TRUE, xlab = ifelse(ranks, "rank(mean)", "mean"),
+            ylab = "sd", pch  = ".", ...)
+         meanSdPlot(exprs(x), ranks=ranks, xlab=xlab, ylab=ylab, pch=pch, ...))

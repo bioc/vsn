@@ -11,14 +11,13 @@ setMethod("justvsn", "ExpressionSet",
 
 setMethod("justvsn", "AffyBatch",
    function(x,  reference, strata, ...) {
-      fit = vsnMatrix(exprs(x),  reference, strata, ...)
-
+     fit = vsnMatrix(exprs(x),  reference, strata, cvg.niter=4L,
+       subsample=if(nrow(x)>30000L) 30000L else 0L, ...)
+     exprs(x) = fit@hx
+     
       ## call RMA to do the probeset summarization,
       ## (with no background correction / normalization, that is already done)
-
-      warning("Not Implemented")
-      
-      return(x)
+      return(rma(x, normalize=FALSE, background=FALSE))
     })
 
 setMethod("justvsn", "RGList",

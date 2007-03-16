@@ -31,8 +31,8 @@ vsnMatrix(x,
   verbose      = interactive(),
   returnData   = TRUE,
   pstart,
-  cvg.niter    = 7L,
-  cvg.eps      = 1e-3)
+  cvg.niter    = 5L,
+  cvg.eps      = 5e-3)
 
 \S4method{vsn2}{matrix}(x, reference, strata, ...)
 \S4method{vsn2}{numeric}(x, reference, strata, ...)

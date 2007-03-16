@@ -3,8 +3,9 @@
 %\VignetteKeywords{Expression Analysis}
 %\VignettePackage{vsn}
 
-\documentclass[11pt]{article}
-\usepackage{geometry}\usepackage{color}
+\documentclass[11pt,twocolumn]{article}
+\usepackage[margin=2cm,nohead]{geometry}
+\usepackage{color}
 \definecolor{darkblue}{rgb}{0.0,0.0,0.75}
 \usepackage[%
 baseurl={http://www.bioconductor.org},%
@@ -14,6 +15,8 @@ pdfsubject={vsn},%
 pdfkeywords={Bioconductor},%
 pagebackref,bookmarks,colorlinks,linkcolor=darkblue,citecolor=darkblue,%
 pagecolor=darkblue,raiselinks,plainpages,pdftex]{hyperref}
+
+
 
 %------------------------------------------------------------
 % newcommand
@@ -26,7 +29,7 @@ pagecolor=darkblue,raiselinks,plainpages,pdftex]{hyperref}
 \newcommand{\Rfunction}[1]{{\small\texttt{#1}}}
 
 \newcommand{\myincfig}[3]{%
-  \begin{figure}[htbp]
+  \begin{figure}[t]
     \begin{center}
       \includegraphics[width=#2]{#1}
       \caption{\label{#1}#3}
@@ -34,25 +37,22 @@ pagecolor=darkblue,raiselinks,plainpages,pdftex]{hyperref}
   \end{figure}
 }
 
-\begin{document}
+\setlength\columnsep{20pt}
 
+\begin{document}
 %----------------------------------------------------------------------------------------
 \title{Introduction to robust calibration and variance stabilization with \Rpackage{vsn}}
-%----------------------------------------------------------------------------------------
 \author{Wolfgang Huber}
+%----------------------------------------------------------------------------------------
 \maketitle
 \tableofcontents
 
 <<setup,echo=FALSE,results=hide>>=
-library("affy")
-library("marray")
-library("multtest")
-library("limma")
-library("vsn")
+options(width=41)
 @ 
 
 %------------------------------------------------------------
-\section{Getting started: a brief overview}\label{sec:overv}
+\section{Getting started}\label{sec:overv}
 %------------------------------------------------------------ 
 \Rpackage{vsn} is a method to preprocess microarray intensity data.
 This can be as simple as
@@ -69,55 +69,43 @@ unnormalized data and \Robject{xnorm} the resulting
 data.
 %
 <<overv2>>=
-M <- exprs(xnorm)[,1] - exprs(xnorm)[,2]
+M = exprs(xnorm)[,1] - exprs(xnorm)[,2]
 @
 %
 produces the vector of generalized log-ratios between the 
 data in the first and second column.
 
-\Rpackage{vsn} is a \emph{model-based} method, and the more explicit way of 
+\Rpackage{vsn} is a model-based method, and the more explicit way of 
 doing the above task is
 %
 <<overv3, results=hide>>=
 fit = vsn2(kidney)
 ynorm = predict(fit, kidney)
 @
+<<overv4, echo=FALSE, results=hide>>=
+stopifnot(identical(exprs(xnorm), exprs(ynorm)), identical(exprs(xnorm), exprs(fit)))
+@ 
 %
 where \Robject{fit} is an object of class \Rclass{vsn} that contains
-the fitted calibration and transformation parameters (see
-Section~\ref{sec:calib} for more details on these).  The method
-\Rfunction{predict} can be used to apply the fit to the data. Often,
-there is no need for making these separate steps explicit, and that is
-why there is the function \Rfunction{justvsn}. 
-Hence, the returned values in the objects \Robject{xnorm} and \Robject{ynorm} are identical.
-The two-step protocol
-is useful when you want to fit the parameters on a
+the fitted calibration and transformation parameters and the method
+\Rfunction{predict} applies the fit to the data.
+The two-step protocol is useful when you want to fit the parameters on a
 subset of the data, e.\,g.\ a set some control or spike-in features,
 and then apply the model to the complete set of data. Furthermore, it
 allows further inspection of the \Robject{fit} object, e.\,g.\ for the
 purposes of quality assessment.
-%
-@ 
-<<overv5, echo=FALSE, results=hide>>=
-stopifnot(identical(exprs(xnorm), exprs(ynorm)), identical(exprs(xnorm), exprs(fit)))
-@ 
-%
-Beside \Rclass{ExpressionSet}s, there 
-\textit{will also be}
-%are also 
-methods for handling matrices, 
-\Rclass{RGList} objects from the \Rpackage{limma} package and
-\Rclass{AffyBatch} objects from the \Rpackage{affy} package.
-\textit{FIXME: this vignette and the package are currently (Jan-Mar 2007) 
-being revised, some sections may be broken or incomplete, please bear 
-with me, I intend to fix all this for the 2.0 release.}
 
-The so-called $\glog_2$ (short for \textit{\textbf{generalized logarithm}}) 
+Beside \Rclass{ExpressionSet}s, there are also \Rfunction{justvsn} 
+methods for \Rclass{AffyBatch} objects from the \Rpackage{affy} package and
+\Rclass{RGList} objects from the \Rpackage{limma} package. These are described 
+in this vignette.
+
+The so-called $\glog_2$ (short for \emph{generalized logarithm}) 
 is a function that is like the logarithm (to base 2) for large values 
 (large compared to the amplitude of the background noise),
 but is less steep for smaller values.  Differences between the transformed
-values are the \textit{\textbf{generalized log-ratios}}. These are 
-\emph{shrinkage estimators} of the logarithm of the fold change.
+values are the \emph{generalized log-ratios}. These are 
+shrinkage estimators of the logarithm of the fold change.
 The usual \emph{log-ratio} is another example for an estimator\footnote{%
 In statistics, the term \emph{estimator} is used to denote an algorithm
 that calculates a value from a set of measured data. 
@@ -128,7 +116,7 @@ correspondence between the estimated value and the true value may be more
 or less faithful. For example, the arithmetic mean and the median are two 
 different estimators of the expectation value of a distribution.}
 of log fold change. 
-There is also a close relationship between \emph{background correction} of 
+There is also a close relationship between background correction of 
 the intensities and the variance properties of these different estimators. Please
 see Section~\ref{sec:shrink} for more explanation of these issues. 
 
@@ -151,7 +139,27 @@ other methods.}.
 %------------------------------------------------------------
 \section{Running vsn on data from a single two-color array} 
 %------------------------------------------------------------
-The dataset \Robject{kidney} from Section~\ref{sec:overv} contains
+\begin{figure*}[t]\begin{center}
+\includegraphics[width=0.8\textwidth]{vsn-nkid-scp}  
+\caption{\label{vsn-nkid-scp}%
+Scatterplots of the kidney example data, which was obtained from a 
+two-color cDNA array by quantitating spots and subtracting a local background 
+estimate.
+a) normalized and transformed with \Rpackage{vsn}, 
+b) unnormalized and $\log_2$-transformed.
+Panel a shows the data from the complete set of \Sexpr{nrow(kidney)} 
+spots on the array, panel b only the \Sexpr{sum(0==rowSums(exprs(kidney)<=0))} 
+spots for which both red and green net intensities were greater than 0. 
+Those spots which are missing in panel b are colored in orange in panel a.}
+\end{center}\end{figure*}
+%
+\begin{figure*}[t]\begin{center}
+\includegraphics[width=0.8\textwidth]{vsn-nkid-sdmean}  
+\caption{\label{vsn-nkid-sdmean}%
+Standard deviation versus rank of the mean, and the mean, respectively.}
+\end{center}\end{figure*}
+%
+The dataset \Robject{kidney} contains
 example data from a single cDNA array on which two biologically
 similar samples, one labeled in green (Cy3), one in red (Cy5), were
 hybridized.  The two columns of the matrix \Robject{exprs(kidney)}
@@ -166,21 +174,14 @@ Figure~\ref{vsn-nkid-scp} you can see the scatterplot of the
 calibrated and transformed data. For comparison, the scatterplot of
 the log-transformed raw intensities is also shown.
 %
-<<nkid-scp,include=FALSE,fig=TRUE,width=8,height=4>>=
+<<nkid-scp,include=FALSE,fig=TRUE,width=8,height=4.5>>=
 par(mfrow=c(1,2))
-select <- 0==rowSums(exprs(kidney)<=0)
-plot(exprs(xnorm), main = "a) vsn", pch = ".", col=ifelse(select, "black", "orange"))
-plot(log2(exprs(kidney)[select, ]), main = "b) raw", pch = ".")
+select = (0==rowSums(exprs(kidney)<=0))
+plot(exprs(xnorm), main = "a) vsn", pch = ".", col=ifelse(select, "black", "orange"), asp=1)
+plot(log2(exprs(kidney)[select, ]), main = "b) raw", pch = ".", asp=1)
 @
-\myincfig{vsn-nkid-scp}{\textwidth}{%
-Scatterplots of the kidney example data. 
-a) normalized and transformed with \Rpackage{vsn}, 
-b) original data, $\log_2$-transformed.
-Panel a shows the data from the complete set of \Sexpr{nrow(kidney)} 
-spots on the array, panel b only the \Sexpr{sum(select)} spots for which
-\Robject{select} (see code chuck in the main text) is \Robject{TRUE}. 
-Those spots which are missing in panel b are colored in orange in panel a.}
 %
+
 To verify the variance
 stabilization, there is the function \Robject{meanSdPlot}. For each
 probe $k=1,\ldots,n$ it shows the estimated standard deviation
@@ -195,8 +196,7 @@ par(mfrow=c(1,2))
 meanSdPlot(xnorm, ranks=TRUE)
 meanSdPlot(xnorm, ranks=FALSE)
 @
-\myincfig{vsn-nkid-sdmean}{\textwidth}{Standard deviation versus rank
-of the mean, and the mean, respectively}
+%
 Such a plot is shown in Fig.~\ref{vsn-nkid-sdmean}.  The red dots,
 connected by lines, show the running median of the standard
 deviation\footnote{Window width: 10\%, window midpoints 5\%, 10\%,
@@ -230,19 +230,26 @@ The package includes example data from a series of 8 cDNA arrays
 on which different lymphoma were hybridized together with a reference 
 cDNA~\cite{Alizadeh}.
 <<lymphoma>>=
-data(lymphoma)
-dim(exprs(lymphoma))
-pData(lymphoma)
+data("lymphoma")
+dim(lymphoma)
 @
+%
+\begin{table}[t]
+<<pDatalym>>=
+pData(lymphoma)
+@ 
+\caption{\label{tab:lym}}
+\end{table}
+%
 The 16 columns of the \Robject{lymphoma} object contain the red and
-green intensities, respectively, from the 8 slides, as shown in the
-table. Thus, the CH1 intensities are in columns $1, 3, \ldots, 15$,
+green intensities, respectively, from the 8 slides, as shown in Table~\ref{tab:lym}. 
+Thus, the CH1 intensities are in columns $1, 3, \ldots, 15$,
 the CH2 intensities in columns $2, 4, \ldots, 16$.  We can call
 \Robject{vsn} on all of them at once:
+%
 <<lym-sdmean1,results=hide>>=
-lym <- vsn(lymphoma)
+lym = justvsn(lymphoma)
 @
-This calculation may take a while. 
 <<lym-sdmean2,include=FALSE,fig=TRUE>>=
 meanSdPlot(lym)
 @
@@ -264,10 +271,15 @@ abline(h=0, col="red")
 plot(A, M[,"DLCL-0032"], pch=".")
 abline(h=0, col="red")
 @
-\myincfig{vsn-lym-M}{\textwidth}{Mean-difference plots for two slides 
-from the lymphoma example data}
-Fig.~\ref{vsn-lym-M} shows the analagon to the $M$-vs-$A$-plots
-as described in reference~\cite{Dudoit578}. Note that in the left
+%
+\begin{figure*}[t]\begin{center}
+\includegraphics[width=0.8\textwidth]{vsn-lym-M}  
+\caption{\label{vsn-lym-M}%
+Mean-difference plots for two slides from the lymphoma example data.}
+\end{center}\end{figure*}
+%
+Fig.~\ref{vsn-lym-M} shows the resulting $M$-vs-$A$-plots~\cite{Dudoit578}
+for two of the arrays. Note that in the left
 scatterplot, there is a cloud of points at low intensities that is
 concentrated slightly off the line $M=0$.  In the right scatterplot, a
 similar cloud sits right on the $M=0$ line. This could be related to a
@@ -278,26 +290,27 @@ amplification or the printing, see Section~\ref{sec.qc}).
 \section{Running vsn on Affymetrix data} \label{affy}
 %---------------------------------------------------------
 The package \Rpackage{affy} provides excellent functionality for
-reading and processing Affymetrix genechip data. To use
-\Robject{vsn} for the calibration and transformation of the probe
-intensities, a wrapper is provided that can be used within the data
-processing routines of \Rpackage{affy}. See the documentation for the
-package \Rpackage{affy} for more information about data structures and
-other available methods. Affymetrix genechips preprocessing involves
-the following steps:
-(i) combining the perfect match (PM) and mismatch 
-(MM) intensities into one number per probe,
-(ii) calibrating,
-(iii) transforming, and
-(iv) summarizing.
-\Robject{vsn} addresses the calibration and transformation. We can use 
-the function \Robject{expresso} to run the whole process in one go:
+reading and processing Affymetrix genechip data, and you are encouraged
+to refer to the documentation of the package \Rpackage{affy} 
+for more information about data structures and available methods. 
 
-%% FIXME
-<<affy1,results=hide,eval=FALSE>>=
-library("affy")
+The preprocessing of Affymetrix genechip data involves
+the following steps:
+(i) background correction,
+(ii) between-array calibration,
+(iii) transformation and (iv) summarization.
+The \Rfunction{vsn} method addresses steps (i)--(iii).
+For the summarization, I recommend to use the RMA method~\cite{RMA},
+and a simple wrapper that provides all of these is provided through 
+the method \Rfunction{justvsn}.
+%
+<<affy1,results=hide>>=
 library("affydata")
 data("Dilution")
+
+d.vsn = justvsn(Dilution)
+d.rma = rma(Dilution)
+
 ## let affy know about vsn
 normalize.AffyBatch.methods <- c(normalize.AffyBatch.methods, "vsn")
 es1 = expresso(Dilution[, 1:2], 
