@@ -216,7 +216,7 @@ command with the argument \Robject{ranks=FALSE}.
 The histogram of the \Robject{M}-values is shown in 
 Figure~\ref{vsn-nkid-histM}.
 %
-<<nkid-histM,include=FALSE,echo=FALSE,fig=TRUE,results=hide,width=5,height=5>>=
+<<nkid-histM,include=FALSE,echo=FALSE,fig=TRUE,results=hide,width=4,height=4>>=
 hist(M, breaks=50, col="#d95f0e")
 @
 \myincfig{vsn-nkid-histM}{0.4\textwidth}{Histogram of generalized 
@@ -235,9 +235,13 @@ dim(lymphoma)
 @
 %
 \begin{table}[t]
+%\fbox{
+\begin{minipage}{0.5\textwidth}
 <<pDatalym>>=
 pData(lymphoma)
 @ 
+\end{minipage}
+%}
 \caption{\label{tab:lym}}
 \end{table}
 %
@@ -293,6 +297,14 @@ The package \Rpackage{affy} provides excellent functionality for
 reading and processing Affymetrix genechip data, and you are encouraged
 to refer to the documentation of the package \Rpackage{affy} 
 for more information about data structures and available methods. 
+%
+\begin{figure*}[t]\begin{center}
+\includegraphics[width=0.8\textwidth]{vsn-figaffy}  
+\caption{\label{vsn-figaffy}%
+Reults of \Rfunction{justvsn} and \Rfunction{rma} on the Dilution 
+example data. Chip 1 was hybridized with 20 $\mu$g RNA from liver,
+Chip 3 with 10 $\mu$g of the same RNA.}
+\end{center}\end{figure*}
 
 The preprocessing of Affymetrix genechip data involves
 the following steps:
@@ -307,91 +319,135 @@ the method \Rfunction{justvsn}.
 <<affy1,results=hide>>=
 library("affydata")
 data("Dilution")
-
 d.vsn = justvsn(Dilution)
+@ 
+For comparison, we also run \Rfunction{rma}.
+<<affy2,results=hide>>=
 d.rma = rma(Dilution)
-
-## let affy know about vsn
-normalize.AffyBatch.methods <- c(normalize.AffyBatch.methods, "vsn")
-es1 = expresso(Dilution[, 1:2], 
-               bg.correct       = FALSE,   ## bg correction is done by vsn
-               normalize.method = "vsn",
-               pmcorrect.method = "pmonly", 
-               summary.method   = "medianpolish")
-@
-
-Here, we have ignored the MM values and used \Robject{medianpolish} for
-summarization, as in the RMA method~\cite{RMA}. For comparison, let's 
-calculate expression values using another normalization method.
-The resulting plots are shown in Fig.~\ref{vsn-affy3}.
-
-%%FIXME
-<<affy2,results=hide,eval=FALSE>>=
-es2 = expresso(Dilution[, 1:2], 
-               bgcorrect.method = "rma",
-               normalize.method = "quantiles", 
-               pmcorrect.method = "pmonly",
-               summary.method   = "medianpolish")
-## extract expression values
-x1 = exprs(es1)
-x2 = exprs(es2) 
 @ 
-
-%%FIXME
-<<dummy>>=
-x1=x2=matrix(runif(1000), ncol=2)
-@ 
-
-<<affy3,include=FALSE,fig=TRUE,width=7,height=7>>=
-## graphics output
+%
+The resulting scatterplots are shown and compared in Figure~\ref{vsn-figaffy}.
+%
+{\small
+<<figaffy,include=FALSE,fig=TRUE,width=8,height=8>>=
 par(mfrow=c(2,2), pch=".")
-
-## scatter plot
-plot(x1, main="vsn: chip 3 vs 4")
-plot(x2, main="rma: chip 3 vs 4")
-
-## rank(mean) - difference plot
-ylim = c(-0.7, 0.7)
-plot(rank(rowSums(x1)), diff(t(x1)), ylim=ylim, main="rank(mean) vs differences")
-abline(h=0, col="red")
-
-plot(rank(rowSums(x2)), diff(t(x2)), ylim=ylim, main="rank(mean) vs differences")
-abline(h=0, col="red")
+w = c(1,3)
+titvsn = "vsn: chip 1 vs 3"
+titrma = "rma: chip 1 vs 3"
+plot(exprs(d.vsn)[,w], main=titvsn)
+plot(exprs(d.rma)[,w], main=titrma)
+plot(exprs(d.rma)[,1], exprs(d.vsn)[,1], xlab="rma", ylab="vsn", main="chip 1: expression values")
+abline(a=0, b=1, col="red")
+plot(diff(t(exprs(d.rma)[,w])), 
+     diff(t(exprs(d.vsn)[,w])), 
+     xlab="rma", ylab="vsn", 
+     main="M values chip 1 vs 3",
+     xlim=c(-1,1), ylim=c(-1,1))
+abline(a=0, b=1, col="red")
 @
-
-Note that while the values of \Rpackage{vsn} are normally represented on the
-natural logarithmic scale, with the wrapper \Rfunction{normalize.AffyBatch.vsn}
-they are transformed to the logarithm base 2 scale. This way
-\Rfunction{normalize.AffyBatch.vsn} fits into the conventions of the
-\Rpackage{expresso}-function.
-
-\myincfig{vsn-affy3}{\textwidth}{\Robject{normalize.AffyBatch.vsn} example}
+}
 
 %---------------------------------------------------------
-\section{Running vsn from the limma package} \label{limma}
+\section{Running vsn on \Robject{RGList} objects} \label{limma}
 %---------------------------------------------------------
-\Robject{vsn} can be called from the limma package through the
-function \Robject{normalizeBetweenArrays}:
-
-<<limma1, results=hide>>= 
+There is a \Rfunction{justvsn} method for \Rclass{RGList} objects.
+%
+<<limma, results=hide>>= 
 library("limma")
+wg = which(lymphoma$dye=="Cy3")
+wr = which(lymphoma$dye=="Cy5")
+
 lymRG = new("RGList", list(
-          R=exprs(lymphoma)[, lymphoma$dye=="Cy5"],
-          G=exprs(lymphoma)[, lymphoma$dye=="Cy3"]))
-lymMA <- normalizeBetweenArrays(lymRG, method="vsn")
+  R=exprs(lymphoma)[, wr],
+  G=exprs(lymphoma)[, wg]))
+
+lymES = justvsn(lymRG)
+@ 
+%
+The method combines the \Robject{R} and \Robject{G} slots of the
+\Rclass{RGList} object into one matrix and calls the function
+\Rfunction{vsnMatrix} on it. The return value is an
+\Rclass{ExpressionSet}. 
+%
+<<lymES>>=
+lymES
+@ 
+%
+Note that the metadata of the resulting 
+\Rclass{ExpressionSet} is minimal (due to the flexibility in the amount and 
+quality of metadata that is in an \Rclass{RGList}), and that you will typically 
+need to add the metadata to the \Rclass{ExpressionSet} afterwards. For this, we 
+construct the \Rclass{AnnotatedDataFrame} object \Robject{adf} and assign it into 
+the \Robject{phenoData} slot of \Robject{lymES}.
+%
+<<addmeta>>=
+adf = new("AnnotatedDataFrame", 
+  data = pData(lymphoma[,c(wr, wg)]),
+  varMetadata =  varMetadata(lymphoma[, c(wr, wg)]))
+phenoData(lymES) = adf 
+@ 
+%
+One further manipulation is now necessary to ensure the internal consistency of 
+the \Rclass{ExpressionSet} object:
+%
+<<sampleNames>>=
+colnames(exprs(lymES)) = sampleNames(lymES)
+@ 
+%
+Now we can use linear modeling tools from \Rpackage{limma} to find
+differentially expressed genes.
+Please take care of the ordering of the columns in the \Rclass{ExpressionSet}: 
+first come all the red ones, then all the green ones.
+%
+<<lymM>>=
+lymM = new("ExpressionSet",
+  exprs = exprs(lymES)[,1:8]-exprs(lymES)[,9:16],
+  phenoData = phenoData(lymES[,1:8]))
 @
-
-
-<<limma2, echo=FALSE, results=hide>>=
-lmat <- normalizeBetweenArrays(exprs(lymphoma), method="vsn")
-lmatM <-  lmat[, lymphoma$dye=="Cy3"]-lmat[, lymphoma$dye=="Cy5"]
-lmatA <- (lmat[, lymphoma$dye=="Cy3"]+lmat[, lymphoma$dye=="Cy5"])/2
-tol = 1e-2
-print(max(abs(lymMA$A-lmatA))<tol, max(abs(lymMA$M-lmatM)))
+<<doublecheck, echo=FALSE>>=
+stopifnot(ncol(lymES)==16L)
+@ 
+<<samp, print=TRUE>>=
+sampleClass = factor(sub("-.*$", "", lymM$sample))
+@ 
+% 
+<<design>>=
+design = model.matrix(~sampleClass)
+lf = lmFit(lymM, design[,"sampleClassDLCL", drop=FALSE])
+lf = eBayes(lf)
+@ 
+%
+\begin{figure*}[t]\begin{center}
+\includegraphics[width=0.8\textwidth]{vsn-figlimma}  
+\caption{\label{vsn-figlimma}%
+Left: histogramme of $p$-values from the moderated $t$-test between the 
+\Sexpr{levels(sampleClass)[1]} and
+\Sexpr{levels(sampleClass)[2]} groups on the \Robject{lymM} values.
+Right: $M$-values for the 5 genes with the smallest $p$-values.}
+\end{center}\end{figure*}
+%
+<<figlimma,fig=TRUE,include=FALSE,width=8,height=4>>=
+par(mfrow=c(1,2))
+hist(lf$p.value, 100, col="orange") 
+matplot(t(exprs(lymM)[order(lf$p.value)[1:5],]), lty=1, type="l", pch=16, col=hsv(seq(0,1,length=5), 1, 0.6), ylab="M", xlab="arrays")
 @ 
 
-\textbf{FIXME}: 1. comment on background estimates (Rb, Gb)
-2. test the print-tip specific normalization call.
+\subsection{Background subtraction}
+
+<<>>=
+lymRGwbg = lymRG
+## lymRG$Rb = 100+30*runif(nrow(lymRG))
+## Gb=20+30*runif(nrow(rkid))))
+@ 
+
+FIXME
+
+\subsection{Print-tip groups}
+FIXME
+
+
+%  If \code{backgroundsubtract=TRUE}, then \code{cbind(x$Rb, x$Gb)} is
+%  subtracted before. 
 
 Note that \Robject{RG} should contain raw intensities, i.\,e., prior
 log-transformation or any normalization. The returned intensities and
@@ -410,7 +466,7 @@ pinId <- function(x)
 
 and call
 <<limma3,eval=FALSE>>=
-MA <- normalizeBetweenArrays(RG, method="vsn", strata=pinId(thelayout))
+## MA <- normalizeBetweenArrays(RG, method="vsn", strata=pinId(thelayout))
 @
 
 

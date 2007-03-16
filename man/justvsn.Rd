@@ -36,6 +36,7 @@ justvsn(x, reference, strata, ...)
 
 \value{
   An \code{\linkS4class{ExpressionSet}}.
+  
   If \code{x} is an \code{\linkS4class{ExpressionSet}}, then the
   dimensions and the metadata of the returned object will be the
   same, and its matrix of expression values are the normalized and
@@ -47,8 +48,10 @@ justvsn(x, reference, strata, ...)
   summaries are calculated with the medianpolish algorithm of
   \code{\link[affy:rma]{rma}}.
   
-  If \code{x} is an \code{\link[limma:rglist]{RGList}}, ....
-  
+  If \code{x} is an \code{\link[limma:rglist]{RGList}}, then
+  \code{\link{vsn2}} is applied to the matrix \code{cbind(x$R, x$G)}.
+  If \code{backgroundsubtract=TRUE}, then \code{cbind(x$Rb, x$Gb)} is
+  subtracted before. 
 }
 
 \seealso{
@@ -78,8 +81,11 @@ data("affybatch.example")
 data("cdfenv.example")
 eabe = justvsn(affybatch.example)
 
-
-
+##--------------------------------------------------
+## justvsn on RGList
+##--------------------------------------------------
+rg = new("RGList", list(R=exprs(kidney)[,1,drop=FALSE], G=exprs(kidney)[,2,drop=FALSE]))
+erge = justvsn(rg)
 }
 
 \keyword{}
