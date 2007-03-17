@@ -16,7 +16,7 @@ pdfkeywords={Bioconductor},%
 pagebackref,bookmarks,colorlinks,linkcolor=darkblue,citecolor=darkblue,%
 pagecolor=darkblue,raiselinks,plainpages,pdftex]{hyperref}
 
-
+\SweaveOpts{keep.source=TRUE} 
 
 %------------------------------------------------------------
 % newcommand
@@ -177,8 +177,11 @@ the log-transformed raw intensities is also shown.
 <<nkid-scp,include=FALSE,fig=TRUE,width=8,height=4.5>>=
 par(mfrow=c(1,2))
 select = (0==rowSums(exprs(kidney)<=0))
-plot(exprs(xnorm), main = "a) vsn", pch = ".", col=ifelse(select, "black", "orange"), asp=1)
-plot(log2(exprs(kidney)[select, ]), main = "b) raw", pch = ".", asp=1)
+plot(exprs(xnorm), main = "a) vsn", 
+  pch = ".", asp=1,
+  col=ifelse(select, "black", "orange"))
+plot(log2(exprs(kidney)[select, ]), 
+  main = "b) raw", pch = ".", asp=1)
 @
 %
 
@@ -242,11 +245,13 @@ pData(lymphoma)
 @ 
 \end{minipage}
 %}
-\caption{\label{tab:lym}}
+\caption{\label{tab:lymPD}%
+The \Robject{phenoData} of the \Robject{lymphoma} dataset.}
 \end{table}
 %
 The 16 columns of the \Robject{lymphoma} object contain the red and
-green intensities, respectively, from the 8 slides, as shown in Table~\ref{tab:lym}. 
+green intensities, respectively, from the 8 slides, as shown in 
+Table~\ref{tab:lymPD}. 
 Thus, the CH1 intensities are in columns $1, 3, \ldots, 15$,
 the CH2 intensities in columns $2, 4, \ldots, 16$.  We can call
 \Robject{vsn} on all of them at once:
@@ -263,12 +268,13 @@ Again, Fig.~\ref{vsn-lym-sdmean2} helps to visually verify that the
 variance stabilization worked.  As above, we can obtain the
 generalized log-ratios for each slide, by subtracting the common
 reference intensities from those for the 8 samples:
+%
 <<lym-M,include=FALSE,fig=TRUE,width=8,height=4,results=hide>>=
-refrs <- (1:8)*2-1
-samps <- (1:8)*2
-M <- exprs(lym)[,samps] - exprs(lym)[,refrs] 
-colnames(M) <-  pData(lymphoma)[samps, "sample"]
-A <- rowMeans(exprs(lym))
+iref = (1:8)*2-1
+ismp = (1:8)*2
+M = exprs(lym)[,ismp] - exprs(lym)[,iref] 
+colnames(M) = lymphoma$sample[ismp]
+A = rowMeans(exprs(lym))
 par(mfrow=c(1,2))
 plot(A, M[,"CLL-13"], pch=".")
 abline(h=0, col="red")
@@ -328,7 +334,6 @@ d.rma = rma(Dilution)
 %
 The resulting scatterplots are shown and compared in Figure~\ref{vsn-figaffy}.
 %
-{\small
 <<figaffy,include=FALSE,fig=TRUE,width=8,height=8>>=
 par(mfrow=c(2,2), pch=".")
 w = c(1,3)
@@ -336,7 +341,9 @@ titvsn = "vsn: chip 1 vs 3"
 titrma = "rma: chip 1 vs 3"
 plot(exprs(d.vsn)[,w], main=titvsn)
 plot(exprs(d.rma)[,w], main=titrma)
-plot(exprs(d.rma)[,1], exprs(d.vsn)[,1], xlab="rma", ylab="vsn", main="chip 1: expression values")
+plot(exprs(d.rma)[,1], exprs(d.vsn)[,1], 
+  xlab="rma", ylab="vsn", 
+  main="chip 1: expression values")
 abline(a=0, b=1, col="red")
 plot(diff(t(exprs(d.rma)[,w])), 
      diff(t(exprs(d.vsn)[,w])), 
@@ -345,7 +352,6 @@ plot(diff(t(exprs(d.rma)[,w])),
      xlim=c(-1,1), ylim=c(-1,1))
 abline(a=0, b=1, col="red")
 @
-}
 
 %---------------------------------------------------------
 \section{Running vsn on \Robject{RGList} objects} \label{limma}
@@ -367,11 +373,17 @@ lymES = justvsn(lymRG)
 The method combines the \Robject{R} and \Robject{G} slots of the
 \Rclass{RGList} object into one matrix and calls the function
 \Rfunction{vsnMatrix} on it. The return value is an
-\Rclass{ExpressionSet}. 
+\Rclass{ExpressionSet}, shown in Table~\ref{tab:lymES}. 
 %
+\begin{table*}[t]
+\begin{minipage}{\textwidth}
 <<lymES>>=
 lymES
 @ 
+\end{minipage}
+\caption{\label{tab:lymES}%
+The \Rclass{ExpressionSet} object \Robject{lymES}.}
+\end{table*}
 %
 Note that the metadata of the resulting 
 \Rclass{ExpressionSet} is minimal (due to the flexibility in the amount and 
@@ -382,12 +394,13 @@ the \Robject{phenoData} slot of \Robject{lymES}.
 %
 <<addmeta>>=
 adf = new("AnnotatedDataFrame", 
-  data = pData(lymphoma[,c(wr, wg)]),
-  varMetadata =  varMetadata(lymphoma[, c(wr, wg)]))
+ data=pData(lymphoma[,c(wr, wg)]),
+ varMetadata=
+   varMetadata(lymphoma[,c(wr,wg)]))
 phenoData(lymES) = adf 
 @ 
 %
-One further manipulation is now necessary to ensure the internal consistency of 
+One further manipulation is necessary to ensure the internal consistency of 
 the \Rclass{ExpressionSet} object:
 %
 <<sampleNames>>=
@@ -401,20 +414,21 @@ first come all the red ones, then all the green ones.
 %
 <<lymM>>=
 lymM = new("ExpressionSet",
-  exprs = exprs(lymES)[,1:8]-exprs(lymES)[,9:16],
-  phenoData = phenoData(lymES[,1:8]))
+ exprs=exprs(lymES)[,1:8]-exprs(lymES)[,9:16],
+ phenoData=phenoData(lymES[,1:8]))
 @
 <<doublecheck, echo=FALSE>>=
 stopifnot(ncol(lymES)==16L)
 @ 
 <<samp, print=TRUE>>=
-sampleClass = factor(sub("-.*$", "", lymM$sample))
+sampleClass=factor(sub("-.*$", "", lymM$sample))
 @ 
 % 
 <<design>>=
 design = model.matrix(~sampleClass)
-lf = lmFit(lymM, design[,"sampleClassDLCL", drop=FALSE])
-lf = eBayes(lf)
+lf=lmFit(lymM, 
+   design[,"sampleClassDLCL", drop=FALSE])
+lf=eBayes(lf)
 @ 
 %
 \begin{figure*}[t]\begin{center}
@@ -429,18 +443,44 @@ Right: $M$-values for the 5 genes with the smallest $p$-values.}
 <<figlimma,fig=TRUE,include=FALSE,width=8,height=4>>=
 par(mfrow=c(1,2))
 hist(lf$p.value, 100, col="orange") 
-matplot(t(exprs(lymM)[order(lf$p.value)[1:5],]), lty=1, type="l", pch=16, col=hsv(seq(0,1,length=5), 1, 0.6), ylab="M", xlab="arrays")
+matplot(t(exprs(lymM)[order(lf$p.value)[1:5],]), 
+  lty=1, type="l", pch=16, 
+  col=hsv(seq(0,1,length=5), 1, 0.6), 
+  ylab="M", xlab="arrays")
 @ 
 
 \subsection{Background subtraction}
+The \Rfunction{justvsn} method  allows to subtract local 
+background estimates that are stored in the \Robject{Rb} and \Robject{Gb}
+slots of the incoming \Rclass{RGList}. To demonstrate this, we construct
+an  \Rclass{RGList} object \Robject{lymRGwbg},
+%
+<<makebg>>=
+rndbg=function(x, off, fac)
+ array(off+fac*runif(prod(dim(x))),
+       dim=dim(x))
 
-<<>>=
-lymRGwbg = lymRG
-## lymRG$Rb = 100+30*runif(nrow(lymRG))
-## Gb=20+30*runif(nrow(rkid))))
+lymRGwbg    = lymRG
+lymRGwbg$Rb = rndbg(lymRG, 100, 30)
+lymRGwbg$Gb = rndbg(lymRG,  50, 20)
 @ 
+%
+In reality, of course, we hope that the values in 
+\Robject{Rb} and \Robject{Gb} contain some useful estimates of 
+systematic trends in the measured data, not just random noise.
+We can call \Rfunction{justvsn} on it 
 
+%
+<<justvsnwbg, results=hide>>=
+#fitwibg = vsn2(lymRGwbg, backgroundsubtract=TRUE)
+@ 
+%
+%fitnobg = vsn2(lymRG)
 FIXME
+
+Note that you do need to explicitely set
+\Robject{backgroundsubtract=TRUE}, since the default for this
+parameter is \Robject{FALSE}
 
 \subsection{Print-tip groups}
 FIXME
@@ -613,8 +653,8 @@ of between- and within-group variability.}
 <<marraynorm,results=hide>>=
 library("marray")
 mr <- new('marrayRaw', 
-          maGf=exprs(lymphoma)[,refrs], 
-          maRf=exprs(lymphoma)[,samps],
+          maGf=exprs(lymphoma)[,iref], 
+          maRf=exprs(lymphoma)[,ismp],
           maLayout=new('marrayLayout', maNgr=4, maNgc=4, maNsr=24, maNsc=24))
 mn <- maNorm(mr, norm="median", echo=TRUE)
 @
