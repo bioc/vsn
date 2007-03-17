@@ -627,6 +627,10 @@ procedure that normalizes the new test arrays ``towards'' the existing
 reference dataset without changing the latter.
 
 % 
+\myincfig{vsn-figref}{0.45\textwidth}{Scatterplot of normalized 
+intensities after normalization by reference ($x$-axis, \Robject{f8})
+and joint normalization ($y$-axis, \Robject{fall}).}
+%
 To simulate this situation, we pretend that the Cy5 channels of the 
 \Robject{lymphoma} dataset can be treated as 8
 single-colour arrays, and fit a model to the first 7.
@@ -638,17 +642,25 @@ Now we call \Rfunction{vsn2} on the 8-th array, with the output
 from the previous call as the reference.
 %
 <<ref2>>=
-f8 = vsn2(lymphoma[, ismp[8]])
+f8 = vsn2(lymphoma[, ismp[8]], 
+          reference=ref)
 @
 %
 We can compare to what we would have gotten if we had fitted the model 
-to all 8 arrays:
+to all 8 arrays,
 %
 <<ref3>>=
 fall = vsn2(lymphoma[, ismp])
 f8@par[,1,]
 fall@par[,8,]
 @
+% 
+and compare the resulting values in the scatterplot Figure~\ref{figref}.
+%
+<<figref,fig=TRUE,include=FALSE,width=4,height=4.5>>=
+plot(exprs(f8), exprs(fall)[,8], pch=".", asp=1)
+abline(a=0, b=1, col="red")
+@ 
 %
 <<hiddenchecks,echo=FALSE>>=
 stopifnot(length(ismp)==8L, max(abs(f8@par[,1,]-fall@par[,8,]))<0.05)
