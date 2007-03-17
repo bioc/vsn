@@ -448,12 +448,36 @@ matplot(t(exprs(lymM)[order(lf$p.value)[1:5],]),
   col=hsv(seq(0,1,length=5), 1, 0.6), 
   ylab="M", xlab="arrays")
 @ 
-
+%
+%--------------------------------------------------
 \subsection{Background subtraction}
-The \Rfunction{justvsn} method  allows to subtract local 
-background estimates that are stored in the \Robject{Rb} and \Robject{Gb}
-slots of the incoming \Rclass{RGList}. To demonstrate this, we construct
-an  \Rclass{RGList} object \Robject{lymRGwbg},
+%--------------------------------------------------
+Many image analysis programs for microarrays provide local background
+estimates, which are typically calculated from the fluorescence signal
+outside, but next to the features. These are not always useful. Just
+as any measurement, these local background estimates are also subject
+to random measurement error, and subtracting them from the foreground
+intensities will lead to increased random noise in the signal. On the
+other hand side, doing so may remove systematic artifactual drifts in the
+data, for example, a spatial gradient. This is a typical example of the
+variance--bias trade-off, or \emph{accuracy}--\emph{precision}
+trade-off. 
+
+So what is the optimal analysis strategy, should you subtract local
+background estimates or not? The answer depends on the properties of
+your particular data. \Rpackage{vsn} itself estimates and subtracts an
+over-all background estimate (per array and colour, see
+Section~\ref{sec:calib}), so an additional local background correction
+is only useful if there actually is local variability across an array,
+for example, a spatial gradient.
+
+Supposing that you have decided to subtract the local background
+estimates, how is it done? 
+When called with the argument \Robject{backgroundsubtract=TRUE}\footnote{%
+Note that the default value for this parameter is \Robject{FALSE}.}, 
+the \Rfunction{justvsn} method will subtract local background estimates in
+the \Robject{Rb} and \Robject{Gb} slots of the incoming \Rclass{RGList}.
+To demonstrate this, we construct an \Rclass{RGList} object \Robject{lymRGwbg}.
 %
 <<makebg>>=
 rndbg=function(x, off, fac)
@@ -465,43 +489,38 @@ lymRGwbg$Rb = rndbg(lymRG, 100, 30)
 lymRGwbg$Gb = rndbg(lymRG,  50, 20)
 @ 
 %
-In reality, of course, we hope that the values in 
-\Robject{Rb} and \Robject{Gb} contain some useful estimates of 
-systematic trends in the measured data, not just random noise.
-We can call \Rfunction{justvsn} on it 
-
+In practice, of course, these values will be read from the image
+quantitation file with a function such as \Rfunction{read.maimages}
+that produces the \Rclass{RGList} object. We can call
+\Rfunction{justvsn} on it
 %
 <<justvsnwbg, results=hide>>=
-#fitwibg = vsn2(lymRGwbg, backgroundsubtract=TRUE)
+lymESwbg = justvsn(lymRGwbg, 
+   backgroundsubtract=TRUE)
 @ 
 %
-%fitnobg = vsn2(lymRG)
-FIXME
-
-Note that you do need to explicitely set
-\Robject{backgroundsubtract=TRUE}, since the default for this
-parameter is \Robject{FALSE}
-
+%--------------------------------------------------
 \subsection{Print-tip groups}
-FIXME
+%--------------------------------------------------
+By default, \Rpackage{vsn} computes one normalization transformation
+with a common set of parameters for all features of an array (and
+colour, if it is a multi-color microarray), see
+Section~\ref{sec:calib}.  Sometimes, there is a need for
+stratification by further variables of the array manufacturing
+process, for example, print-tip groups (sectors) or microtitre
+plates. This can be done with the \Robject{strata} parameter of
+\Rfunction{vsn2}.
 
-
-%  If \code{backgroundsubtract=TRUE}, then \code{cbind(x$Rb, x$Gb)} is
-%  subtracted before. 
-
-Note that \Robject{RG} should contain raw intensities, i.\,e., prior
-log-transformation or any normalization. The returned intensities and
-log-ratios in \Robject{MA} are on the $\log-2$ scale, not the $\log-e$
-scale as when \Robject{vsn} is called directly. Please see also the
-help page for \Robject{normalizeBetweenArrays}.
-
-For print-tip wise normalization, construct a function
-\Robject{pinId} that calculates the print-tip ID (1...16) for every
-spot:
-
-<<limma2,eval=FALSE>>=
-pinId <- function(x)
-  unlist(lapply(1:(x$ngrid.r*x$ngrid.c), rep, x$nspot.r*x$nspot.c))
+The example data that comes with the package does not directly provide
+the information which print-tip each feature was spotted with, but we
+can write a little function \Rfunction{pinId} that reconstructs this information.
+%
+<<pinId>>=
+gridrows = 4
+gridcols = 4
+spotrows = 24
+spotcols = 24
+pinId = unlist(lapply(seq_len(gridrows*gridcols), rep, spotrows*spotcols))
 @
 
 and call

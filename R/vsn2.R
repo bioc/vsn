@@ -254,9 +254,12 @@ vsnMatrix = function(x,
 
   storage.mode(x) = "double"
 
-  if(missing(strata)) 
-    strata = factor(integer(0), levels="all")
-
+  strata = if(missing(strata)){ 
+    factor(integer(0), levels="all")
+  } else {
+    factor(strata)
+  }
+  
   minDataPointsPerStratum = 42L
   stratasplit = if(length(strata)>0) split(seq_len(nrow(x)), strata) else list(all=seq_len(nrow(x)))
   if(!(identical(names(stratasplit), levels(strata)) &&
