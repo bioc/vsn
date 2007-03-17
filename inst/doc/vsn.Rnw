@@ -76,7 +76,7 @@ produces the vector of generalized log-ratios between the
 data in the first and second column.
 
 \Rpackage{vsn} is a model-based method, and the more explicit way of 
-doing the above task is
+doing the above task is \label{fit}
 %
 <<overv3, results=hide>>=
 fit = vsn2(kidney)
@@ -140,7 +140,7 @@ other methods.}.
 \section{Running vsn on data from a single two-color array} 
 %------------------------------------------------------------
 \begin{figure*}[t]\begin{center}
-\includegraphics[width=0.8\textwidth]{vsn-nkid-scp}  
+\includegraphics[width=0.9\textwidth]{vsn-nkid-scp}  
 \caption{\label{vsn-nkid-scp}%
 Scatterplots of the kidney example data, which was obtained from a 
 two-color cDNA array by quantitating spots and subtracting a local background 
@@ -154,7 +154,7 @@ Those spots which are missing in panel b are colored in orange in panel a.}
 \end{center}\end{figure*}
 %
 \begin{figure*}[t]\begin{center}
-\includegraphics[width=0.8\textwidth]{vsn-nkid-sdmean}  
+\includegraphics[width=0.9\textwidth]{vsn-nkid-sdmean}  
 \caption{\label{vsn-nkid-sdmean}%
 Standard deviation versus rank of the mean, and the mean, respectively.}
 \end{center}\end{figure*}
@@ -194,13 +194,13 @@ $\hat{\mu}_k$ on the $x$-axis,
 \hat{\mu}_k     =\frac{1}{d}  \sum_{i=1}^d h_{ki}\quad\quad
 \hat{\sigma}_k^2=\frac{1}{d-1}\sum_{i=1}^d (h_{ki}-\hat{\mu}_k)^2.
 \end{equation}
-<<nkid-sdmean,include=FALSE,fig=TRUE,width=8,height=4,results=hide>>=
+<<nkid-sdmean,include=FALSE,fig=TRUE,width=8,height=4.5,results=hide>>=
 par(mfrow=c(1,2))
 meanSdPlot(xnorm, ranks=TRUE)
 meanSdPlot(xnorm, ranks=FALSE)
 @
 %
-Such a plot is shown in Fig.~\ref{vsn-nkid-sdmean}.  The red dots,
+Such a plot is shown in Figure~\ref{vsn-nkid-sdmean}.  The red dots,
 connected by lines, show the running median of the standard
 deviation\footnote{Window width: 10\%, window midpoints 5\%, 10\%,
 15\%, \ldots.}. Within each window, the median may be considered a
@@ -222,7 +222,7 @@ Figure~\ref{vsn-nkid-histM}.
 <<nkid-histM,include=FALSE,echo=FALSE,fig=TRUE,results=hide,width=4,height=4>>=
 hist(M, breaks=50, col="#d95f0e")
 @
-\myincfig{vsn-nkid-histM}{0.4\textwidth}{Histogram of generalized 
+\myincfig{vsn-nkid-histM}{0.45\textwidth}{Histogram of generalized 
 log-ratios \Robject{M} for the kidney example data.}
 
 %------------------------------------------------------------
@@ -262,14 +262,14 @@ lym = justvsn(lymphoma)
 <<lym-sdmean2,include=FALSE,fig=TRUE>>=
 meanSdPlot(lym)
 @
-\myincfig{vsn-lym-sdmean2}{0.5\textwidth}{Standard deviation 
+\myincfig{vsn-lym-sdmean2}{0.45\textwidth}{Standard deviation 
 versus rank of the mean for the lymphoma example data}
-Again, Fig.~\ref{vsn-lym-sdmean2} helps to visually verify that the
+Again, Figure~\ref{vsn-lym-sdmean2} helps to visually verify that the
 variance stabilization worked.  As above, we can obtain the
 generalized log-ratios for each slide, by subtracting the common
 reference intensities from those for the 8 samples:
 %
-<<lym-M,include=FALSE,fig=TRUE,width=8,height=4,results=hide>>=
+<<lym-M,include=FALSE,fig=TRUE,width=8,height=4.5,results=hide>>=
 iref = (1:8)*2-1
 ismp = (1:8)*2
 M = exprs(lym)[,ismp] - exprs(lym)[,iref] 
@@ -283,12 +283,12 @@ abline(h=0, col="red")
 @
 %
 \begin{figure*}[t]\begin{center}
-\includegraphics[width=0.8\textwidth]{vsn-lym-M}  
+\includegraphics[width=0.9\textwidth]{vsn-lym-M}  
 \caption{\label{vsn-lym-M}%
 Mean-difference plots for two slides from the lymphoma example data.}
 \end{center}\end{figure*}
 %
-Fig.~\ref{vsn-lym-M} shows the resulting $M$-vs-$A$-plots~\cite{Dudoit578}
+Figure~\ref{vsn-lym-M} shows the resulting $M$-vs-$A$-plots~\cite{Dudoit578}
 for two of the arrays. Note that in the left
 scatterplot, there is a cloud of points at low intensities that is
 concentrated slightly off the line $M=0$.  In the right scatterplot, a
@@ -305,7 +305,7 @@ to refer to the documentation of the package \Rpackage{affy}
 for more information about data structures and available methods. 
 %
 \begin{figure*}[t]\begin{center}
-\includegraphics[width=0.8\textwidth]{vsn-figaffy}  
+\includegraphics[width=0.9\textwidth]{vsn-figaffy}  
 \caption{\label{vsn-figaffy}%
 Reults of \Rfunction{justvsn} and \Rfunction{rma} on the Dilution 
 example data. Chip 1 was hybridized with 20 $\mu$g RNA from liver,
@@ -334,20 +334,20 @@ d.rma = rma(Dilution)
 %
 The resulting scatterplots are shown and compared in Figure~\ref{vsn-figaffy}.
 %
-<<figaffy,include=FALSE,fig=TRUE,width=8,height=8>>=
+<<figaffy,include=FALSE,fig=TRUE,width=8,height=9>>=
 par(mfrow=c(2,2), pch=".")
 w = c(1,3)
 titvsn = "vsn: chip 1 vs 3"
 titrma = "rma: chip 1 vs 3"
-plot(exprs(d.vsn)[,w], main=titvsn)
-plot(exprs(d.rma)[,w], main=titrma)
+plot(exprs(d.vsn)[,w], main=titvsn, asp=1)
+plot(exprs(d.rma)[,w], main=titrma, asp=1)
 plot(exprs(d.rma)[,1], exprs(d.vsn)[,1], 
-  xlab="rma", ylab="vsn", 
+  xlab="rma", ylab="vsn", asp=1, 
   main="chip 1: expression values")
 abline(a=0, b=1, col="red")
 plot(diff(t(exprs(d.rma)[,w])), 
      diff(t(exprs(d.vsn)[,w])), 
-     xlab="rma", ylab="vsn", 
+     xlab="rma", ylab="vsn", asp=1,
      main="M values chip 1 vs 3",
      xlim=c(-1,1), ylim=c(-1,1))
 abline(a=0, b=1, col="red")
@@ -424,6 +424,8 @@ stopifnot(ncol(lymES)==16L)
 sampleClass=factor(sub("-.*$", "", lymM$sample))
 @ 
 % 
+\label{lmFit}
+%
 <<design>>=
 design = model.matrix(~sampleClass)
 lf=lmFit(lymM, 
@@ -432,7 +434,7 @@ lf=eBayes(lf)
 @ 
 %
 \begin{figure*}[t]\begin{center}
-\includegraphics[width=0.8\textwidth]{vsn-figlimma}  
+\includegraphics[width=0.9\textwidth]{vsn-figlimma}  
 \caption{\label{vsn-figlimma}%
 Left: histogramme of $p$-values from the moderated $t$-test between the 
 \Sexpr{levels(sampleClass)[1]} and
@@ -440,7 +442,7 @@ Left: histogramme of $p$-values from the moderated $t$-test between the
 Right: $M$-values for the 5 genes with the smallest $p$-values.}
 \end{center}\end{figure*}
 %
-<<figlimma,fig=TRUE,include=FALSE,width=8,height=4>>=
+<<figlimma,fig=TRUE,include=FALSE,width=8,height=4.5>>=
 par(mfrow=c(1,2))
 hist(lf$p.value, 100, col="orange") 
 matplot(t(exprs(lymM)[order(lf$p.value)[1:5],]), 
@@ -495,13 +497,24 @@ that produces the \Rclass{RGList} object. We can call
 \Rfunction{justvsn} on it
 %
 <<justvsnwbg, results=hide>>=
-lymESwbg = justvsn(lymRGwbg, 
+lymESwbg = justvsn(lymRGwbg[, 1:3], 
    backgroundsubtract=TRUE)
 @ 
 %
+(Here we only do it for the first 3 arrays to save compute time.)
+
 %--------------------------------------------------
 \subsection{Print-tip groups}
 %--------------------------------------------------
+\begin{figure}[t]\begin{center}
+\includegraphics[width=0.45\textwidth]{vsn-figstrata}  
+\caption{\label{vsn-figstrata}%
+Scatterplot of normalized and transformed intensities for 
+the red channel of array 1. Values on the $x$-axis correspond 
+to normalization without strata (\Robject{lymES}), 
+values on the $y$-axis to normalization with strata (\Robject{lymESstr}).
+\end{center}\end{figure}
+%
 By default, \Rpackage{vsn} computes one normalization transformation
 with a common set of parameters for all features of an array (and
 colour, if it is a multi-color microarray), see
@@ -513,21 +526,139 @@ plates. This can be done with the \Robject{strata} parameter of
 
 The example data that comes with the package does not directly provide
 the information which print-tip each feature was spotted with, but we
-can write a little function \Rfunction{pinId} that reconstructs this information.
+can write a little function \Rfunction{pinId} that reconstructs this information,
 %
 <<pinId>>=
 gridrows = 4
 gridcols = 4
 spotrows = 24
 spotcols = 24
-pinId = unlist(lapply(seq_len(gridrows*gridcols), rep, spotrows*spotcols))
+pinId = rep(seq_len(gridrows*gridcols), 
+   each=spotrows*spotcols)
 @
-
+%
 and call
-<<limma3,eval=FALSE>>=
-## MA <- normalizeBetweenArrays(RG, method="vsn", strata=pinId(thelayout))
+%
+<<strata>>=
+EconStr = justvsn(lymRG[,1:2], strata=pinId)
 @
+%
+To save CPU time, we only call this on the first two arrays. We compare the 
+result to calling \Rfunction{justvsn} without \Robject{strata},
+%
+<<nostrata>>=
+EsenzaStr = justvsn(lymRG[,1:2])
+@
+%
+A scatterplot of the comparison is shown in Figure~\ref{vsn-figstrata}.
+%
+<<figstrata,fig=TRUE,include=FALSE,width=4,height=4.5>>=
+j=1L
+plot(exprs(EsenzaStr)[,j], exprs(EconStr)[,j], 
+  pch=".", asp=1, 
+  col=hsv(seq(0,1,length=max(pinId)), 1, 0.6)[pinId], 
+  xlab="without strata", 
+  ylab="print-tip strata",
+  main=sampleNames(lymES)[j])
+@
+%
+%---------------------------------------------------------------------
+\section{Missing values} \label{sec:miss}
+%---------------------------------------------------------------------
+\begin{figure*}[t]\begin{center}
+\includegraphics[width=0.9\textwidth]{vsn-figmiss}  
+\caption{\label{vsn-figmiss}%
+Scatterplot of normalized and transformed intensities for 
+the red channel of array 1. Values on the $x$-axis correspond 
+to normalization without strata (\Robject{lymES}), 
+values on the $y$-axis to normalization with strata (\Robject{lymESstr}).
+\end{center}\end{figure}
+%
+The parameter estimation algorithm of \Rpackage{vsn} is able to deal with
+missing values in the input data. To demonstrate this, we generate an 
+\Rclass{ExpressionSet} \Robject{lym2} in which about 10\% of all intensities 
+are missing,
+%
+<<miss1>>=
+lym2 = lymphoma
+exprs(lym2)[sample(prod(dim(lym2)), 16000)] = NA
+table(is.na(exprs(lym2)))
+@ 
+and call \Rfunction{vsn2} on it.
+<<miss2>>=
+fit1 = vsn2(lymphoma)
+fit2 = vsn2(lym2)
+@ 
+%
+The resulting fitted parameters are not identical, but very similar. 
+See Figure~\ref{vsn-figmiss}.
+%
+<<figmiss,fig=TRUE,include=FALSE,width=8,height=4.5>>=
+par(mfrow=c(1,2))
+for(j in 1:2){
+  p1 = fit1@par[,,j]
+  p2 = fit2@par[,,j]
+  d  = max(abs(p1-p2))
+  stopifnot(d<0.05)
+  plot(p1, p2, pch=16, asp=1,
+    main=paste("d", signif(d,3), sep="="))
+  abline(a=0, b=1, col="blue")
+}
+@ 
 
+%---------------------------------------------------------------------
+\section{Normalization against an existing reference dataset} \label{sec:ref}
+%---------------------------------------------------------------------
+Up to here, we have considered the joint normalization of a set of arrays to each
+other. What happens if, after analysing a set of arrays in this
+fashion, we obtain some additonal arrays? Do we re-run the
+whole normalization again for the complete, new and bigger set of
+arrays? This may sometimes be impractical. 
+
+Imagine we have used a set of training arrays for setting up a
+classifier that is able to discriminate different biological states of
+the samples based on their mRNA profile. Now we get new test
+arrays to which we want to apply the classifier. Clearly, we do not
+want to re-run the normalization for the whole, new and bigger dataset, as this
+would change the training data; neither, we can normalize only the
+test arrays between themselves, without normalizing them ``towards''
+the reference training dataset. What we need is a normalization
+procedure that normalizes the new test arrays ``towards'' the existing
+reference dataset without changing the latter.
+
+% 
+To simulate this situation, we pretend that the Cy5 channels of the 
+\Robject{lymphoma} dataset can be treated as 8
+single-colour arrays, and fit a model to the first 7.
+%
+<<ref1>>=
+ref = vsn2(lymphoma[, ismp[1:7]])
+@ 
+Now we call \Rfunction{vsn2} on the 8-th array, with the output
+from the previous call as the reference.
+%
+<<ref2>>=
+f8 = vsn2(lymphoma[, ismp[8]])
+@
+%
+We can compare to what we would have gotten if we had fitted the model 
+to all 8 arrays:
+%
+<<ref3>>=
+fall = vsn2(lymphoma[, ismp])
+f8@par[,1,]
+fall@par[,8,]
+@
+%
+<<hiddenchecks,echo=FALSE>>=
+stopifnot(length(ismp)==8L, max(abs(f8@par[,1,]-fall@par[,8,]))<0.05)
+@ 
+
+More details on this can be found in the vignettes
+\emph{Verifying and assessing the performance with simulated data} 
+and
+\emph{Likelihood Calculations for vsn}
+that come with this package.
 
 %---------------------------------------------------------------------
 \section{The calibration parameters} \label{sec:calib}
@@ -554,11 +685,11 @@ of unspecific background signal.
 
 The transformation to a scale where the variance of the data is approximately
 independent of the mean is 
-\begin{equation}\label{eq.vs}
-h_{ki} = \arsinh(a_0+b_0y_{ki}') 
-  = \log\left(a_0+b_0y_{ki}'+\sqrt{\left(a_0+b_0y_{ki}'\right)^2+1}\right).
+\begin{eqnarray}
+h_{ki} &=& \arsinh(a_0+b_0y_{ki}') \label{eq.vs} \\
+  &=& \log\left(a_0+b_0y_{ki}'+\sqrt{\left(a_0+b_0y_{ki}'\right)^2+1}\right).
 \end{equation}
-Eqns.~(\ref{eq.cal}) and (\ref{eq.vs}) can be combined, so that the whole 
+Equations~(\ref{eq.cal}) and (\ref{eq.vs}) can be combined, so that the whole 
 transformation is given by 
 \begin{equation}\label{eq.transf}
 h_{ki} = \arsinh(a_{si} + b_{si} y_{ki}). 
@@ -583,46 +714,59 @@ is what was called $a_{si}$ in Eqn.~(\ref{eq.transf}), and
 %---------------------------------------------------------------------
 \subsection{More on calibration} 
 %---------------------------------------------------------------------
+\begin{figure*}[t]\begin{center}
+\includegraphics[width=0.9\textwidth]{vsn-nkid-calib4}  
+\caption{\label{vsn-nkid-calib4}%
+Scatterplots for badly biased data. 
+Left hand side: raw data on log-log scale, 
+right hand side: after calibration and transformation with vsn.}
+\end{center*}\end{figure}
+%
 Now suppose the kidney example data were not that well measured, and 
 the red channel had a baseline that was shifted by 500 and a scale 
 that differed by a factor of $0.25$:
+%
 <<nkid-calib2>>=
-bkid <- kidney
-exprs(bkid)[,"red"] <- 0.25 * (500+exprs(bkid)[,"red"])
+bkid = kidney
+exprs(bkid)[,1] = 0.25*(500+exprs(bkid)[,1])
 @
-We can again call \Robject{vsn} on this data
+%
+We can again call \Rfunction{vsn2} on these data
+%
+<<nkid-calib3,results=hide>>=
+bfit <- vsn2(bkid)
+@
+% 
 <<nkid-calib-warn1,echo=FALSE,results=hide>>=
 oldwarn <- options(warn=-1)
 @
-<<nkid-calib3,results=hide>>=
-nbkid <- vsn(bkid)
-<<nkid-calib4,fig=TRUE,include=FALSE,width=8,height=4>>=
+%
+<<nkid-calib4,fig=TRUE,include=FALSE,width=8,height=4.5>>=
 par(mfrow=c(1,2))
-plot(exprs(bkid),  main = "raw", pch = ".", log="xy")
-plot(exprs(nbkid), main = "vsn", pch = ".")
-preproc(description(nbkid))$vsnParams[1,,]
+plot(exprs(bkid), main="raw", 
+     pch=".", log="xy")
+plot(exprs(bfit), main="vsn", 
+     pch=".")
+bfit@par[1,,]
 @
-% $ for ESS
-\myincfig{vsn-nkid-calib4}{\textwidth}{Scatterplots for badly biased 
-data. Left hand side: raw data on log-log scale, right hand side: after 
-calibration and transformation with vsn.}
+% 
 <<nkid-calib-warn2,echo=FALSE,results=hide>>=
 options(oldwarn)
 rm(oldwarn)
 @
+%
 The factor for the red channel is now about four times as large as
-before.  The result is shown in Fig.~\ref{vsn-nkid-calib4}.
-
+before.  The result is shown in Figure~\ref{vsn-nkid-calib4}.
 
 %-------------------------------------------------------------------
 \section{Assessing vsn and comparing it to other methods}
 %-------------------------------------------------------------------
-The function \Robject{vsn} is a parameter estimation algorithm that fits the
-parameters for a certain model. In order to see how good the estimator is, we
-can look at bias, variance, sample size dependence, robustness against model
-misspecificaton and outliers. This is done in the document
-\texttt{convergence.pdf}, which can be found in the \texttt{doc} subdirectory
-of the package.
+\Rpackage{vsn} is a parameter estimation algorithm that fits the
+parameters for a certain model. In order to see how good the estimator
+is, we can look at bias, variance, sample size dependence, robustness
+against model misspecificaton and outliers. This is done in the
+vignette \emph{Verifying and assessing the performance with simulated
+data} that also comes with this package.
 
 Practically, the more interesting question is how different microarray
 calibration and data transformation methods compare to each other. For this,
@@ -643,19 +787,8 @@ known groups. The idea is that we compare the within-group variability
 larger the latter, the better we may deem the performance of the
 calibration and data transformation.
 
-Here, as a measure of the relative size of between- and within-group
-variability we take the size of the $t$-statistics.  The acceptable
-use of CPU time and disk memory of a package vignette is limited, thus
-here we stick to a very simple-minded calculation, and a small data
-set. See Fig.~\ref{fig-comp} and the calculations below. Two
-applications to larger data sets are described in
-reference~\cite{HuberISMB2002}.  More sophisticated analyses can be
-made by comparing not just the distributions of $t$-statistics, but
-for example, the estimated false discovery rates, using different test
-statistics. You are encouraged to try this out with your own data.
-\begin{figure}[htbp]
-\begin{center}
-\includegraphics[width=\textwidth]{vsn-comp}
+\begin{figure*}[t]\begin{center}
+\includegraphics[width=0.9\textwidth]{vsn-comp}
 \caption{\label{fig-comp}Left hand side: $x$-axis -- generalized
 log-ratios for slide 1 from \Robject{vsn}, $y$-axis -- log-ratios
 for slide 1 after global median normalization. For most genes, the two
@@ -666,26 +799,44 @@ the $t$-statistic for the comparison between the 4 slides with CLL and
 the 4 with DLCL. The $t$-statistics from \Robject{vsn} are larger,
 i.\,e.\ it compares more favorable with respect to the relative size
 of between- and within-group variability.}
-\end{center}
-\end{figure}
+\end{center}\end{figure*}
 
-<<marraynorm,results=hide>>=
-library("marray")
-mr <- new('marrayRaw', 
-          maGf=exprs(lymphoma)[,iref], 
-          maRf=exprs(lymphoma)[,ismp],
-          maLayout=new('marrayLayout', maNgr=4, maNgc=4, maNsr=24, maNsc=24))
-mn <- maNorm(mr, norm="median", echo=TRUE)
-@
-<<comp,results=hide,fig=TRUE,width=8,height=4,include=FALSE>>=
+Here, as a measure of the relative size of between- and within-group
+variability we take the size of the $t$-statistics.  The acceptable
+use of CPU time and disk memory of a package vignette is limited, thus
+here we stick to a very simple-minded calculation and a small data
+set. See Figure~\ref{fig-comp} and the calculations below. Two
+applications to larger data sets are described in
+reference~\cite{HuberISMB2002}.  More sophisticated analyses can be
+made by comparing not just the distributions of $t$-statistics, but
+for example, the estimated false discovery rates, using different test
+statistics. You are encouraged to try this out with your own data.
+%
+
+First, we normalize the lymphoma data using the \Rfunction{loess} 
+normalization,
+%
+<<loess,results=hide>>=
+lymMls=new("ExpressionSet", exprs=
+   normalizeWithinArrays(lymRG, method="loess")$M)
+@ 
+% 
+then we calculate differential expression statistics just as above
+on page~\pageref{lmFit}.
+%
+<<lmFitagain>>=
+lfls = eBayes(lmFit(lymMls, 
+   design[,"sampleClassDLCL", drop=FALSE]))
+@ 
+%
+<<comp,results=hide,fig=TRUE,width=8,height=4.5,include=FALSE>>=
 par(mfrow=c(1,2))
-library("multtest")
-plot(M[,1], mn@maM[,1]*log(2), xlab="M (vsn)", ylab="M (global median)", main="slide 1", pch=".")
+plot(exprs(lymM)[,j], exprs(lymMls)[,j], 
+  main=sampleNames(lymM)[j], pch=".", asp=1)
 abline(a=0,b=1,col="blue")
-classlabel <- regexpr("CLL",colnames(M)) > 0
-t1 <- mt.teststat(M, classlabel)
-t2 <- mt.teststat(mn@maM, classlabel)
-qqplot(t1, t2, xlab="t (vsn)", ylab="t (global median)", main="QQ plot", pch=".")
+qqplot(lf$t, lfls$t, 
+  xlab="t (vsn)", ylab="t (loess)", 
+  main="QQ plot", pch=".")
 abline(a=0,b=1,col="blue")
 @
 
@@ -693,7 +844,7 @@ abline(a=0,b=1,col="blue")
 \section{vsn, shrinkage and background correction} \label{sec:shrink}
 %------------------------------------------------------------
 %
-<<calcshrink, echo=FALSE>>=
+<<calcshrink, echo=FALSE, results=hide>>=
 fc = 0.5
 x2 = seq(0.5, 15, by=0.5)
 x1 = x2/fc
@@ -724,8 +875,8 @@ cex  = 1.4
 lwd  = 2
 @ 
 %
-<<figshrink, fig=TRUE, echo=FALSE, include=TRUE, width=5, height=5>>=
-mai  = par("mai"); mai[3]=0; par(mai)
+<<figshrink, fig=TRUE, echo=FALSE, include=FALSE, width=4, height=4.5>>=
+mai=par("mai"); mai[3]=0; par(mai)
 plot(x2, m, ylim=c(-1.2,2), type="n", xlab=expression(x[2]), ylab="")
 abline(h=-log(fc), col="red", lwd=lwd, lty=1)
 abline(h=0, col="black", lwd=1, lty=2)
@@ -734,7 +885,7 @@ segments(x2, m-2*s, x2, m+2*s, lwd=lwd, col=colq, lty=lty)
 legend(8.75, -0.1, c("q","h"), col=colq, pch=pch, lty=lty, lwd=lwd)
 @
 %
-\myincfig{vsn-figshrink}{0.5\textwidth}{%
+\myincfig{vsn-figshrink}{0.45\textwidth}{%
 The shrinkage property of the generalized log-ratio.  
 Blue diamonds and error bars correspond to mean and standard
 deviation of the generalized log-ratio $h$, as obtained from \Rpackage{vsn}, 
