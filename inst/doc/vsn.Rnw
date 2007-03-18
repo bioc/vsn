@@ -9,7 +9,7 @@
 \definecolor{darkblue}{rgb}{0.0,0.0,0.75}
 \usepackage[%
 baseurl={http://www.bioconductor.org},%
-pdftitle={Introduction to robust calibration and variance stabilization with vsn},%
+pdftitle={Introduction to robust calibration and variance stabilisation with vsn},%
 pdfauthor={Wolfgang Huber},%
 pdfsubject={vsn},%
 pdfkeywords={Bioconductor},%
@@ -41,14 +41,14 @@ pagecolor=darkblue,raiselinks,plainpages,pdftex]{hyperref}
 
 \begin{document}
 %----------------------------------------------------------------------------------------
-\title{Introduction to robust calibration and variance stabilization with \Rpackage{vsn}}
+\title{Introduction to robust calibration and variance stabilisation with \Rpackage{vsn}}
 \author{Wolfgang Huber}
 %----------------------------------------------------------------------------------------
 \maketitle
 \tableofcontents
 
 <<setup,echo=FALSE,results=hide>>=
-options(width=41)
+options(width=41, signif=3)
 @ 
 
 %------------------------------------------------------------
@@ -64,7 +64,7 @@ xnorm = justvsn(kidney)
 @
 %
 where \Robject{kidney} is an \Rclass{ExpressionSet} object with
-unnormalized data and \Robject{xnorm} the resulting
+unnormalised data and \Robject{xnorm} the resulting
 \Rclass{ExpressionSet} with calibrated and $\glog_2$-transformed
 data.
 %
@@ -72,11 +72,11 @@ data.
 M = exprs(xnorm)[,1] - exprs(xnorm)[,2]
 @
 %
-produces the vector of generalized log-ratios between the 
+produces the vector of generalised log-ratios between the 
 data in the first and second column.
 
 \Rpackage{vsn} is a model-based method, and the more explicit way of 
-doing the above task is \label{fit}
+doing the above is \label{fit}
 %
 <<overv3, results=hide>>=
 fit = vsn2(kidney)
@@ -87,24 +87,24 @@ stopifnot(identical(exprs(xnorm), exprs(ynorm)), identical(exprs(xnorm), exprs(f
 @ 
 %
 where \Robject{fit} is an object of class \Rclass{vsn} that contains
-the fitted calibration and transformation parameters and the method
+the fitted calibration and transformation parameters, and the method
 \Rfunction{predict} applies the fit to the data.
 The two-step protocol is useful when you want to fit the parameters on a
-subset of the data, e.\,g.\ a set some control or spike-in features,
+subset of the data, e.\,g.\ a set of control or spike-in features,
 and then apply the model to the complete set of data. Furthermore, it
 allows further inspection of the \Robject{fit} object, e.\,g.\ for the
-purposes of quality assessment.
+purpose of quality assessment.
 
-Beside \Rclass{ExpressionSet}s, there are also \Rfunction{justvsn} 
+Besides for \Rclass{ExpressionSet}s, there are also \Rfunction{justvsn} 
 methods for \Rclass{AffyBatch} objects from the \Rpackage{affy} package and
-\Rclass{RGList} objects from the \Rpackage{limma} package. These are described 
+\Rclass{RGList} objects from the \Rpackage{limma} package. They are described 
 in this vignette.
 
-The so-called $\glog_2$ (short for \emph{generalized logarithm}) 
+The so-called $\glog_2$ (short for \emph{generalised logarithm}) 
 is a function that is like the logarithm (to base 2) for large values 
 (large compared to the amplitude of the background noise),
 but is less steep for smaller values.  Differences between the transformed
-values are the \emph{generalized log-ratios}. These are 
+values are the \emph{generalised log-ratios}. These are 
 shrinkage estimators of the logarithm of the fold change.
 The usual \emph{log-ratio} is another example for an estimator\footnote{%
 In statistics, the term \emph{estimator} is used to denote an algorithm
@@ -114,43 +114,42 @@ underlying distribution that generated the data. Depending on the amount of the
 available data and the quality of the estimator, the 
 correspondence between the estimated value and the true value may be more 
 or less faithful. For example, the arithmetic mean and the median are two 
-different estimators of the expectation value of a distribution.}
+different estimators of the location parameter of a distribution.}
 of log fold change. 
 There is also a close relationship between background correction of 
-the intensities and the variance properties of these different estimators. Please
+the intensities and the variance properties of the different estimators. Please
 see Section~\ref{sec:shrink} for more explanation of these issues. 
 
 How does \Rpackage{vsn} work? In short, each column is calibrated by
 an affine transformation\footnote{It is possible to stratify the
 transformations within columns, see the \Robject{strata} parameter of
-\Rfunction{vsn}.}, then the whole data are transformed by a logarithm-like
-variance-stabilizing transformation.  After this, systematic array- or
+\Rfunction{vsn}.}, then the whole data are transformed by a $\glog_2$
+variance-stabilising transformation.  After this, systematic array- or
 dye-biases should be removed, and the variance should be approximately
 independent of the mean intensity.  Many statistical methods such as
-hypothesis tests, ANOVA modeling, clustering, or classification work
+hypothesis tests, ANOVA modeling, clustering or classification work
 better or are easier to use if the variance of the data is roughly the
 same for all observations\footnote{Note that \Rpackage{vsn} only
 addresses the dependence of the variance on the mean intensity. There
 may be other factors influencing the variance, such as gene-inherent
-properties, or changes of the tightness of transcriptional control in
-different conditions.  If necessary, these need to be addressed by
-other methods.}.
+properties or changes of the tightness of transcriptional control in
+different conditions.  These need to be addressed by other methods.}.
 
 %------------------------------------------------------------
-\section{Running vsn on data from a single two-color array} 
+\section{Running vsn on data from a single two-colour array} 
 %------------------------------------------------------------
 \begin{figure*}[t]\begin{center}
 \includegraphics[width=0.9\textwidth]{vsn-nkid-scp}  
 \caption{\label{vsn-nkid-scp}%
 Scatterplots of the kidney example data, which was obtained from a 
-two-color cDNA array by quantitating spots and subtracting a local background 
+two-colour cDNA array by quantitating spots and subtracting a local background 
 estimate.
-a) normalized and transformed with \Rpackage{vsn}, 
-b) unnormalized and $\log_2$-transformed.
+a) normalised and transformed with \Rpackage{vsn}, 
+b) unnormalised and $\log_2$-transformed.
 Panel a shows the data from the complete set of \Sexpr{nrow(kidney)} 
 spots on the array, panel b only the \Sexpr{sum(0==rowSums(exprs(kidney)<=0))} 
 spots for which both red and green net intensities were greater than 0. 
-Those spots which are missing in panel b are colored in orange in panel a.}
+Those spots which are missing in panel b are coloured in orange in panel a.}
 \end{center}\end{figure*}
 %
 \begin{figure*}[t]\begin{center}
@@ -159,17 +158,16 @@ Those spots which are missing in panel b are colored in orange in panel a.}
 Standard deviation versus rank of the mean, and the mean, respectively.}
 \end{center}\end{figure*}
 %
-The dataset \Robject{kidney} contains
-example data from a single cDNA array on which two biologically
-similar samples, one labeled in green (Cy3), one in red (Cy5), were
-hybridized.  The two columns of the matrix \Robject{exprs(kidney)}
-contain the green and red intensities, respectively. A local 
-background estimate\footnote{%
-See Section~\ref{sec:shrink} for more on the relationship between 
-background correction and variance stabilizing transformations.} 
-was calculated by the image analysis software and subtracted, hence 
-some of the intensities in \Robject{kidney} are close to zero or 
-negative. In
+The dataset \Robject{kidney} contains example data from a spotted cDNA
+two-colour microarray on which cDNA from two adjacent tissue samples
+of the same kidney were hybridised, one labeled in green (Cy3), one in
+red (Cy5).  The two columns of the matrix \Robject{exprs(kidney)}
+contain the green and red intensities, respectively. A local
+background estimate\footnote{See Section~\ref{sec:shrink} for more
+on the relationship between background correction and variance
+stabilising transformations.}  was calculated by the image analysis
+software and subtracted, hence some of the intensities in
+\Robject{kidney} are close to zero or negative. In
 Figure~\ref{vsn-nkid-scp} you can see the scatterplot of the
 calibrated and transformed data. For comparison, the scatterplot of
 the log-transformed raw intensities is also shown.
@@ -186,8 +184,8 @@ plot(log2(exprs(kidney)[select, ]),
 %
 
 To verify the variance
-stabilization, there is the function \Robject{meanSdPlot}. For each
-probe $k=1,\ldots,n$ it shows the estimated standard deviation
+stabilisation, there is the function \Robject{meanSdPlot}. For each
+feature $k=1,\ldots,n$ it shows the estimated standard deviation
 $\hat{\sigma}_k$ on the $y$-axis versus the rank of the average
 $\hat{\mu}_k$ on the $x$-axis,
 \begin{equation}
@@ -200,14 +198,14 @@ meanSdPlot(xnorm, ranks=TRUE)
 meanSdPlot(xnorm, ranks=FALSE)
 @
 %
-Such a plot is shown in Figure~\ref{vsn-nkid-sdmean}.  The red dots,
+The two plots are shown in Figure~\ref{vsn-nkid-sdmean}.  The red dots,
 connected by lines, show the running median of the standard
 deviation\footnote{Window width: 10\%, window midpoints 5\%, 10\%,
 15\%, \ldots.}. Within each window, the median may be considered a
 pooled estimator of the standard deviation, and the curve given by the
 red line is an estimate of the systematic dependence of the standard
-deviation on the mean. After variance stabilization, this should be
-approximately a horizontal line.  It may have some random
+deviation on the mean. After variance stabilisation, this should be
+approximately a horisontal line.  It may have some random
 fluctuations, but should not show an overall trend.  If this is not
 the case, that usually indicates a data quality problem, or is a
 consequence of inadequate prior data preprocessing. 
@@ -216,21 +214,21 @@ along the $x$-axis. A plot in which the $x$-axis shows the average
 intensities themselves is obtained by calling the \Robject{plot}
 command with the argument \Robject{ranks=FALSE}.
 
-The histogram of the \Robject{M}-values is shown in 
+The histogramme of the \Robject{M}-values is shown in 
 Figure~\ref{vsn-nkid-histM}.
 %
 <<nkid-histM,include=FALSE,echo=FALSE,fig=TRUE,results=hide,width=4,height=4>>=
-hist(M, breaks=50, col="#d95f0e")
+hist(M, breaks=33, col="#d95f0e")
 @
-\myincfig{vsn-nkid-histM}{0.45\textwidth}{Histogram of generalized 
+\myincfig{vsn-nkid-histM}{0.45\textwidth}{Histogramme of generalised 
 log-ratios \Robject{M} for the kidney example data.}
 
 %------------------------------------------------------------
 \section{Running vsn on data from multiple arrays 
-(``single color normalization'')} 
+(``single colour normalisation'')} 
 %------------------------------------------------------------
 The package includes example data from a series of 8 cDNA arrays 
-on which different lymphoma were hybridized together with a reference 
+on which different lymphoma were hybridised together with a reference 
 cDNA~\cite{Alizadeh}.
 <<lymphoma>>=
 data("lymphoma")
@@ -254,19 +252,18 @@ green intensities, respectively, from the 8 slides, as shown in
 Table~\ref{tab:lymPD}. 
 Thus, the CH1 intensities are in columns $1, 3, \ldots, 15$,
 the CH2 intensities in columns $2, 4, \ldots, 16$.  We can call
-\Robject{vsn} on all of them at once:
+\Rfunction{justvsn} on all of them at once:
 %
 <<lym-sdmean1,results=hide>>=
 lym = justvsn(lymphoma)
-@
 <<lym-sdmean2,include=FALSE,fig=TRUE>>=
 meanSdPlot(lym)
 @
 \myincfig{vsn-lym-sdmean2}{0.45\textwidth}{Standard deviation 
 versus rank of the mean for the lymphoma example data}
 Again, Figure~\ref{vsn-lym-sdmean2} helps to visually verify that the
-variance stabilization worked.  As above, we can obtain the
-generalized log-ratios for each slide, by subtracting the common
+variance stabilisation worked.  As above, we can obtain the
+generalised log-ratios for each slide by subtracting the common
 reference intensities from those for the 8 samples:
 %
 <<lym-M,include=FALSE,fig=TRUE,width=8,height=4.5,results=hide>>=
@@ -288,7 +285,7 @@ abline(h=0, col="red")
 Mean-difference plots for two slides from the lymphoma example data.}
 \end{center}\end{figure*}
 %
-Figure~\ref{vsn-lym-M} shows the resulting $M$-vs-$A$-plots~\cite{Dudoit578}
+Figure~\ref{vsn-lym-M} shows the resulting $M$-$A$-plots~\cite{Dudoit578}
 for two of the arrays. Note that in the left
 scatterplot, there is a cloud of points at low intensities that is
 concentrated slightly off the line $M=0$.  In the right scatterplot, a
@@ -297,18 +294,18 @@ quality problem with the left slide (e.\,g. related to the PCR
 amplification or the printing, see Section~\ref{sec.qc}).
 
 %---------------------------------------------------------
-\section{Running vsn on Affymetrix data} \label{affy}
+\section{Running vsn on Affymetrix genechip data} \label{affy}
 %---------------------------------------------------------
 The package \Rpackage{affy} provides excellent functionality for
 reading and processing Affymetrix genechip data, and you are encouraged
 to refer to the documentation of the package \Rpackage{affy} 
-for more information about data structures and available methods. 
+for more information about data structures and methodology. 
 %
 \begin{figure*}[t]\begin{center}
 \includegraphics[width=0.9\textwidth]{vsn-figaffy}  
 \caption{\label{vsn-figaffy}%
 Reults of \Rfunction{justvsn} and \Rfunction{rma} on the Dilution 
-example data. Chip 1 was hybridized with 20 $\mu$g RNA from liver,
+example data. Chip 1 was hybridised with 20 $\mu$g RNA from liver,
 Chip 3 with 10 $\mu$g of the same RNA.}
 \end{center}\end{figure*}
 
@@ -316,9 +313,9 @@ The preprocessing of Affymetrix genechip data involves
 the following steps:
 (i) background correction,
 (ii) between-array calibration,
-(iii) transformation and (iv) summarization.
+(iii) transformation and (iv) summarisation.
 The \Rfunction{vsn} method addresses steps (i)--(iii).
-For the summarization, I recommend to use the RMA method~\cite{RMA},
+For the summarisation, I recommend to use the RMA method~\cite{RMA},
 and a simple wrapper that provides all of these is provided through 
 the method \Rfunction{justvsn}.
 %
@@ -334,7 +331,7 @@ d.rma = rma(Dilution)
 %
 The resulting scatterplots are shown and compared in Figure~\ref{vsn-figaffy}.
 %
-<<figaffy,include=FALSE,fig=TRUE,width=8,height=9>>=
+<<figaffy,include=FALSE,fig=TRUE,width=8,height=8.5>>=
 par(mfrow=c(2,2), pch=".")
 w = c(1,3)
 titvsn = "vsn: chip 1 vs 3"
@@ -404,7 +401,7 @@ One further manipulation is necessary to ensure the internal consistency of
 the \Rclass{ExpressionSet} object:
 %
 <<sampleNames>>=
-colnames(exprs(lymES)) = sampleNames(lymES)
+colnames(exprs(lymES))=sampleNames(lymES)
 @ 
 %
 Now we can use linear modeling tools from \Rpackage{limma} to find
@@ -414,24 +411,30 @@ first come all the red ones, then all the green ones.
 %
 <<lymM>>=
 lymM = new("ExpressionSet",
- exprs=exprs(lymES)[,1:8]-exprs(lymES)[,9:16],
+ exprs = exprs(lymES)[,1:8]
+        -exprs(lymES)[,9:16],
  phenoData=phenoData(lymES[,1:8]))
 @
 <<doublecheck, echo=FALSE>>=
 stopifnot(ncol(lymES)==16L)
 @ 
 <<samp, print=TRUE>>=
-sampleClass=factor(sub("-.*$", "", lymM$sample))
+sampleClass = factor(sub("-.*$", "", 
+                       lymM$sample))
 @ 
 % 
 \label{lmFit}
 %
 <<design>>=
-design = model.matrix(~sampleClass)
-lf=lmFit(lymM, 
+design = model.matrix( ~ sampleClass)
+lf = lmFit(lymM, 
    design[,"sampleClassDLCL", drop=FALSE])
-lf=eBayes(lf)
+lf = eBayes(lf)
 @ 
+%
+Figure~\ref{vsn-figlimma} shows the resulting $p$-values and
+the expression profiles of the genes corresponding to the 
+top 5 features.
 %
 \begin{figure*}[t]\begin{center}
 \includegraphics[width=0.9\textwidth]{vsn-figlimma}  
@@ -454,7 +457,7 @@ matplot(t(exprs(lymM)[order(lf$p.value)[1:5],]),
 %--------------------------------------------------
 \subsection{Background subtraction}
 %--------------------------------------------------
-Many image analysis programs for microarrays provide local background
+Many image analysis programmes for microarrays provide local background
 estimates, which are typically calculated from the fluorescence signal
 outside, but next to the features. These are not always useful. Just
 as any measurement, these local background estimates are also subject
@@ -462,8 +465,8 @@ to random measurement error, and subtracting them from the foreground
 intensities will lead to increased random noise in the signal. On the
 other hand side, doing so may remove systematic artifactual drifts in the
 data, for example, a spatial gradient. This is a typical example of the
-variance--bias trade-off, or \emph{accuracy}--\emph{precision}
-trade-off. 
+variance--bias trade-off, sometimes also called 
+\emph{accuracy}--\emph{precision} trade-off. 
 
 So what is the optimal analysis strategy, should you subtract local
 background estimates or not? The answer depends on the properties of
@@ -486,7 +489,7 @@ rndbg=function(x, off, fac)
  array(off+fac*runif(prod(dim(x))),
        dim=dim(x))
 
-lymRGwbg    = lymRG
+lymRGwbg = lymRG
 lymRGwbg$Rb = rndbg(lymRG, 100, 30)
 lymRGwbg$Gb = rndbg(lymRG,  50, 20)
 @ 
@@ -494,14 +497,14 @@ lymRGwbg$Gb = rndbg(lymRG,  50, 20)
 In practice, of course, these values will be read from the image
 quantitation file with a function such as \Rfunction{read.maimages}
 that produces the \Rclass{RGList} object. We can call
-\Rfunction{justvsn} on it
+\Rfunction{justvsn}
 %
 <<justvsnwbg, results=hide>>=
 lymESwbg = justvsn(lymRGwbg[, 1:3], 
    backgroundsubtract=TRUE)
 @ 
 %
-(Here we only do it for the first 3 arrays to save compute time.)
+Here we only do this for the first 3 arrays to save compute time.
 
 %--------------------------------------------------
 \subsection{Print-tip groups}
@@ -509,15 +512,16 @@ lymESwbg = justvsn(lymRGwbg[, 1:3],
 \begin{figure}[t]\begin{center}
 \includegraphics[width=0.45\textwidth]{vsn-figstrata}  
 \caption{\label{vsn-figstrata}%
-Scatterplot of normalized and transformed intensities for 
+Scatterplot of normalised and transformed intensities for 
 the red channel of array 1. Values on the $x$-axis correspond 
-to normalization without strata (\Robject{lymES}), 
-values on the $y$-axis to normalization with strata (\Robject{lymESstr}).
+to normalisation without strata (\Robject{lymES}), 
+values on the $y$-axis to normalisation with strata (\Robject{lymESstr}).
+The different colours correspond to the 16 different strata.}
 \end{center}\end{figure}
 %
-By default, \Rpackage{vsn} computes one normalization transformation
-with a common set of parameters for all features of an array (and
-colour, if it is a multi-color microarray), see
+By default, \Rpackage{vsn} computes one normalisation transformation
+with a common set of parameters for all features of an array (separately
+for each colour if it is a multi-colour microarray), see
 Section~\ref{sec:calib}.  Sometimes, there is a need for
 stratification by further variables of the array manufacturing
 process, for example, print-tip groups (sectors) or microtitre
@@ -534,32 +538,34 @@ gridcols = 4
 spotrows = 24
 spotcols = 24
 pinId = rep(seq_len(gridrows*gridcols), 
-   each=spotrows*spotcols)
+   each = spotrows*spotcols)
 @
 %
 and call
 %
-<<strata>>=
+<<strata, results=hide>>=
 EconStr = justvsn(lymRG[,1:2], strata=pinId)
 @
 %
 To save CPU time, we only call this on the first two arrays. We compare the 
 result to calling \Rfunction{justvsn} without \Robject{strata},
 %
-<<nostrata>>=
+<<nostrata, results=hide>>=
 EsenzaStr = justvsn(lymRG[,1:2])
 @
 %
 A scatterplot of the comparison is shown in Figure~\ref{vsn-figstrata}.
 %
 <<figstrata,fig=TRUE,include=FALSE,width=4,height=4.5>>=
-j=1L
-plot(exprs(EsenzaStr)[,j], exprs(EconStr)[,j], 
-  pch=".", asp=1, 
-  col=hsv(seq(0,1,length=max(pinId)), 1, 0.6)[pinId], 
-  xlab="without strata", 
-  ylab="print-tip strata",
-  main=sampleNames(lymES)[j])
+j = 1L
+plot(exprs(EsenzaStr)[,j], 
+  exprs(EconStr)[,j], 
+  pch = ".", asp = 1, 
+  col = hsv(seq(0, 1, 
+    length = max(pinId)), 1, 0.6)[pinId], 
+  xlab = "without strata", 
+  ylab = "print-tip strata",
+  main = sampleNames(lymES)[j])
 @
 %
 %---------------------------------------------------------------------
@@ -568,11 +574,11 @@ plot(exprs(EsenzaStr)[,j], exprs(EconStr)[,j],
 \begin{figure*}[t]\begin{center}
 \includegraphics[width=0.9\textwidth]{vsn-figmiss}  
 \caption{\label{vsn-figmiss}%
-Scatterplot of normalized and transformed intensities for 
+Scatterplot of normalised and transformed intensities for 
 the red channel of array 1. Values on the $x$-axis correspond 
-to normalization without strata (\Robject{lymES}), 
-values on the $y$-axis to normalization with strata (\Robject{lymESstr}).
-\end{center}\end{figure}
+to normalisation without strata (\Robject{lymES}), 
+values on the $y$-axis to normalisation with strata (\Robject{lymESstr}).}
+\end{center}\end{figure*}
 %
 The parameter estimation algorithm of \Rpackage{vsn} is able to deal with
 missing values in the input data. To demonstrate this, we generate an 
@@ -581,17 +587,18 @@ are missing,
 %
 <<miss1>>=
 lym2 = lymphoma
-exprs(lym2)[sample(prod(dim(lym2)), 16000)] = NA
+wh = sample(prod(dim(lym2)), 16000)
+exprs(lym2)[wh] = NA
 table(is.na(exprs(lym2)))
 @ 
 and call \Rfunction{vsn2} on it.
-<<miss2>>=
+<<miss2, results=hide>>=
 fit1 = vsn2(lymphoma)
 fit2 = vsn2(lym2)
 @ 
 %
-The resulting fitted parameters are not identical, but very similar. 
-See Figure~\ref{vsn-figmiss}.
+The resulting fitted parameters are not identical, but very similar, 
+see Figure~\ref{vsn-figmiss}.
 %
 <<figmiss,fig=TRUE,include=FALSE,width=8,height=4.5>>=
 par(mfrow=c(1,2))
@@ -600,70 +607,75 @@ for(j in 1:2){
   p2 = fit2@par[,,j]
   d  = max(abs(p1-p2))
   stopifnot(d<0.05)
-  plot(p1, p2, pch=16, asp=1,
-    main=paste("d", signif(d,3), sep="="))
-  abline(a=0, b=1, col="blue")
+  plot(p1, p2, pch = 16, asp = 1,
+    main = paste("d", d, sep = "="))
+  abline(a = 0, b = 1, col = "blue")
 }
 @ 
 
 %---------------------------------------------------------------------
-\section{Normalization against an existing reference dataset} \label{sec:ref}
+\section{Normalisation against an existing reference dataset} \label{sec:ref}
 %---------------------------------------------------------------------
-Up to here, we have considered the joint normalization of a set of arrays to each
+Up to here, we have considered the joint normalisation of a set of arrays to each
 other. What happens if, after analysing a set of arrays in this
 fashion, we obtain some additonal arrays? Do we re-run the
-whole normalization again for the complete, new and bigger set of
+whole normalisation again for the complete, new and bigger set of
 arrays? This may sometimes be impractical. 
 
 Imagine we have used a set of training arrays for setting up a
 classifier that is able to discriminate different biological states of
 the samples based on their mRNA profile. Now we get new test
 arrays to which we want to apply the classifier. Clearly, we do not
-want to re-run the normalization for the whole, new and bigger dataset, as this
-would change the training data; neither, we can normalize only the
-test arrays between themselves, without normalizing them ``towards''
-the reference training dataset. What we need is a normalization
-procedure that normalizes the new test arrays ``towards'' the existing
+want to re-run the normalisation for the whole, new and bigger dataset, as this
+would change the training data; neither, we can normalise only the
+test arrays between themselves, without normalising them ``towards''
+the reference training dataset. What we need is a normalisation
+procedure that normalises the new test arrays ``towards'' the existing
 reference dataset without changing the latter.
 
 % 
-\myincfig{vsn-figref}{0.45\textwidth}{Scatterplot of normalized 
-intensities after normalization by reference ($x$-axis, \Robject{f8})
-and joint normalization ($y$-axis, \Robject{fall}).}
+\myincfig{vsn-figref}{0.45\textwidth}{Scatterplot of normalised 
+intensities after normalisation by reference ($x$-axis, \Robject{f8})
+and joint normalisation ($y$-axis, \Robject{fall}).
+They are almost identical.}
 %
 To simulate this situation, we pretend that the Cy5 channels of the 
 \Robject{lymphoma} dataset can be treated as 8
 single-colour arrays, and fit a model to the first 7.
 %
-<<ref1>>=
+<<ref1, results=hide>>=
 ref = vsn2(lymphoma[, ismp[1:7]])
 @ 
 Now we call \Rfunction{vsn2} on the 8-th array, with the output
 from the previous call as the reference.
 %
-<<ref2>>=
+<<ref2, results=hide>>=
 f8 = vsn2(lymphoma[, ismp[8]], 
-          reference=ref)
+          reference = ref)
 @
 %
-We can compare to what we would have gotten if we had fitted the model 
+We can compare to what we would have got if we had fitted the model 
 to all 8 arrays,
 %
-<<ref3>>=
+<<ref3, results=hide>>=
 fall = vsn2(lymphoma[, ismp])
+<<ref4>>=
 f8@par[,1,]
 fall@par[,8,]
 @
 % 
-and compare the resulting values in the scatterplot Figure~\ref{figref}.
+and compare the resulting values in the scatterplot Figure~\ref{vsn-figref}.
 %
 <<figref,fig=TRUE,include=FALSE,width=4,height=4.5>>=
-plot(exprs(f8), exprs(fall)[,8], pch=".", asp=1)
+plot(exprs(f8), exprs(fall)[,8], 
+     pch=".", asp=1)
 abline(a=0, b=1, col="red")
 @ 
 %
 <<hiddenchecks,echo=FALSE>>=
-stopifnot(length(ismp)==8L, max(abs(f8@par[,1,]-fall@par[,8,]))<0.05)
+stopifnot(length(ismp)==8L, 
+  abs(f8@par[1,1,1]-fall@par[1,8,1])< 0.1,
+  abs(f8@par[1,1,2]-fall@par[1,8,2])<0.01)
 @ 
 
 More details on this can be found in the vignettes
@@ -681,17 +693,17 @@ obtained through scaling by $\lambda_{si}$ and shifting by $o_{si}$:
 \begin{equation}\label{eq.cal}
 y_{ki}' = \frac {y_{ki}-o_{si}}{\lambda_{si}},
 \end{equation}
-where $s\equiv s(k)$ is the so-called \textit{stratum} for probe $k$. In the
+where $s\equiv s(k)$ is the so-called \textit{stratum} for feature $k$. In the
 simplest case, there is only one stratum, i.\,e.\ the index $s$ is always
 equal to 1, or may be omitted altogether. This amounts to assuming that 
-that the data of all probes on an array were subject to the same 
+the data of all features on an array were subject to the same 
 systematic effects, such that an array-wide calibration is sufficient.
 
 A model with multiple strata per array may be useful for spotted
 arrays. For these, stratification may be according to
 print-tip~\cite{Dudoit578} or PCR-plate~\cite{HSG2002}. For
-oligonucleotide arrays, it may be useful to stratify the probes by
-physico-chemical properties, e.\,g.\, to assume that probes of
+oligonucleotide arrays, it may be useful to stratify the features by
+physico-chemical properties, e.\,g.\, to assume that features of
 different sequence composition attract systematically different levels
 of unspecific background signal.
 
@@ -699,20 +711,20 @@ The transformation to a scale where the variance of the data is approximately
 independent of the mean is 
 \begin{eqnarray}
 h_{ki} &=& \arsinh(a_0+b_0y_{ki}') \label{eq.vs} \\
-  &=& \log\left(a_0+b_0y_{ki}'+\sqrt{\left(a_0+b_0y_{ki}'\right)^2+1}\right).
-\end{equation}
+&=& \log\left(a_0+b_0y_{ki}'+\sqrt{\left(a_0+b_0y_{ki}'\right)^2+1}\right).\nolabel
+\end{eqnarray}
 Equations~(\ref{eq.cal}) and (\ref{eq.vs}) can be combined, so that the whole 
 transformation is given by 
 \begin{equation}\label{eq.transf}
 h_{ki} = \arsinh(a_{si} + b_{si} y_{ki}). 
 \end{equation}
 Here, $a_{si}=a_0-b_0o_{si}/\lambda_{si}$ and $b_{si}=b_0/\lambda_{si}$ 
-are the combined calibation and transformation parameters for probes from
+are the combined calibation and transformation parameters for features from
 stratum $s$ and sample $i$.
 
 We can access the calibration and transformation parameters through
 <<nkid-calib1>>=
-fit@par
+fit@par[1,,]
 @
 % 
 For a dataset with $d$ samples and $s$ strata,
@@ -732,15 +744,15 @@ is what was called $a_{si}$ in Eqn.~(\ref{eq.transf}), and
 Scatterplots for badly biased data. 
 Left hand side: raw data on log-log scale, 
 right hand side: after calibration and transformation with vsn.}
-\end{center*}\end{figure}
+\end{center}\end{figure*}
 %
 Now suppose the kidney example data were not that well measured, and 
 the red channel had a baseline that was shifted by 500 and a scale 
 that differed by a factor of $0.25$:
 %
 <<nkid-calib2>>=
-bkid = kidney
-exprs(bkid)[,1] = 0.25*(500+exprs(bkid)[,1])
+bkid=kidney
+exprs(bkid)[,1]=0.25*(500+exprs(bkid)[,1])
 @
 %
 We can again call \Rfunction{vsn2} on these data
@@ -778,7 +790,7 @@ parameters for a certain model. In order to see how good the estimator
 is, we can look at bias, variance, sample size dependence, robustness
 against model misspecificaton and outliers. This is done in the
 vignette \emph{Verifying and assessing the performance with simulated
-data} that also comes with this package.
+data} that comes with this package.
 
 Practically, the more interesting question is how different microarray
 calibration and data transformation methods compare to each other. For this,
@@ -801,20 +813,22 @@ calibration and data transformation.
 
 \begin{figure*}[t]\begin{center}
 \includegraphics[width=0.9\textwidth]{vsn-comp}
-\caption{\label{fig-comp}Left hand side: $x$-axis -- generalized
+\caption{\label{fig-comp}Left hand side: $x$-axis -- generalised
 log-ratios for slide 1 from \Robject{vsn}, $y$-axis -- log-ratios
-for slide 1 after global median normalization. For most genes, the two
-are the same, but in some cases the generalized log-ratio is smaller.
+for slide 1 after loess normalisation. For most genes, the two
+are the same, but in some cases the generalised log-ratio is smaller
+in absolute value.
 It is never larger. This demonstrates the \textit{ratio shrinkage} by
-the variance stabilization. Right hand side: quantile-quantile-plot of
-the $t$-statistic for the comparison between the 4 slides with CLL and
-the 4 with DLCL. The $t$-statistics from \Robject{vsn} are larger,
-i.\,e.\ it compares more favorable with respect to the relative size
-of between- and within-group variability.}
+the variance stabilisation. Right hand side: quantile-quantile-plot of
+the moderated $t$-statistic for the comparison between the 4 slides with CLL and
+the 4 with DLCL. The moderated $t$-statistics from \Robject{vsn} are slightly 
+larger, i.\,e.\ processing with Robject{vsn} results in a slightly
+better signal-to-noise ratio as measured by the ratio of
+between-group difference to moderated within-group standard deviation.}
 \end{center}\end{figure*}
 
 Here, as a measure of the relative size of between- and within-group
-variability we take the size of the $t$-statistics.  The acceptable
+variability we take the size of the $t$-statistic.  The acceptable
 use of CPU time and disk memory of a package vignette is limited, thus
 here we stick to a very simple-minded calculation and a small data
 set. See Figure~\ref{fig-comp} and the calculations below. Two
@@ -825,11 +839,11 @@ for example, the estimated false discovery rates, using different test
 statistics. You are encouraged to try this out with your own data.
 %
 
-First, we normalize the lymphoma data using the \Rfunction{loess} 
-normalization,
+First, we normalise the lymphoma data using the \Rfunction{loess} 
+normalisation,
 %
 <<loess,results=hide>>=
-lymMls=new("ExpressionSet", exprs=
+lymMls = new("ExpressionSet", exprs =
    normalizeWithinArrays(lymRG, method="loess")$M)
 @ 
 % 
@@ -842,14 +856,16 @@ lfls = eBayes(lmFit(lymMls,
 @ 
 %
 <<comp,results=hide,fig=TRUE,width=8,height=4.5,include=FALSE>>=
-par(mfrow=c(1,2))
+par(mfrow = c(1,2))
 plot(exprs(lymM)[,j], exprs(lymMls)[,j], 
-  main=sampleNames(lymM)[j], pch=".", asp=1)
-abline(a=0,b=1,col="blue")
+  main = sampleNames(lymM)[j], 
+  xlab = "M (vsn)", ylab = "M (loess)",
+  pch = ".", asp = 1)
+abline(a = 0,b = 1,col = "blue")
 qqplot(lf$t, lfls$t, 
-  xlab="t (vsn)", ylab="t (loess)", 
-  main="QQ plot", pch=".")
-abline(a=0,b=1,col="blue")
+  xlab = "t (vsn)", ylab = "t (loess)", 
+  main = "QQ plot", pch=".")
+abline(a = 0,b = 1,col = "blue")
 @
 
 %------------------------------------------------------------
@@ -857,6 +873,13 @@ abline(a=0,b=1,col="blue")
 %------------------------------------------------------------
 %
 <<calcshrink, echo=FALSE, results=hide>>=
+log.na = function(x){
+  w = which(x>0)
+  res = rep(as.numeric(NA), length(x))
+  res[w] = log(x[w])
+  return(res)
+}
+  
 fc = 0.5
 x2 = seq(0.5, 15, by=0.5)
 x1 = x2/fc
@@ -870,7 +893,7 @@ for(i in 1:length(x1)){
   z1 = sa*rnorm(n)+x1[i]*b*exp(sb*rnorm(n))
   z2 = sa*rnorm(n)+x2[i]*b*exp(sb*rnorm(n))
   if(i%%2==1) {
-    q = log(z1/z2)
+    q = log.na(z1/z2)
     m[i] = mean(q, na.rm=TRUE)
     s[i] = sd(q, na.rm=TRUE)
   } else {
@@ -887,7 +910,7 @@ cex  = 1.4
 lwd  = 2
 @ 
 %
-<<figshrink, fig=TRUE, echo=FALSE, include=FALSE, width=4, height=4.5>>=
+<<figshrink, fig=TRUE, results=hide, echo=FALSE, include=FALSE, width=4, height=4.5>>=
 mai=par("mai"); mai[3]=0; par(mai)
 plot(x2, m, ylim=c(-1.2,2), type="n", xlab=expression(x[2]), ylab="")
 abline(h=-log(fc), col="red", lwd=lwd, lty=1)
@@ -897,29 +920,37 @@ segments(x2, m-2*s, x2, m+2*s, lwd=lwd, col=colq, lty=lty)
 legend(8.75, -0.1, c("q","h"), col=colq, pch=pch, lty=lty, lwd=lwd)
 @
 %
-\myincfig{vsn-figshrink}{0.45\textwidth}{%
-The shrinkage property of the generalized log-ratio.  
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.45\textwidth]{vsn-figshrink}
+\caption{\label{vsn-figshrink}The shrinkage property of the 
+generalised log-ratio.  
 Blue diamonds and error bars correspond to mean and standard
-deviation of the generalized log-ratio $h$, as obtained from \Rpackage{vsn}, 
+deviation of the generalised log-ratio $h$, as obtained from \Rpackage{vsn}, 
 black dots and error bars to the naive log-ratio $q$.  
 For this figure, data were simulated generated from the 
-additive-multiplicative error model~\cite{RockeDurbin2001,HuberSAGMB2003,HuberWiley2004}.
+additive-multiplicative error 
+model~\cite{RockeDurbin2001,HuberSAGMB2003,HuberWiley2004}.
 The horizontal line corresponds to the true log-ratio $\log(2)\approx0.693$.
 For intensities $x_2$ that are larger than about ten times the additive noise 
-level $\sigma_a$, generalized log-ratio $h$ and naive log-ratio $q$ coincide. 
+level $\sigma_a$, generalised log-ratio $h$ and naive log-ratio $q$ coincide. 
 For smaller intensities, we can see a \textit{variance-bias trade-off}: 
 $q$ has no bias but a huge variance, thus an estimate of the 
 fold change based on a limited set of data can be arbitrarily off.
 In contrast, $h$ keeps a constant variance -- for the 
 price of systematically underestimating the true fold change.}
+\end{center}
+\end{figure}
 
-Generalized log-ratios can be viewed as a \textit{shrinkage estimator}: they
-are always smaller than or equal to the naive log-ratios; equality is
-asymptotically reached if the probe intensities are large both for samples $i$
-and $j$. Their advantage is that they do not suffer from the variance
+Generalised log-ratios can be viewed as a \textit{shrinkage estimator}: they
+are always smaller than or equal to the naive log-ratios,
+but they become asymptotically equal if the feature intensities 
+are large both in numerator and denominator. 
+Their advantage is that they do not suffer from the variance
 divergence of the naive log-ratios at small intensities: they remain
-well-defined and statistically meaningful when the data come close to zero or
-even become negative.  Please consult the references for more on the
+well-defined and have limited variance when the data come close to zero or
+even become negative. An illustration is shown in Figure~\ref{vsn-figshrink}.
+Please consult the references for more on the
 mathematical-methodical background~\cite{HuberISMB2002,HSG2002,HuberSAGMB2003}.
 
 
@@ -935,42 +966,42 @@ responsibility to make sure that they hold for your data.
 First, \Robject{vsn} assumes that the measured signal $y_{ik}$
 increases, to sufficient approximation, proportionally to the mRNA
 abundance $c_{ik}$ of gene $k$ on the $i$-th array, or on the $i$-th
-color channel:
+colour channel:
 \begin{equation}\label{assumption.1} 
 y_{ik}\approx a_i + b_i b_k c_{ik}.  
 \end{equation} 
-For a series of $d$ single-color arrays such as Affymetrix arrays
-or cDNA nylon membranes, $i=1,\ldots,d$, and the different factors 
-$b_i$ reflect the different initial amounts of sample mRNA, or different
-overall reverse transcription, hybridization and detection efficiencies. 
-The probe affinity $b_k$ contains factors that affect
-all measurements with probe $k$ in the same manner, such as
+For a series of $d$ single-colour arrays, $i=1,\ldots,d$, 
+and the different factors 
+$b_i$ reflect the different initial amounts of sample mRNA or different
+overall reverse transcription, hybridisation and detection efficiencies. 
+The feature affinity $b_k$ contains factors that affect
+all measurements with feature $k$ in the same manner, such as
 sequence-specific labelling 
 efficiency. The $b_k$ are assumed to be the same across all arrays.
-There can be a non-zero overall offset $a_i$ for each color channel.
-For a two-color cDNA array, $i=1,2$, and the $b_i$ take into account
+There can be a non-zero overall offset $a_i$.
+For a two-colour cDNA array, $i=1,2$, and the $b_i$ take into account
 the different overall efficiencies of the two dyes\footnote{% 
 It has been reported that for some genes the dye bias is different from 
-gene to gene, such that the proportionality factor does not simply factorize 
+gene to gene, such that the proportionality factor does not simply factorise 
 as in~(\ref{assumption.1}). As long as this only occurs sporadically, this 
-should not have much effect on the estimation of the calibration and 
-variance stabilization parameters. Further, by using an appropriate 
-experimental design such as color-swap or reference design, the effects of 
+will not have much effect on the estimation of the calibration and 
+variance stabilisation parameters. Further, by using an appropriate 
+experimental design such as colour-swap or reference design, the effects of 
 gene-specific dye-biases to subsequent analyses can also be reduced.}.
 
-\paragraph{Systematic effects associated with print-tip, PCR, or 
-probe-sequence} 
-Equation~\ref{assumption.1} can be generalized to
+\paragraph{Systematic effects associated with manufacturing:
+print-tip, PCR plate, reporter-sequence} 
+Equation~\ref{assumption.1} can be generalised to
 \begin{equation}\label{assumption.2} 
 y_{ik}\approx a_{is} + b_{is} b_k c_{ik}.  
 \end{equation} 
 that is, the background term $a_{is}$ and the gain factor $b_{is}$ can
-be different for different groups $s$ of probes on an array. For example,
+be different for different groups $s$ of features on an array. For example,
 with cDNA microarray data, it could be advantageous to fit different parameters 
 for each print-tip group of spots, or for groups of spots whose DNA was 
 PCR--amplified and stored in the same microtitre plate. For Affymetrix chips, 
 one can find systematic dependences of the affinities $b_{is}$ or the 
-background terms $a_{is}$ on the probe sequence.
+background terms $a_{is}$ on the reporter sequence.
 This can be addressed by using the \Robject{strata} argument of 
 the function \Robject{vsn}.
 
@@ -983,49 +1014,70 @@ It may be possible to rescue such data by using non-linear transformations.
 Alternatively, it is recommended that the experimental parameters are 
 chosen to avoid saturation.
 
-\paragraph{Batch effects.} The probe affinities $b_k$ may differ between
+\paragraph{Batch effects.} The feature affinities $b_k$ may differ between
 different manufacturing batches of arrays due, e.g., to different
 qualities of DNA amplification or printing. \Robject{vsn} cannot be
 used to simultaneously calibrate and transform data from different
 batches.
 
 How to reliably diagnose and deal with such violations is beyond the scope 
-of this vignette; see the references for more~\cite{Dudoit578,HSG2002}. 
+of this vignette; see the references for more~\cite{HSG2002,Dudoit578}. 
 
 \paragraph{Variance.} A further assumption that \Robject{vsn} makes is that 
 the measurement error (more exactly: the variance) is the sum of two
 contributions: an additive component that has roughly the same size
-for all probes on an array, and a multiplicative component that is
+for all features on an array, and a multiplicative component that is
 roughly proportional in size to the signal's true value, with a
 proportionality factor (called the \textit{coefficient of variation})
 that is the same for all genes~\cite{RockeDurbin2001}.
 
 \paragraph{Most genes unchanged assumption.} 
-\Robject{vsn} assumes that only a minority (less than half) of genes on the
-arrays is detectably differentially transcribed across the experiments. If it
-is safe to assume that a smaller fraction of genes is non-negligibly
-differentially transcribed, the efficiency of the estimation can be improved
-by increasing the parameter \Robject{lts.quantile} from its default value
-of 0.5 to a value between 0.5 and 1.
+With respect to the \Rpackage{vsn} model fitting, data from 
+differentially transcribed genes can act as outliers 
+(but they do not necessarily need to do so in all cases).
+The maximal number of outliers that do not gravely affect the model
+fitting is controlled by the parameter \Robject{lts.quantile}. 
+Its default value is 0.9, which allows for a
+minority of 10\% of outliers. The value of
+\Robject{lts.quantile} can be reduced down to 0.5, which allows for up
+to 50\% outliers. The maximal value is 1, which will result in a
+least-sum-of-squares estimations that does not allow for any outliers.
+
+So why is this parameter \Robject{lts.quantile} user-definable and why 
+don't we just always use the most ``robust'' value of 0.5?
+The answer is that the \emph{precision} of the estimated \Rpackage{vsn} 
+parameters is better the more data points go into the estimates, and
+this may especially be an issue for arrays with small numbers of 
+features\footnote{more precisely, number of features per stratum}.
+So if you are confident that the number of outliers is not that large,
+using a high value of \Robject{lts.quantile} can be justified.
+
+There has been a little bit of confusion on the role of the ``most
+genes unchanged assumption'', which presumes that only a minority of
+genes on the arrays is detectably differentially transcribed across
+the experiments. This assumption is a \emph{sufficient} condition for
+there being only a small number of outliers, and these would not gravely
+affect the \Rpackage{vsn} model parameter estimation. However, it is
+not a \emph{necessary} condition: the parameter estimates and the
+resulting normalised data may still be useful and meaningful if the
+assumption does not hold, but if the effects of the data from
+differentially transcribed genes balance out.
 
 \paragraph{Processing biases.} 
 Image analysis software for cDNA arrays typically estimates a
-\textit{local background} associated with each probe intensity. For
-Affymetrix arrays, the intensities from {mismatch} probes are thought
+\textit{local background} associated with each feature intensity. For
+Affymetrix arrays, the intensities from mismatch features are thought
 to represent the level of non-specific signal. In both cases, the raw
-probe intensities may be \textit{adjusted} by subtracting these
+feature intensities may be \textit{adjusted} by subtracting these
 background estimates. Some software packages, however, bias the
 adjustment through rules based on the data values. For example,
 Affymetrix' MAS 5.0 software uses the mismatch intensity only if it is
-smaller than the probe's intensity, and otherwise employs a heuristic
+smaller than the feature's intensity, and otherwise employs a heuristic
 to make sure that the net intensities always remain positive. As a
 consequence, the intensities are systematically over-estimated, and
 cannot be used with \Robject{vsn}. For Affymetrix data, we recommend
-to use \Robject{vsn} on the probe intensities from the "CEL
-file". For cDNA data, we recommend to use only background adjustment
-procedures that estimate the background independent of the observed
-foreground intensity.
-
+to use \Robject{vsn} directly on the perfect match feature intensities 
+from the "CEL file".
 
 \begin{thebibliography}{10}
 
