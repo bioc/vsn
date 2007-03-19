@@ -253,7 +253,8 @@ vsnMatrix = function(x,
   cvg.eps      = 5e-3) {
 
   storage.mode(x) = "double"
-
+  storage.mode(subsample) = "integer"
+  
   strata = if(missing(strata)){ 
     factor(integer(0), levels="all")
   } else {
