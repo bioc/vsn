@@ -300,16 +300,20 @@ see Section~\ref{sec:inc}.}
 \end{figure}
 
 %-----------------------------------------------------
-\section{Subsampling}\label{sec:sample}
-%------------------------------------------------------
-\textbf{TODO}: A test that verifies the correct functioning 
-of the subsampling if there are multiple strata.
-
-%% <<sample>>=
-%% 
-%%  @ 
-
+% \section{Subsampling}\label{sec:sample}
+% With multiple strata
+% To DO
 %-----------------------------------------------------
+
+%---------------------------------------------------------
+\section{Session Info}
+%---------------------------------------------------------
+{\small
+<<sessionInfo, print=TRUE>>=
+sessionInfo()
+@ 
+}
+
 \begin{thebibliography}{10}
 %-----------------------------------------------------
 
