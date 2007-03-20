@@ -115,7 +115,7 @@ underlying distribution that generated the data. Depending on the amount of the
 available data and the quality of the estimator, the 
 correspondence between the estimated value and the true value may be more 
 or less faithful. For example, the arithmetic mean and the median are two 
-different estimators of the location parameter of a distribution.}
+different estimators of the center of a symmetric distribution.}
 of log fold change. 
 There is also a close relationship between background correction of 
 the intensities and the variance properties of the different estimators. Please
@@ -124,20 +124,24 @@ see Section~\ref{sec:shrink} for more explanation of these issues.
 How does \Rpackage{vsn} work? In short, each column is calibrated by
 an affine transformation\footnote{It is possible to stratify the
 transformations within columns, see the \Robject{strata} parameter of
-\Rfunction{vsn}.}, then the whole data are transformed by a $\glog_2$
-variance-stabilising transformation.  After this, systematic array- or
-dye-biases should be removed, and the variance should be approximately
-independent of the mean intensity.  Many statistical methods such as
-hypothesis tests, ANOVA modeling, clustering or classification work
-better or are easier to use if the variance of the data is roughly the
-same for all observations\footnote{Note that \Rpackage{vsn} only
-addresses the dependence of the variance on the mean intensity. There
-may be other factors influencing the variance, such as gene-inherent
-properties or changes of the tightness of transcriptional control in
-different conditions.  These need to be addressed by other methods.}.
+the function \Rfunction{vsn2}.}, then the whole data are transformed
+by a $\glog_2$ variance-stabilising transformation.  After this,
+systematic array- or dye-biases should be removed, and the variance
+should be approximately independent of the mean intensity.  Many
+common hypothesis testing, clustering or classification schemes are
+based on an assumption of common variance. If this assumption does not
+hold, such methods can produce misleading results; a transformation
+which makes this assumption roughly true makes the use such methods
+more appropriate.
+
+Note, however, that \Rpackage{vsn} only addresses the dependence of
+the variance on the mean intensity. There may be other factors
+influencing the variance, such as gene-inherent properties or changes
+of the tightness of transcriptional control in different conditions.
+These need to be addressed by other methods.
 
 %------------------------------------------------------------
-\section{Running vsn on data from a single two-colour array} 
+\section{Running \Rpackage{vsn} on data from a single two-colour array} 
 %------------------------------------------------------------
 \begin{figure*}[tbp]\begin{center}
 \includegraphics[width=0.9\textwidth]{vsn-nkid-scp}  
@@ -205,7 +209,16 @@ deviation\footnote{Window width: 10\%, window midpoints 5\%, 10\%,
 15\%, \ldots.}. Within each window, the median may be considered a
 pooled estimator of the standard deviation, and the curve given by the
 red line is an estimate of the systematic dependence of the standard
-deviation on the mean. After variance stabilisation, this should be
+deviation on the mean. 
+%% RB 20.3.2007:
+%% The phrase "the standard deviation" carries a pair of assumptions that
+%% you haven't made explict: that all/most features (i) really do have a
+%% common within-class standard deviation, and (ii) that all/most
+%% features have the same mean in both classes, so that a single
+%% $\hat{\mu}_k$ in (1) is appropriate. It would be nice to make these
+%% clearer somewhere. The whole point of VSN, afterall, arises from
+%% these.
+After variance stabilisation, this should be
 approximately a horisontal line.  It may have some random
 fluctuations, but should not show an overall trend.  If this is not
 the case, that usually indicates a data quality problem, or is a
@@ -225,7 +238,7 @@ hist(M, breaks=33, col="#d95f0e")
 log-ratios \Robject{M} for the kidney example data.}
 
 %------------------------------------------------------------
-\section{Running vsn on data from multiple arrays 
+\section{Running \Rpackage{vsn} on data from multiple arrays 
 (``single colour normalisation'')} 
 %------------------------------------------------------------
 The package includes example data from a series of 8 cDNA arrays 
@@ -293,7 +306,7 @@ quality problem with the left slide (e.\,g. related to the PCR
 amplification or the printing, see Section~\ref{sec.qc}).
 
 %---------------------------------------------------------
-\section{Running vsn on Affymetrix genechip data} \label{affy}
+\section{Running \Rpackage{vsn} on Affymetrix genechip data} \label{affy}
 %---------------------------------------------------------
 The package \Rpackage{affy} provides excellent functionality for
 reading and processing Affymetrix genechip data, and you are encouraged
@@ -311,9 +324,9 @@ Chip 3 with 10 $\mu$g of the same RNA.}
 The preprocessing of Affymetrix genechip data involves
 the following steps:
 (i) background correction,
-(ii) between-array calibration,
+(ii) between-array normalization,
 (iii) transformation and (iv) summarisation.
-The \Rfunction{vsn} method addresses steps (i)--(iii).
+The \Rpackage{vsn} method addresses steps (i)--(iii).
 For the summarisation, I recommend to use the RMA method~\cite{RMA},
 and a simple wrapper that provides all of these is provided through 
 the method \Rfunction{justvsn}.
@@ -350,7 +363,7 @@ abline(a=0, b=1, col="red")
 @
 
 %---------------------------------------------------------
-\section{Running vsn on \Robject{RGList} objects} \label{limma}
+\section{Running \Rpackage{vsn} on \Robject{RGList} objects} \label{limma}
 %---------------------------------------------------------
 There is a \Rfunction{justvsn} method for \Rclass{RGList} objects.
 %
@@ -447,7 +460,7 @@ Right: $M$-values for the 5 genes with the smallest $p$-values.}
 <<figlimma,fig=TRUE,include=FALSE,width=8,height=4.5>>=
 par(mfrow=c(1,2))
 hist(lf$p.value, 100, col="orange") 
-pdat = t(exprs(lymM)[order(lf$p.value)[1:5], ]
+pdat = t(exprs(lymM)[order(lf$p.value)[1:5], ])
 matplot(pdat, 
   lty=1, type="l", pch=16, 
   col=hsv(seq(0,1,length=5), 1, 0.6), 
@@ -1083,6 +1096,10 @@ consequence, the intensities are systematically over-estimated, and
 cannot be used with \Robject{vsn}. For Affymetrix data, we recommend
 to use \Robject{vsn} directly on the perfect match feature intensities 
 from the "CEL file".
+
+\section{Acknowledgements}
+I acknowledge helpful comments and feedback from Anja von Heydebreck, 
+Martin Vingron, Richard Bourgon and Ulrich Mansmann.
 
 %---------------------------------------------------------
 % SessionInfo
