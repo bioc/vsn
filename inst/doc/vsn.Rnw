@@ -41,7 +41,7 @@ pagecolor=darkblue,raiselinks,plainpages,pdftex]{hyperref}
 
 \begin{document}
 %----------------------------------------------------------------------------------------
-\title{Introduction to robust calibration and variance stabilisation with \Rpackage{vsn}}
+\title{Introduction to robust calibration and variance stabilisation with VSN}
 \author{Wolfgang Huber}
 %----------------------------------------------------------------------------------------
 \maketitle
@@ -55,7 +55,7 @@ set.seed(0xdada)
 %------------------------------------------------------------
 \section{Getting started}\label{sec:overv}
 %------------------------------------------------------------ 
-\Rpackage{vsn} is a method to preprocess microarray intensity data.
+VSN is a method to preprocess microarray intensity data.
 This can be as simple as
 %
 <<overv1, results=hide>>=
@@ -76,7 +76,7 @@ M = exprs(xnorm)[,1] - exprs(xnorm)[,2]
 produces the vector of generalised log-ratios between the 
 data in the first and second column.
 
-\Rpackage{vsn} is a model-based method, and the more explicit way of 
+VSN is a model-based method, and the more explicit way of 
 doing the above is \label{fit}
 %
 <<overv3, results=hide>>=
@@ -96,13 +96,13 @@ and then apply the model to the complete set of data. Furthermore, it
 allows further inspection of the \Robject{fit} object, e.\,g.\ for the
 purpose of quality assessment.
 
-Besides for \Rclass{ExpressionSet}s, there are also \Rfunction{justvsn} 
+Besides \Rclass{ExpressionSet}s, there are also \Rfunction{justvsn} 
 methods for \Rclass{AffyBatch} objects from the \Rpackage{affy} package and
 \Rclass{RGList} objects from the \Rpackage{limma} package. They are described 
 in this vignette.
 
 The so-called $\glog_2$ (short for \emph{generalised logarithm}) 
-is a function that is like the logarithm (to base 2) for large values 
+is a function that is like the logarithm (base 2) for large values 
 (large compared to the amplitude of the background noise),
 but is less steep for smaller values.  Differences between the transformed
 values are the \emph{generalised log-ratios}. These are 
@@ -121,7 +121,7 @@ There is also a close relationship between background correction of
 the intensities and the variance properties of the different estimators. Please
 see Section~\ref{sec:shrink} for more explanation of these issues. 
 
-How does \Rpackage{vsn} work? In short, each column is calibrated by
+How does VSN work? In short, each column is calibrated by
 an affine transformation\footnote{It is possible to stratify the
 transformations within columns, see the \Robject{strata} parameter of
 the function \Rfunction{vsn2}.}, then the whole data are transformed
@@ -134,14 +134,14 @@ hold, such methods can produce misleading results; a transformation
 which makes this assumption roughly true makes the use such methods
 more appropriate.
 
-Note, however, that \Rpackage{vsn} only addresses the dependence of
+Note, however, that VSN only addresses the dependence of
 the variance on the mean intensity. There may be other factors
 influencing the variance, such as gene-inherent properties or changes
 of the tightness of transcriptional control in different conditions.
 These need to be addressed by other methods.
 
 %------------------------------------------------------------
-\section{Running \Rpackage{vsn} on data from a single two-colour array} 
+\section{Running VSN on data from a single two-colour array} 
 %------------------------------------------------------------
 \begin{figure*}[tbp]\begin{center}
 \includegraphics[width=0.9\textwidth]{vsn-nkid-scp}  
@@ -149,7 +149,7 @@ These need to be addressed by other methods.
 Scatterplots of the kidney example data, which was obtained from a 
 two-colour cDNA array by quantitating spots and subtracting a local background 
 estimate.
-a) normalised and transformed with \Rpackage{vsn}, 
+a) normalised and transformed with VSN, 
 b) unnormalised and $\log_2$-transformed.
 Panel a shows the data from the complete set of \Sexpr{nrow(kidney)} 
 spots on the array, panel b only the \Sexpr{sum(0==rowSums(exprs(kidney)<=0))} 
@@ -190,7 +190,7 @@ plot(log2(exprs(kidney)[select, ]),
 
 To verify the variance
 stabilisation, there is the function \Robject{meanSdPlot}. For each
-feature $k=1,\ldots,n$ it shows the estimated standard deviation
+feature $k=1,\ldots,n$ it shows the empirical standard deviation
 $\hat{\sigma}_k$ on the $y$-axis versus the rank of the average
 $\hat{\mu}_k$ on the $x$-axis.
 \begin{equation}
@@ -203,30 +203,28 @@ meanSdPlot(xnorm, ranks=TRUE)
 meanSdPlot(xnorm, ranks=FALSE)
 @
 %
-The two plots are shown in Figure~\ref{vsn-nkid-sdmean}.  The red dots,
-connected by lines, show the running median of the standard
-deviation\footnote{Window width: 10\%, window midpoints 5\%, 10\%,
-15\%, \ldots.}. Within each window, the median may be considered a
-pooled estimator of the standard deviation, and the curve given by the
-red line is an estimate of the systematic dependence of the standard
-deviation on the mean. 
-%% RB 20.3.2007:
-%% The phrase "the standard deviation" carries a pair of assumptions that
-%% you haven't made explict: that all/most features (i) really do have a
-%% common within-class standard deviation, and (ii) that all/most
-%% features have the same mean in both classes, so that a single
-%% $\hat{\mu}_k$ in (1) is appropriate. It would be nice to make these
-%% clearer somewhere. The whole point of VSN, afterall, arises from
-%% these.
-After variance stabilisation, this should be
-approximately a horisontal line.  It may have some random
-fluctuations, but should not show an overall trend.  If this is not
-the case, that usually indicates a data quality problem, or is a
-consequence of inadequate prior data preprocessing. 
-The rank ordering distributes the data evenly
-along the $x$-axis. A plot in which the $x$-axis shows the average
+The two plots are shown in Figure~\ref{vsn-nkid-sdmean}.  The red
+dots, connected by lines, show the running median of the standard
+deviation\footnote{The parameters used were: window width 10\%, window
+midpoints 5\%, 10\%, 15\%, \ldots.  It should be said that the proper
+way to do is with quantile regression such as provided by the
+\Rpackage{quantreg} package - what is done here for these plots is
+simple, cheap and should usually be good enough due to the abundance
+of data.}. The aim of these plots is to see whether there is a
+systematic trend in the standard deviation of the data as a function
+of overall expression. The assumption that underlies the usefulness of
+these plots is that most genes are not differentially expressed, so
+that the running median is a reasonable estimator of the standard
+deviation of feature level data conditional on the mean.  After
+variance stabilisation, this should be approximately a horisontal
+line.  It may have some random fluctuations, but should not show an
+overall trend.  If this is not the case, that usually indicates a data
+quality problem, or is a consequence of inadequate prior data
+preprocessing.  The rank ordering distributes the data evenly along
+the $x$-axis. A plot in which the $x$-axis shows the average
 intensities themselves is obtained by calling the \Robject{plot}
-command with the argument \Robject{ranks=FALSE}.
+command with the argument \Robject{ranks=FALSE}; but this tends to be
+less useful and hence is not the default.
 
 The histogramme of the \Robject{M}-values is shown in 
 Figure~\ref{vsn-nkid-histM}.
@@ -238,7 +236,7 @@ hist(M, breaks=33, col="#d95f0e")
 log-ratios \Robject{M} for the kidney example data.}
 
 %------------------------------------------------------------
-\section{Running \Rpackage{vsn} on data from multiple arrays 
+\section{Running VSN on data from multiple arrays 
 (``single colour normalisation'')} 
 %------------------------------------------------------------
 The package includes example data from a series of 8 cDNA arrays 
@@ -306,7 +304,7 @@ quality problem with the left slide (e.\,g. related to the PCR
 amplification or the printing, see Section~\ref{sec.qc}).
 
 %---------------------------------------------------------
-\section{Running \Rpackage{vsn} on Affymetrix genechip data} \label{affy}
+\section{Running VSN on Affymetrix genechip data} \label{affy}
 %---------------------------------------------------------
 The package \Rpackage{affy} provides excellent functionality for
 reading and processing Affymetrix genechip data, and you are encouraged
@@ -326,7 +324,7 @@ the following steps:
 (i) background correction,
 (ii) between-array normalization,
 (iii) transformation and (iv) summarisation.
-The \Rpackage{vsn} method addresses steps (i)--(iii).
+The VSN method addresses steps (i)--(iii).
 For the summarisation, I recommend to use the RMA method~\cite{RMA},
 and a simple wrapper that provides all of these is provided through 
 the method \Rfunction{justvsn}.
@@ -363,7 +361,7 @@ abline(a=0, b=1, col="red")
 @
 
 %---------------------------------------------------------
-\section{Running \Rpackage{vsn} on \Robject{RGList} objects} \label{limma}
+\section{Running VSN on \Robject{RGList} objects} \label{limma}
 %---------------------------------------------------------
 There is a \Rfunction{justvsn} method for \Rclass{RGList} objects.
 %
@@ -483,7 +481,7 @@ variance--bias trade-off, sometimes also called
 
 So what is the optimal analysis strategy, should you subtract local
 background estimates or not? The answer depends on the properties of
-your particular data. \Rpackage{vsn} itself estimates and subtracts an
+your particular data. VSN itself estimates and subtracts an
 over-all background estimate (per array and colour, see
 Section~\ref{sec:calib}), so an additional local background correction
 is only useful if there actually is local variability across an array,
@@ -532,7 +530,7 @@ values on the $y$-axis to normalisation with strata (\Robject{EconStr}).
 The different colours correspond to the 16 different strata.}
 \end{center}\end{figure}
 %
-By default, \Rpackage{vsn} computes one normalisation transformation
+By default, VSN computes one normalisation transformation
 with a common set of parameters for all features of an array (separately
 for each colour if it is a multi-colour microarray), see
 Section~\ref{sec:calib}.  Sometimes, there is a need for
@@ -594,7 +592,7 @@ values on the $y$-axis to normalisation with $\approx 10\%$
 missing data (\Robject{fit2}).}
 \end{center}\end{figure*}
 %
-The parameter estimation algorithm of \Rpackage{vsn} is able to deal with
+The parameter estimation algorithm of VSN is able to deal with
 missing values in the input data. To demonstrate this, we generate an 
 \Rclass{ExpressionSet} \Robject{lym2} in which about 10\% of all intensities 
 are missing,
@@ -800,94 +798,59 @@ The factor for the red channel is now about four times as large as
 before.  The result is shown in Figure~\ref{vsn-nkid-calib4}.
 
 %-------------------------------------------------------------------
-\section{Assessing vsn and how to compare to other methods}
+\section{Assessing the performance of VSN}
 %-------------------------------------------------------------------
-\Rpackage{vsn} is a parameter estimation algorithm that fits the
-parameters for a certain model. In order to see how good the estimator
-is, we can look at bias, variance, sample size dependence, robustness
-against model misspecificaton and outliers. This is done in the
-vignette \emph{Verifying and assessing the performance with simulated
-data} that comes with this package.
+VSN is a parameter estimation algorithm that fits the parameters for a
+certain model. In order to see how good the estimator is, we can look
+at bias, variance, sample size dependence, robustness against model
+misspecificaton and outliers. This is done in the vignette
+\emph{Verifying and assessing the performance with simulated data}
+that comes with this package.
 
 Practically, the more interesting question is how different microarray
-calibration and data transformation methods compare to each other. For this,
-one needs to specify a measure of goodness. One approach is to compare the
-obtained values against a known truth. This can be done in controlled spike-in
-experiments and in dilution series, which allow to systematically assess the
-performance of the methods at different biologically relevant spike-in
-concentrations. Like any statistical method, one can make different choices
-with respect to the trade-off between bias and variance~\cite{Affycomp}.
+calibration and data transformation methods compare to each other.
+Two such comparisons were made in reference~\cite{HuberISMB2002}, one
+with a set of two-colour cDNA arrays, one with an Affymetrix genechip
+dataset. Fold-change estimates from VSN led to
+higher sensitivity and specificity in identifying differentially
+expressed genes than a number of other methods.
 
-Here, we focus on one particular aspect: the overall sensitivity and
-specificity in detecting differential transcription. The following
-type of analysis can be applied to any data set that contains
-replicated measurements made on samples from biologically distinct,
-known groups. The idea is that we compare the within-group variability
-(among the biological replicates) to the between-group variability
-(between different tissue types). The smaller the former and the
-larger the latter, the better we may deem the performance of the
-calibration and data transformation.
+A much more sophisticated and wider-scoped approach was taken by the
+\emph{Affycomp} benchmark study, presented at
+\texttt{http://affycomp.biostat.jhsph.edu}.  It uses two benchmark
+datasets: a \emph{Spike-In} dataset, in which a small number of cDNAs
+was spiked in at known concentrations and over a wide range of
+concentrations on top of a complex RNA background sample; and a
+\emph{Dilution} dataset, in which RNA samples from heart and brain
+were combined in a number of dilutions and proportions.  The design of
+the benchmark study, which has been open for anyone to submit their method, was
+described in reference~\cite{Affycomp}.  A discussion of its results
+was given in~reference~\cite{Affycomp2}. One of the results that emerged
+was that VSN compares well with the background correction and
+quantile normalization method of RMA; both methods place a high
+emphasis on \emph{precision} of the expression estimate, for the price
+of a certain \emph{bias} (see also Section~\ref{sec:shrink}). Another
+result was that reporter-sequence specific effects (e.\,g.\ the effect
+of GC content) play a large role in these data and that substantial
+improvements can be achieved when they are taken into account
+(something which VSN does not do).
 
-\begin{figure*}[tbp]\begin{center}
-\includegraphics[width=0.9\textwidth]{vsn-comp}
-\caption{\label{fig-comp}Left hand side: $x$-axis -- generalised
-log-ratios for slide 1 from \Robject{vsn}, $y$-axis -- log-ratios
-for slide 1 after loess normalisation. For most genes, the two
-are the same, but in some cases the generalised log-ratio is smaller
-in absolute value.
-It is never larger. This demonstrates the \textit{ratio shrinkage} by
-the variance stabilisation. Right hand side: quantile-quantile-plot of
-the moderated $t$-statistic for the comparison between the 4 slides with CLL and
-the 4 with DLCL. The moderated $t$-statistics from \Rpackage{vsn} are slightly 
-larger, i.\,e.\ processing with \Rpackage{vsn} results in a slightly
-better signal-to-noise ratio as measured by the ratio of
-between-group difference to moderated within-group standard deviation.}
-\end{center}\end{figure*}
+Of course, the two datasets that were used in Affycomp were somewhat
+artificial and were probably of higher quality than those in some
+real-life applications. And, naturally, in the meanwhile the
+existence of this benchmark has led to the development of new
+processing methods where a certain amount of overfitting may have
+occured.
 
-Here, as a measure of the relative size of between- and within-group
-variability we take the size of the $t$-statistic.  The acceptable
-use of CPU time and disk memory of a package vignette is limited, thus
-here we stick to a very simple-minded calculation and a small data
-set. See Figure~\ref{fig-comp} and the calculations below. Two
-applications to larger data sets are described in
-reference~\cite{HuberISMB2002}.  More sophisticated analyses can be
-made by comparing not just the distributions of $t$-statistics, but
-for example, the estimated false discovery rates, using different test
-statistics. You are encouraged to try this out with your own data.
-%
-
-First, we normalise the lymphoma data using the \Rfunction{loess} 
-normalisation,
-%
-<<loess,results=hide>>=
-lymMls = new("ExpressionSet", exprs =
- normalizeWithinArrays(lymRG,
-   method = "loess")$M)
-@ 
-% 
-then we calculate differential expression statistics just as above
-on page~\pageref{lmFit}.
-%
-<<lmFitagain>>=
-lfls = eBayes(lmFit(lymMls, 
-   design[,"sampleClassDLCL", drop=FALSE]))
-@ 
-%
-<<comp,results=hide,fig=TRUE,width=8,height=4.5,include=FALSE>>=
-par(mfrow = c(1,2))
-plot(exprs(lymM)[,j], exprs(lymMls)[,j], 
-  main = sampleNames(lymM)[j], 
-  xlab = "M (vsn)", ylab = "M (loess)",
-  pch = ".", asp = 1)
-abline(a = 0,b = 1,col = "blue")
-qqplot(lf$t, lfls$t, 
-  xlab = "t (vsn)", ylab = "t (loess)", 
-  main = "QQ plot", pch=".")
-abline(a = 0,b = 1,col = "blue")
-@
+I would also like to note the interaction between
+normalization/preprocessing and data quality. For data of high
+quality, one can argue that any decent preprocessing method should
+produce more or less the same results; differences arise when the data
+are problematic, and when more or less successful measures may be
+taken by preprocessing methods to correct these problems.
 
 %------------------------------------------------------------
-\section{vsn, shrinkage and background correction} \label{sec:shrink}
+\section{VSN, shrinkage and background correction} \label{sec:shrink}
 %------------------------------------------------------------
 %
 <<calcshrink, echo=FALSE, results=hide>>=
@@ -944,7 +907,7 @@ legend(8.75, -0.1, c("q","h"), col=colq, pch=pch, lty=lty, lwd=lwd)
 \caption{\label{vsn-figshrink}The shrinkage property of the 
 generalised log-ratio.  
 Blue diamonds and error bars correspond to mean and standard
-deviation of the generalised log-ratio $h$, as obtained from \Rpackage{vsn}, 
+deviation of the generalised log-ratio $h$, as obtained from VSN, 
 black dots and error bars to the naive log-ratio $q$.  
 For this figure, data were simulated generated from the 
 additive-multiplicative error 
@@ -1050,7 +1013,7 @@ proportionality factor (called the \textit{coefficient of variation})
 that is the same for all genes~\cite{RockeDurbin2001}.
 
 \paragraph{Most genes unchanged assumption.} 
-With respect to the \Rpackage{vsn} model fitting, data from 
+With respect to the VSN model fitting, data from 
 differentially transcribed genes can act as outliers 
 (but they do not necessarily need to do so in all cases).
 The maximal number of outliers that do not gravely affect the model
@@ -1063,7 +1026,7 @@ least-sum-of-squares estimations that does not allow for any outliers.
 
 So why is this parameter \Robject{lts.quantile} user-definable and why 
 don't we just always use the most ``robust'' value of 0.5?
-The answer is that the \emph{precision} of the estimated \Rpackage{vsn} 
+The answer is that the \emph{precision} of the estimated VSN 
 parameters is better the more data points go into the estimates, and
 this may especially be an issue for arrays with small numbers of 
 features\footnote{more precisely, number of features per stratum}.
@@ -1075,7 +1038,7 @@ genes unchanged assumption'', which presumes that only a minority of
 genes on the arrays is detectably differentially transcribed across
 the experiments. This assumption is a \emph{sufficient} condition for
 there being only a small number of outliers, and these would not gravely
-affect the \Rpackage{vsn} model parameter estimation. However, it is
+affect the VSN model parameter estimation. However, it is
 not a \emph{necessary} condition: the parameter estimates and the
 resulting normalised data may still be useful and meaningful if the
 assumption does not hold, but if the effects of the data from
@@ -1169,6 +1132,11 @@ A.~A. Alizadeh et al.
 L.~M. Cope, R.~A. Irizarry, H.~A. Jaffee, Z.~Wu, and T.~P. Speed.
 \newblock A Benchmark for Affymetrix GeneChip Expression Measures.
 \newblock \textit{Bioinformatics}, 20:323--331, 2004.
+
+\bibitem{Affycomp2}
+R.~A. Irizarry, Z.~Wu, and H.~A. Jaffee.
+\newblock Comparison of Affymetrix GeneChip expression measures.
+\newblock \textit{Bioinformatics}, 22:789--794, 2006.
 
 \bibitem{RMA}
 R.~A. Irizarry, B.~Hobbs, F.~Collin, Y.~D. Beazer-Barclay, K.~J. Antonellis, 
