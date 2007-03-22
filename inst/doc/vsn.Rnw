@@ -981,9 +981,16 @@ boxplot(A[, j] ~ arrayGeometry$spotrow,
    ylab="A", xlab="spotrow")
 @ 
 %
-\myincfig{vsn-lymquscp}{0.45\textwidth}{$M$-$A$-plot
-of the data from array \Sexpr{j}. Dots coloured in orange
-are from rows 22 and 23.}
+\myincfig{vsn-lymquscp}{0.45\textwidth}{$M$-$A$-plot of the data from
+array \Sexpr{j}. Dots coloured in orange are from rows 22 and 23. A
+possible explanation may be as follows (although I do not know for
+sure that this is the right explanation): The PCR product (cDNA) that
+is spotted on these arrays is put on by a print head that sucks cDNA
+out of microtitre plates and deposits them in spots one after another,
+row by row. If the content of one plate is faulty, this results in a
+set of subsequent spots that are faulty. Because the 16 print-tip
+sectors are spotted in parallel, this affects all sectors in the same
+way.}
 
 You may want to explore similar boxplots for other stratifying factors
 such as column within print-tip sector or print-tip sector and look at
