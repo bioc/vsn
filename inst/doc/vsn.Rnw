@@ -6,6 +6,7 @@
 \documentclass[11pt,twocolumn]{article}
 \usepackage[margin=2cm,nohead]{geometry}
 \usepackage{color}
+\usepackage{cite}
 \definecolor{darkblue}{rgb}{0.0,0.0,0.75}
 \usepackage[%
 baseurl={http://www.bioconductor.org},%
@@ -216,7 +217,7 @@ of overall expression. The assumption that underlies the usefulness of
 these plots is that most genes are not differentially expressed, so
 that the running median is a reasonable estimator of the standard
 deviation of feature level data conditional on the mean.  After
-variance stabilisation, this should be approximately a horisontal
+variance stabilisation, this should be approximately a horizontal
 line.  It may have some random fluctuations, but should not show an
 overall trend.  If this is not the case, that usually indicates a data
 quality problem, or is a consequence of inadequate prior data
@@ -291,13 +292,13 @@ smoothScatter(A[,j], M[,j], main=j,
 abline(h=0, col="red")
 @
 %
-\myincfig{vsn-lym-M}{0.45\textwidth}{$M-A$-plot 
+\myincfig{vsn-lym-M}{0.45\textwidth}{$M$-$A$-plot 
 for slide \Sexpr{j} from the lymphoma example data.
 A false-colour representation of the data point density is used,
 in addition the 100 data points in the least dense regions are 
 plotted as dots.}
 %
-Figure~\ref{vsn-lym-M} shows the resulting $M-A$-plot~\cite{Dudoit578}
+Figure~\ref{vsn-lym-M} shows the resulting $M$-$A$-plot~\cite{Dudoit578}
 for one of the arrays. 
 
 %---------------------------------------------------------
@@ -938,7 +939,7 @@ divergence of the standard log-ratios at small intensities: they remain
 well-defined and have limited variance when the data come close to zero or
 even become negative. An illustration is shown in Figure~\ref{vsn-figshrink}.
 Please consult the references for more on the
-mathematical-methodical background~\cite{HuberISMB2002,HSG2002,HuberSAGMB2003}.
+mathematical background~\cite{HuberISMB2002,HSG2002,HuberSAGMB2003}.
 
 
 It is possible to give a \emph{Bayesian} interpretation: our prior
@@ -975,12 +976,12 @@ shows the boxplots of \Robject{A} values of array
 <<lymbox,fig=TRUE,width=8>>=
 colours = hsv(seq(0,1,length=nsr),0.6,1)
 j = "CLL-13"
-boxplot(A[,j]~spotrow, data=arrayGeometry, 
+boxplot(A[, j] ~ arrayGeometry$spotrow, 
    col=colours, main=j, 
    ylab="A", xlab="spotrow")
 @ 
 %
-\myincfig{vsn-lymquscp}{0.45\textwidth}{$M-A$-plot
+\myincfig{vsn-lymquscp}{0.45\textwidth}{$M$-$A$-plot
 of the data from array \Sexpr{j}. Dots coloured in orange
 are from rows 22 and 23.}
 
@@ -989,7 +990,7 @@ such as column within print-tip sector or print-tip sector and look at
 these plots for the other arrays as well.
 
 In Figure~\ref{fig:lymbox}, we see that the features in rows 22 and
-23 are all very dim.  If we now look at these data in the $M-A$-plot
+23 are all very dim.  If we now look at these data in the $M$-$A$-plot
 (Figure~\ref{vsn-lymquscp}), we see that these features not only have
 low $A$-values, but fall systematically away from the $M=0$ line.
 
@@ -1015,7 +1016,7 @@ VSN with strata~(see Section~\ref{sec:strata}).
 \item It has also been proposed to address this type of problem by using 
 a non-linear regression on the $A$-values, for example the 
 \emph{loess} normalization of reference~\cite{YeeNorm}
-that simply squeezes the $M-A$-plot to force the centre of the 
+that simply squeezes the $M$-$A$-plot to force the centre of the 
 distribution of $M$ to lie at 0 along the whole $A$-range.
 \end{enumerate}
 
@@ -1027,7 +1028,7 @@ all data points with very low $A$ values came from rows 22 and 23,
 and few of the data points from these rows had high $A$-values).
 
 
-\subsection{Some more on stratifying factors such as
+\subsection{Stratifying factors such as
 print-tip, PCR plate, reporter-sequence} 
 
 By default, the VSN method assumes that the measured 
@@ -1090,7 +1091,7 @@ batches.
 How to reliably diagnose and deal with such violations is beyond the scope 
 of this vignette; see the references for more~\cite{HSG2002,Dudoit578}. 
 
-\subsection{Most genes unchanged assumption.} 
+\subsection{Most genes unchanged assumption} 
 With respect to the VSN model fitting, data from 
 differentially transcribed genes can act as outliers 
 (but they do not necessarily need to do so in all cases).
