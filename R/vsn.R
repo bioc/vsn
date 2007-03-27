@@ -4,7 +4,7 @@
 ## With contributions from Markus Ruschhaupt, Dennis Kostka, David Kreil
 ##----------------------------------------------------------------------
 
-VSN_DEPR_MSG = "The function 'vsn' is deprecated, please use 'vsn2' instead."
+VSN_DEPR_MSG = "The function 'vsn' is deprecated, could you please use 'vsn2' instead."
 
 ##----------------------------------------------------------------------
 ## vsn: the main function of this library
