@@ -21,11 +21,8 @@ typedef struct {
   int ntot;        /* no. of data points that are not NA (if none, this should be nrow*ncol) */
   int npar;        /* no. of parameters */
 
-  int *strat;      /* For what=0 and 1, strat[j] is the index of the first element 
-                      of j-th stratum, and the length of this array is nrstrat.
-                      For what=2, strat[j] is the stratum of the j-th probe, and
-                      the length of this array is nrow.                   */
-  int nrstrat;     /* no. of strata                                       */
+  int *strat;      /* strat[j] is the index of the first element of j-th stratum */
+  int nrstrat;     /* no. of strata */
 
   double ssq;
 
