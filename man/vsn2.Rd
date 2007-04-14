@@ -8,15 +8,15 @@
 
 \title{Fit the vsn model}
 \description{\code{vsn2} fits the vsn model to the data matrix
-  in an \code{\linkS4class{ExpressionSet}} and
+  in an \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}} and
   returns a \code{\linkS4class{vsn}} object with the fit parameters and
   the transformed data matrix.
   The data matrix contains, typically, feature intensity readings from a
   microarray. There are also \code{vsn2} methods for numeric matrices and vectors.
   \code{\link[vsn:vsn2trsf]{predict}} applies a fitted model
-  to data and returns an \code{\linkS4class{ExpressionSet}} object.
+  to data and returns an \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}} object.
   \code{\link{justvsn}} is a simple wrapper that 
-  takes and returns an \code{\linkS4class{ExpressionSet}}.
+  takes and returns an \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}}.
   These are the main functions of this package. An overview is given in the vignette
   \emph{Introduction to vsn}.
 }
@@ -39,7 +39,7 @@ vsnMatrix(x,
 }
 \arguments{
   \item{x}{An object containing the data to which the model is to be
-    fitted. Methods exists for \code{\linkS4class{ExpressionSet}},
+    fitted. Methods exists for \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}},
     \code{matrix} and \code{numeric}.}
   \item{reference}{Optional, a \code{\linkS4class{vsn}} object from
     a previous fit. If this argument is specified, the data in \code{x}

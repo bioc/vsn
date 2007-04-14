@@ -21,7 +21,7 @@
 
 \section{Creating Objects}{
   \code{new("vsn")}
-  \code{vsn2(x)} with \code{x} being an \code{\linkS4class{ExpressionSet}}.
+  \code{vsn2(x)} with \code{x} being an \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}}.
 }
 
 \section{Slots}{

@@ -7,7 +7,7 @@
 
 \title{Normalization with vsn}
 \description{\code{justvsn} fits the vsn model to data
-  and returns an \code{\linkS4class{ExpressionSet}}.
+  and returns an \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}}.
   It is a simple wrapper for
   \code{\link{vsn2}} and \code{\link[vsn:vsn2trsf]{predict}}.
 }
@@ -20,8 +20,8 @@ justvsn(x, reference, strata, ...)
 
 \arguments{
   \item{x}{An object containing the data to which the model is to be
-    fitted. Methods exist for \code{\linkS4class{ExpressionSet}},
-    \code{\linkS4class{AffyBatch}} (from the \code{affy} package) and
+    fitted. Methods exist for \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}},
+    \code{\link[affy:AffyBatch-class]{AffyBatch}} (from the \code{affy} package) and
     \code{\link[limma:rglist]{RGList}} (from the \code{limma} package).}
   \item{reference, strata, ...}{As in \code{\link{vsn2}}.}
   \item{backgroundsubtract}{Logical of length 1, it applies only to the
@@ -35,15 +35,15 @@ justvsn(x, reference, strata, ...)
 }
 
 \value{
-  An \code{\linkS4class{ExpressionSet}}.
+  An \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}}.
   
-  If \code{x} is an \code{\linkS4class{ExpressionSet}}, then the
+  If \code{x} is an \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}}, then the
   dimensions and the metadata of the returned object will be the
   same, and its matrix of expression values are the normalized and
   transformed version of the input.
 
-  If \code{x} is an \code{\linkS4class{AffyBatch}}, probe-wise
-  background correction and between-array normalization is done by
+  If \code{x} is an \code{\link[affy:AffyBatch-class]{AffyBatch}}, probe-wise
+  background correction and between-array normalization are done by
   \code{\link{vsn2}} on the perfect match (PM) values only. Probeset
   summaries are calculated with the medianpolish algorithm of
   \code{\link[affy:rma]{rma}}.

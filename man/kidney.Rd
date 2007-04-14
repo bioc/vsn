@@ -8,7 +8,7 @@
 \usage{data(kidney)}
 
 \format{\code{kidney} is an
-  \code{\linkS4class{ExpressionSet}}
+  \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}}
   containing the data from one cDNA
   chip. The 8704x2 matrix \code{exprs(kidney)} contains the
   spot intensities for the red (635 nm) and green color channels

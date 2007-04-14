@@ -10,9 +10,9 @@
 
 \description{Methods for objects of classes
   \code{\link{matrix}}, 
-  \code{\linkS4class{ExpressionSet}} and
-  \code{\linkS4class{exprSet}} (deprecated)
-  to plot row standard deviations versus row means}
+  \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}} and
+  \code{exprSet-class} (deprecated)
+  to plot row standard deviations versus row means.}
 \usage{
 meanSdPlot(x, 
            ranks = TRUE,
@@ -22,9 +22,9 @@ meanSdPlot(x,
 \arguments{
   \item{x}{An object of class
     \code{\link{matrix}}, 
-    \code{\linkS4class{ExpressionSet}},
+    \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}},
     \code{\linkS4class{vsn}} or
-    \code{\linkS4class{exprSet}} (deprecated).}
+    \code{exprSet} (deprecated).}
 \item{ranks}{Logical, indicating whether the x-axis (means) should be plotted
   on the original scale (\code{FALSE}) or on the rank scale (\code{TRUE}). The latter
   distributes the data more evenly along the x-axis and allows a

@@ -6,7 +6,7 @@
 \description{8 cDNA chips from Alizadeh lymphoma paper}
 \usage{data(lymphoma)}
 
-\format{\code{lymphoma} is an \code{\linkS4class{ExpressionSet}}
+\format{\code{lymphoma} is an \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}}
   containing the data from 8 chips
   from the lymphoma data set by Alizadeh et al. (see references). Each
   chip represents two samples: on color channel 1 (CH1, Cy3, green) the
