@@ -39,6 +39,9 @@ pagecolor=darkblue,raiselinks,plainpages,pdftex]{hyperref}
 }
 
 \setlength\columnsep{20pt}
+\renewcommand{\dblfloatpagefraction}{0.99}
+\renewcommand{\textfraction}{0.2}
+\renewcommand{\topfraction}{0.65}
 
 \begin{document}
 %----------------------------------------------------------------------------------------
@@ -365,14 +368,15 @@ which also leads to a lower dynamic range, cf.\ the
 bottom left plot.
 
 The implementation of the \Rfunction{justvsn} method for
-\Rclass{AffyBatch} is straightforward.
+\Rclass{AffyBatch} is straightforward and can be seen either by checking 
+the package source files, or by typing
 %
-<<showcode>>=
+<<showcode, results=hide>>=
 getMethod("justvsn", "AffyBatch")
 @ 
 %
 Users who are interested in trying out other probeset summarization
-methods than RMA are encouraged to take this code and modify it
+methods than RMA are encouraged to take this function and modify it
 accordingly, for example, by replacing the call to \Rfunction{rma}
 with one to \Rfunction{mas5}.
 
