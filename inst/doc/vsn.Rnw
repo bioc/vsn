@@ -132,7 +132,7 @@ should be approximately independent of the mean intensity.  Many
 common hypothesis testing, clustering or classification schemes are
 based on an assumption of common variance. If this assumption does not
 hold, such methods can produce misleading results; a transformation
-which makes this assumption roughly true makes the use such methods
+which makes this assumption roughly true makes the use of such methods
 more appropriate.
 
 Note, however, that VSN only addresses the dependence of
@@ -363,6 +363,18 @@ VSN does so more strongly. The shrinkage (see also Section~\ref{sec:shrink})
 is stronger with VSN (cf.\ the bottom right plot), 
 which also leads to a lower dynamic range, cf.\ the 
 bottom left plot.
+
+The implementation of the \Rfunction{justvsn} method for
+\Rclass{AffyBatch} is straightforward.
+%
+<<showcode>>=
+getMethod("justvsn", "AffyBatch")
+@ 
+%
+Users who are interested in trying out other probeset summarization
+methods than RMA are encouraged to take this code and modify it
+accordingly, for example, by replacing the call to \Rfunction{rma}
+with one to \Rfunction{mas5}.
 
 %---------------------------------------------------------
 \section{Running VSN on \Robject{RGList} objects} \label{limma}
@@ -842,7 +854,8 @@ improvements can be achieved when they are taken into account
 (something which VSN does not do).
 
 Of course, the two datasets that were used in Affycomp were somewhat
-artificial and were probably of higher quality than those in some
+artificial: they had fewer differentially expressed genes and 
+were probably of higher quality than in most
 real-life applications. And, naturally, in the meanwhile the
 existence of this benchmark has led to the development of new
 processing methods where a certain amount of overfitting may have
@@ -1028,11 +1041,16 @@ distribution of $M$ to lie at 0 along the whole $A$-range.
 \end{enumerate}
 
 An advantage of option 3 is that it works without knowing the real
-underlying stratifying factor, in our case this would be presumably 
-be the row within sector. However, it assumes that the stratifying factor is 
-strongly confounded with $A$ (e.\,g.,\ in the current example, almost
-all data points with very low $A$ values came from rows 22 and 23,
-and few of the data points from these rows had high $A$-values).
+underlying stratifying factor.  However, it assumes that the
+stratifying factor is strongly confounded with $A$, and that biases
+that it causes can be removed through a regression on $A$.
+
+In the current example, if we believe that the real underlying
+stratifying factor is indeed row within sector, this assumption means
+that (i) few of the data points from rows 22 and 23 have high
+$A$-values, and that (ii) almost all data points with very low $A$
+values are from these rows; while (i) appears tenable, (ii) is
+definitely not the case.
 
 
 \subsection{Stratifying factors such as
