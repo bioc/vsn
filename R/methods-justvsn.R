@@ -11,8 +11,9 @@ setMethod("justvsn", "ExpressionSet",
 
 setMethod("justvsn", "AffyBatch",
    function(x,  reference, strata, ...) {
-     fit = vsnMatrix(exprs(x),  reference, strata, cvg.niter=4L,
-       subsample=if(nrow(x)>30000L) 30000L else 0L, ...)
+     m = exprs(x)
+     fit = vsnMatrix(m,  reference, strata, cvg.niter=4L,
+       subsample = if(nrow(m)>30000L) 30000L else 0L, ...)
      exprs(x) = 2^fit@hx
      
       ## call RMA to do the probeset summarization,
