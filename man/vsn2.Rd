@@ -47,10 +47,13 @@ vsnMatrix(x,
     parameters are stored in the object \code{reference}. If this
     argument is not specified, then the data in \code{x} are normalized
     "among themselves". See Details for a more precise explanation.}
-  \item{strata}{Optional, a factor whose length is \code{nrow(x)}. Can
+  \item{strata}{Optional, a \code{factor} or \code{integer}
+    whose length is \code{nrow(x)}. Can
     be used for stratified normalization (i.e. separate offsets \code{a} and
     factors \code{b} for each level of \code{strata}). If missing, all
-    rows of \code{x} are assumed to come from one stratum.}
+    rows of \code{x} are assumed to come from one stratum.
+    If \code{strata} is an integer, its values must cover the range
+    1...\emph{n}, where \emph{n} is the number of strata.}
   \item{lts.quantile}{Numeric of length 1. The quantile that is used for the resistant
     least trimmed sum of squares regression. Allowed values are between
     0.5 and 1. A value of 1 corresponds to ordinary least sum of squares
@@ -65,9 +68,11 @@ vsnMatrix(x,
     in a slot of the resulting \code{\linkS4class{vsn}} object.
     The option to set this option to \code{FALSE} allows saving of memory
     if the data are not needed.}
-  \item{pstart}{Optional, array. Can be used to specify start values
-    for the iterative parameter estimation algorithm. See 
-    \code{\link{vsn2trsf}} for a description of the layout of the array.}
+  \item{pstart}{Optional, a three-dimensional numeric array.
+    Can be used to specify start values for the iterative parameter estimation algorithm.
+    The first dimension corresponds to the levels of \code{strata},
+    the second dimension to the columns of \code{x} and the third dimension
+    must be 2, corresponding to offsets and factors.}
   \item{cvg.niter}{Integer. The number of iterations to be used in the least
     trimmed sum of squares regression.}
   \item{cvg.eps}{Numeric. A convergence treshold.}

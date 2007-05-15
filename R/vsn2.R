@@ -258,7 +258,7 @@ vsnMatrix = function(x,
   strata = if(missing(strata)){ 
     factor(integer(0), levels="all")
   } else {
-    factor(strata)
+    int2factor(strata)
   }
   
   minDataPointsPerStratum = 42L
@@ -392,4 +392,16 @@ pstartHeuristic = function(x, sp) {
     }
   }
   return(pstart)
+}
+
+int2factor = function(strata) {
+  if(is.factor(strata))
+    return(strata)
+  if(!is.integer(strata))
+    stop("'strata' needs to be an integer vector.")
+  ssu = sort(unique(strata))
+  if(!identical(ssu, seq(along=ssu)))
+    stop("'strata' needs to be an integer vector whose values cover ",
+         "the range of  1...n.")
+  factor(strata, levels=ssu)
 }

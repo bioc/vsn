@@ -3,7 +3,7 @@
 #  (see below for methods for the generic function 'vsn2')
 #------------------------------------------------------------
 setMethod("predict", signature("vsn"),
-  function(object, newdata, log2scale=TRUE) {
+  function(object, newdata, strata=object@strata, log2scale=TRUE) {
 
     stopifnot(validObject(object))
 
@@ -12,11 +12,11 @@ setMethod("predict", signature("vsn"),
     ## to dispatch on 'newdata' via S4
     if(is(newdata, "ExpressionSet")){
       res = newdata
-      exprs(res) = predict(object, exprs(newdata))
+      exprs(res) = predict(object, exprs(newdata), strata=strata, log2scale=log2scale)
       return(res)
     }
     
-    ## If we get here, 'object' must be either a matrix or a vector
+    ## If we get here, 'newdata' must be either a matrix or a vector
     if(is.vector(newdata))
       dim(newdata)=c(length(newdata), 1)
 
@@ -25,16 +25,15 @@ setMethod("predict", signature("vsn"),
     if(storage.mode(newdata) != "double")
       storage.mode(newdata) = "double"
     
-    s = object@strata
-    if(length(s)==0) {
-      s = rep(as.integer(1), nrow(newdata))
+    if(length(strata)==0) {
+      strata = rep(as.integer(1), nrow(newdata))
     } else {
-      if(length(s)!=nrow(newdata))
-        stop("'nrow(newdata)' must match the length of slot 'strata' in 'object'.")
-      s = as.integer(s)
+      if(length(strata)!=nrow(newdata))
+        stop("'nrow(newdata)' must match 'strata'.")
+      strata = as.integer(int2factor(strata))
     }
     
-    hy = .Call("vsn2_trsf", newdata, as.vector(object@par), s, PACKAGE="vsn")
+    hy = .Call("vsn2_trsf", newdata, as.vector(object@par), strata, PACKAGE="vsn")
 
     if(log2scale)
       hy = trsf2log2scale(hy, object@par)

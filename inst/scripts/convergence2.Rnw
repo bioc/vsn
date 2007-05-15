@@ -40,7 +40,7 @@ number of arrays \Robject{d}, the fraction of differentially expressed genes
 \Robject{de}, and the fraction of up-regulated genes \Robject{up}.
 %
 <<setup, results=hide, echo=FALSE>>=
-library("vsn")
+require("vsn")
 set.seed(0xabcd)
 options(error=recover, warn=2)
 

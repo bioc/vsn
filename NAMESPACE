@@ -18,7 +18,7 @@ export(
   "normalize.AffyBatch.vsn",
 
   ## New     
-  "vsnMatrix", "vsn2trsf", 
+  "vsnMatrix", 
   "sagmbAssess", "sagmbSimulateData", "plotVsnLogLik")
 
 exportMethods("vsn2", "justvsn", 

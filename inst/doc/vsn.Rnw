@@ -63,7 +63,7 @@ VSN is a method to preprocess microarray intensity data.
 This can be as simple as
 %
 <<overv1, results=hide>>=
-library("vsn")
+require("vsn")
 data("kidney")
 xnorm = justvsn(kidney)
 @
@@ -288,7 +288,7 @@ A=(exprs(lym)[,ismp]+exprs(lym)[,iref])/2
 colnames(M) = lymphoma$sample[ismp]
 colnames(A) = colnames(M)
 
-library("geneplotter")
+require("geneplotter")
 j = "DLCL-0032"
 smoothScatter(A[,j], M[,j], main=j, 
         xlab="A", ylab="M", pch=".")
@@ -331,7 +331,7 @@ and a simple wrapper that provides all of these is provided through
 the method \Rfunction{justvsn}.
 %
 <<affy1,results=hide>>=
-library("affydata")
+require("affydata")
 data("Dilution")
 d.vsn = justvsn(Dilution)
 @ 
@@ -386,7 +386,7 @@ with one to \Rfunction{mas5}.
 There is a \Rfunction{justvsn} method for \Rclass{RGList} objects.
 %
 <<limma, results=hide>>= 
-library("limma")
+require("limma")
 wg = which(lymphoma$dye=="Cy3")
 wr = which(lymphoma$dye=="Cy5")
 
