@@ -11,8 +11,7 @@
 #include <R_ext/Utils.h>          /* for R_CheckUserInterrupt */
 extern double asinh(double);
 
-/*#define VSN_DEBUG */
-#undef VSN_DEBUG
+#undef VSN_DEBUG 
 
 typedef struct {
   double *y;       /* expression matrix: y_ik     */
@@ -377,8 +376,8 @@ SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh,
   lmm      = 20;   
   fail     = 0;
 
-  if(!(isReal(Soptimpar)&&(LENGTH(Soptimpar)==4)))
-    error("Invalid argument: 'Soptimpar' must be a real vector of length 4.");
+  if(!(isReal(Soptimpar)&&(LENGTH(Soptimpar)==5)))
+    error("Invalid argument: 'Soptimpar' must be a real vector of length 5.");
   optimpar = REAL(Soptimpar);
 
   /* L-BFGS-B uses these two termination criteria:
@@ -392,10 +391,10 @@ SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh,
      See L-BFGS-B: Fortran Subroutines for Large-Scale Bound Constrained
      Optimization, C. Zhu, R.H. Byrd, P. Lu and J. Nocedal (1996) */
 
-  factr    = optimpar[0];  /* 4e4  */
+  factr    = optimpar[0];  /* 5e7  */
   pgtol    = optimpar[1];  /* 2e-5 */
-  maxit    = lrint(optimpar[2]);  /* 20000 */
-  trace    = lrint(optimpar[3]);  /* 6     */
+  maxit    = lrint(optimpar[3]);  /* 40000 */
+  trace    = lrint(optimpar[4]);  /* 6 for really verbose */
  
   fncount  = 0;
   grcount  = 0;
@@ -418,7 +417,7 @@ SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh,
                3 if x(i) has only an upper bound. */
 
   for(i=0; i<x.npar; i++) {
-    lower[i] = pgtol;
+    lower[i] = optimpar[2];
     upper[i] = 0.;
     scale[i] = 1.;
   } 
