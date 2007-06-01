@@ -53,7 +53,7 @@ setMethod("show", signature("vsn"),
     cat(class(object), sprintf("object for n=%d features and d=%d samples.\n",
       nrow(object), ncol(object)))
     if(length(object@strata)>0)
-      cat(sprintf("strata: %d level%s.\n", nlevels(object@strata), c("", "s",)[1+(nlevels(object@strata)>1)]))
+      cat(sprintf("strata: %d level%s.\n", nlevels(object@strata), c("", "s")[1+(nlevels(object@strata)>1)]))
     if(nrow(object@hx)>0)
       cat(sprintf("hx: %d x %d matrix.\n", nrow(object@hx), ncol(object@hx)))
     if(length(object@refh)>0)

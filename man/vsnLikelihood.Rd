@@ -15,7 +15,9 @@ plotVsnLogLik(object, p, whichp=1:2, expand=1, ngrid=31, fun=logLik, ...)
 }
 \arguments{
   \item{object}{A \code{\link{vsnInput}} object.}
-  \item{p}{A matrix whose columns are the set of parameters at which
+  \item{p}{For \code{plotVsnLogLik}, a vector or a 3D array with the
+    point in parameter space around which to plot the likelihood.
+    For \code{logLik}, a matrix whose columns are the set of parameters at which
     the likelihoods are to be evaluated.}
   \item{refh}{Numeric vector of length 0 or \code{nrow(object)}.
     If the length is 0, there is no reference and and \code{refsigma} must be
