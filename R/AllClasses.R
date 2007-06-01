@@ -142,7 +142,7 @@ setClass("vsnInput",
     subsample = 0L,
     verbose = TRUE,
     pstart = array(as.numeric(NA), dim=c(1,0,2)),
-    optimpar = c(5e7, 2e-5, 2e-5, 40000, 0),  ## these are the default values from vsn 1.x
+    optimpar = c(5e7, 2e-5, 2e-5, 40000, 0),  ## factr=5e7 and pgtol=0 were the values in vsn 1.x
     cvg.niter = 1L,
     cvg.eps  = 0),          
   validity = validityVsnInput)

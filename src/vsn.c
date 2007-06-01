@@ -194,7 +194,7 @@ SEXP vsn_c(SEXP e_y, SEXP e_par, SEXP e_strat, SEXP e_what)
   int     lmm      = 10;   
   int     fail     = 0;
   double  factr    = 5e+7;  /* see below */
-  double  pgtol    = 2e-5; 
+  double  pgtol    = 0;  
   int     fncount  = 0;
   int     grcount  = 0;
   int     maxit    = 40000;
