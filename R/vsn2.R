@@ -22,7 +22,8 @@ vsnML = function(v, niter=4) {
   istrat = calcistrat(v) ## pointers to the starts of strata
 
   for (iter in seq_len(niter)) {
-    o = .Call("vsn2_optim", v@x, p, istrat, v@reference@refh, v@reference@refsigma, PACKAGE="vsn")
+    o = .Call("vsn2_optim", v@x, p, istrat, v@reference@refh,
+              v@reference@refsigma, v@optimpar, PACKAGE="vsn")
     
     conv = as.integer(o[length(o)])
     if (conv==0) 

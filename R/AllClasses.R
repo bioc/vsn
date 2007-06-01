@@ -49,6 +49,9 @@ validityVsnInput = function(object){
   if(!all(dim(object@pstart)==c(nlevels(object@strata), ncol(object@x), 2)))
     return("Invalid dimensions of 'pstart'.")
 
+  if(!is.numeric(object@optimpar)||length(object@optimpar)!=4)
+    return("'optimpar' must be a numeric vector of length 4.")
+
   return(TRUE)
 }
 
@@ -127,6 +130,7 @@ setClass("vsnInput",
     subsample = "integer",
     verbose   = "logical",
     pstart    = "array",     ## Start parameters (3D array: nrstrata * d * 2)
+    optimpar  = "numeric",   ## factr, pgtol, maxit, trace
     cvg.niter = "integer",
     cvg.eps   = "numeric"),
   prototype = list(
@@ -135,10 +139,11 @@ setClass("vsnInput",
     strata = factor(integer(0), levels="all"),
     ordered = FALSE,
     lts.quantile = 1,
-    subsample = as.integer(0),
+    subsample = 0L,
     verbose = TRUE,
     pstart = array(as.numeric(NA), dim=c(1,0,2)),
-    cvg.niter = as.integer(1),
+    optimpar = c(5e7, 0, 40000, 0),  ## these are the default values from vsn 1.x
+    cvg.niter = 1L,
     cvg.eps  = 0),          
   validity = validityVsnInput)
                   

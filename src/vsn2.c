@@ -363,11 +363,12 @@ SEXP vsn2_point(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP Srefsigma)
 /*------------------------------------------------------------
    vsn2_optim
 ------------------------------------------------------------*/
-SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP Srefsigma)
+SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, 
+                SEXP Srefsigma, SEXP Soptimpar)
 {
   int i, lmm, fail, fncount, grcount, maxit, trace, nREPORT;
   int *nbd;
-  double *cpar, *lower, *upper, *scale;
+  double *cpar, *lower, *upper, *scale, *optimpar;
   double factr, pgtol, fmin;
   char msg[60];
   SEXP res;
@@ -375,6 +376,10 @@ SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP Srefsigma)
 
   lmm      = 20;   
   fail     = 0;
+
+  if(!(isReal(Soptimpar)&&(LENGTH(Soptimpar)==4)))
+    error("Invalid argument: 'Soptimpar' must be a real vector of length 4.");
+  optimpar = REAL(Soptimpar);
 
   /* L-BFGS-B uses these two termination criteria:
      1. (f_k - f_k+1) / max(|f_k|, |f_k+1|, 1) <= factr * epsmch
@@ -386,13 +391,14 @@ SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP Srefsigma)
 
      See L-BFGS-B: Fortran Subroutines for Large-Scale Bound Constrained
      Optimization, C. Zhu, R.H. Byrd, P. Lu and J. Nocedal (1996) */
-  factr    = 4e4; 
-  pgtol    = 2e-5;
-  maxit    = 200000;
+
+  factr    = optimpar[0];  /* 4e4  */
+  pgtol    = optimpar[1];  /* 2e-5 */
+  maxit    = lrint(optimpar[2]);  /* 20000 */
+  trace    = lrint(optimpar[3]);  /* 6     */
  
   fncount  = 0;
   grcount  = 0;
-  trace    = 0;    /* 6; */
   nREPORT  = 1;
 
   setupEverybody(Sy, Spar, Sstrat, &x);

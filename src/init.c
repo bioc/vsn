@@ -8,7 +8,7 @@
 static const R_CallMethodDef callEntries[] = {
     { "vsn_c", (DL_FUNC) &vsn_c, 4}, 
     { "vsn2_point", (DL_FUNC) &vsn2_point, 5},
-    { "vsn2_optim", (DL_FUNC) &vsn2_optim, 5},
+    { "vsn2_optim", (DL_FUNC) &vsn2_optim, 6},
     { "vsn2_trsf",  (DL_FUNC) &vsn2_trsf, 3},
 { NULL, NULL, 0 }
 };
