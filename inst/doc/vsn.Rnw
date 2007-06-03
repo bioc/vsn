@@ -710,7 +710,10 @@ abline(a=0, b=1, col="red")
 @ 
 %
 <<hiddenchecks,echo=FALSE>>=
-stopifnot(length(ismp)==8L, max(abs(exprs(f8) - exprs(fall)[,8])) < 0.2)
+stopifnot(length(ismp)==8L)
+maxdiff = max(abs(exprs(f8) - exprs(fall)[,8])) 
+if(maxdiff>0.3)
+  stop(sprintf("maxdiff is %g", maxdiff))
 @ 
 
 More details on this can be found in the vignettes
