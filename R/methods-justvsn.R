@@ -10,7 +10,7 @@ setMethod("justvsn", "ExpressionSet",
     })
 
 setMethod("justvsn", "AffyBatch",
-   function(x,  reference, strata, ...) {
+   function(x, reference, strata, ...) {
      m = exprs(x)
      fit = vsnMatrix(m,  reference, strata, optimpar=list(cvg.niter=4L),
        subsample = if(nrow(m)>30000L) 30000L else 0L, ...)
@@ -22,7 +22,7 @@ setMethod("justvsn", "AffyBatch",
     })
 
 setMethod("justvsn", "RGList",
-   function(x,  reference, strata, backgroundsubtract=FALSE, targets, ...) {
+   function(x, reference, strata, backgroundsubtract=FALSE, targets, ...) {
      if(!(is.logical(backgroundsubtract)&&(length(backgroundsubtract)==1)&&(!is.na(backgroundsubtract))))
        stop("'backgroundsubtract' must be a logical of length 1 and not NA.")
      if(!(is.matrix(x$R)&&is.matrix(x$G)&&(all(dim(x$R)==dim(x$G)))))
@@ -41,7 +41,7 @@ setMethod("justvsn", "RGList",
      dfcmeta = data.frame(labelDescription = I(c("Slide name obtained from colnames of RGList$R and RGList$G", "Label colour")),
                           row.names=c("slide", "colour"))
 
-     fit = vsnMatrix(y,  reference, strata, ...)
+     fit = vsnMatrix(y, reference, strata, ...)
           
      res = new("ExpressionSet", exprs=fit@hx, phenoData = new("AnnotatedDataFrame", data=dfc, varMetadata=dfcmeta))
      return(res)

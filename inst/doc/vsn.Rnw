@@ -710,9 +710,7 @@ abline(a=0, b=1, col="red")
 @ 
 %
 <<hiddenchecks,echo=FALSE>>=
-stopifnot(length(ismp)==8L, 
-  abs(f8@par[1,1,1]-fall@par[1,8,1])< 0.1,
-  abs(f8@par[1,1,2]-fall@par[1,8,2])<0.01)
+stopifnot(length(ismp)==8L, max(abs(exprs(f8) - exprs(fall)[,8])) < 0.2)
 @ 
 
 More details on this can be found in the vignettes
