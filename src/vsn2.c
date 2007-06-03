@@ -40,6 +40,18 @@ typedef struct {
 } vsn_data;
 
 
+/* From 'Writing R extensions' section 5.7.6 */
+SEXP getListElement(SEXP list, char *str) {
+  SEXP elmt=R_NilValue, names=getAttrib(list, R_NamesSymbol);
+  int i;
+  for (i=0; i<length(list); i++)
+    if(strcmp(CHAR(STRING_ELT(names, i)), str) == 0) {
+      elmt = VECTOR_ELT(list, i);
+      break;
+    }
+  return elmt;
+}
+
 /*--------------------------------------------------
   Apply the transformation to the matrix px->y
   Note: in contrast in to previous versions, the result
@@ -367,8 +379,8 @@ SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh,
 {
   int i, lmm, fail, fncount, grcount, maxit, trace, nREPORT;
   int *nbd;
-  double *cpar, *lower, *upper, *scale, *optimpar;
-  double factr, pgtol, fmin;
+  double *cpar, *lower, *upper, *scale;
+  double factr, pgtol, fmin, low;
   char msg[60];
   SEXP res;
   vsn_data x;
@@ -376,25 +388,14 @@ SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh,
   lmm      = 20;   
   fail     = 0;
 
-  if(!(isReal(Soptimpar)&&(LENGTH(Soptimpar)==5)))
-    error("Invalid argument: 'Soptimpar' must be a real vector of length 5.");
-  optimpar = REAL(Soptimpar);
+  if(!(isNewList(Soptimpar)&&(LENGTH(Soptimpar)==7)))
+    error("Invalid argument: 'Soptimpar' must be a real vector of length 7.");
 
-  /* L-BFGS-B uses these two termination criteria:
-     1. (f_k - f_k+1) / max(|f_k|, |f_k+1|, 1) <= factr * epsmch
-       where epsmch is the machine precision.
-     2. |gradient| < pgtol
-     I use a combination of these two criteria, hoped to be a good compromise
-     between not terminating too early on long flat valleys and never terminating
-     because of round-off fluctuations.
-
-     See L-BFGS-B: Fortran Subroutines for Large-Scale Bound Constrained
-     Optimization, C. Zhu, R.H. Byrd, P. Lu and J. Nocedal (1996) */
-
-  factr    = optimpar[0];  /* 5e7  */
-  pgtol    = optimpar[1];  /* 2e-5 */
-  maxit    = lrint(optimpar[3]);  /* 40000 */
-  trace    = lrint(optimpar[4]);  /* 6 for really verbose */
+  factr    = REAL(getListElement(Soptimpar, "factr"))[0];
+  pgtol    = REAL(getListElement(Soptimpar, "pgtol"))[0];
+  low      = REAL(getListElement(Soptimpar, "lower"))[0];
+  maxit    = INTEGER(getListElement(Soptimpar, "maxit"))[0]; 
+  trace    = INTEGER(getListElement(Soptimpar, "trace"))[0];
  
   fncount  = 0;
   grcount  = 0;
@@ -417,7 +418,7 @@ SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh,
                3 if x(i) has only an upper bound. */
 
   for(i=0; i<x.npar; i++) {
-    lower[i] = optimpar[2];
+    lower[i] = low;
     upper[i] = 0.;
     scale[i] = 1.;
   } 

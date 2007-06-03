@@ -113,16 +113,13 @@ vsnLTS = function(v) {
   ## the number of iterations that have already met the convergence criterion
   cvgcCnt = 0
 
-  ## a place to save the trajectory of estimated parameters along the iterations
-  ## params = array(as.numeric(NA), dim=c(dim(v@pstart), v@cvg.niter))
-
   ## integer version of "v@strata"
   intStrat = if(length(v@strata)==0) rep(as.integer(1), nrow(v@x)) else as.integer(v@strata)
 
   if(v@verbose)
-      progress(0, v@cvg.niter)
+      progress(0, v@optimpar$cvg.niter)
 
-  for(iter in seq_len(v@cvg.niter)) {
+  for(iter in seq_len(v@optimpar$cvg.niter)) {
     sv = if(iter==1) v else v[whsel, ]
     par = vsnML(sv)
 
@@ -163,9 +160,9 @@ vsnLTS = function(v) {
     
     ## Convergence check
     ## after a suggestion from David Kreil, kreil@ebi.ac.uk
-    if(v@cvg.eps>0) {
+    if(v@optimpar$cvg.eps>0) {
       cvgc    = max(abs(hy - oldhy), na.rm=TRUE)
-      cvgcCnt = if(cvgc<v@cvg.eps) (cvgcCnt+1) else 0 
+      cvgcCnt = if(cvgc<v@optimpar$cvg.eps) (cvgcCnt+1) else 0 
       ## cat(sprintf("iter %2d: cvgc=%.5f%, par=", iter, cvgc), sprintf("%9.3g",par), "\n")
       if(cvgcCnt>=3)
         break
@@ -173,12 +170,12 @@ vsnLTS = function(v) {
     }
 
     if(v@verbose)
-      progress(iter, v@cvg.niter)
+      progress(iter, v@optimpar$cvg.niter)
 
   } ## end of for-loop
   
   if(v@verbose) {
-    progress(v@cvg.niter, v@cvg.niter)
+    progress(v@optimpar$cvg.niter, v@optimpar$cvg.niter)
     cat("\n")
   }
   return(par)
@@ -250,8 +247,8 @@ vsnMatrix = function(x,
   verbose      = interactive(),
   returnData   = TRUE,
   pstart,
-  cvg.niter    = 5L,
-  cvg.eps      = 5e-3) {
+  optimpar   = list(),
+  defaultpar = list(factr=5e7, pgtol=0, lower=2e-5, maxit=60000L, trace=0L, cvg.niter=1L, cvg.eps=0)) {
 
   storage.mode(x) = "double"
   storage.mode(subsample) = "integer"
@@ -282,6 +279,11 @@ vsnMatrix = function(x,
     if(nrow(reference)!=length(reference@refh))
       stop(sprintf("The slot 'reference@refh' has length %d, but expected is n=%d", nrow(reference)))
   }
+
+  if(!(is.list(optimpar)&&all(names(optimpar)%in%names(defaultpar))))
+    stop("'optimpar' must be a list whose elements have the same names as elements of 'defaultpar'.")
+  opar = defaultpar
+  opar[names(optimpar)] = optimpar
   
   v = new("vsnInput",
     x      = x,
@@ -289,8 +291,7 @@ vsnMatrix = function(x,
     pstart = pstart,
     reference = reference,
     lts.quantile = lts.quantile,
-    cvg.niter  = cvg.niter,
-    cvg.eps   = cvg.eps,
+    optimpar = opar,
     subsample = subsample,
     verbose   = verbose,
     ordered   = FALSE)

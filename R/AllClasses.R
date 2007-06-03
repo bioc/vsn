@@ -1,10 +1,25 @@
 ## See further below for class definitions.
 ## First come the validity functions, because they are needed for that
 
-validScalar = function(ob, nm, min=0, max=+Inf) {
+validScalarNumericSlot = function(ob, nm, min=0, max=+Inf) {
+  ## S4 already makes sure s is numeric 
   s = slot(ob, nm)
   if((length(s)!=1)||any(is.na(s))||(s<min)||(s>max))
-    return(sprintf("'%s' must be a scalar with values between %g and %g.", nm, min, max))
+    return(sprintf("'%s' must be a numeric vector of length 1 with values between %g and %g.", nm, min, max))
+  TRUE
+}
+
+validScalarDoubleListElt = function(ob, nm, min=0, max=+Inf) {
+  s = ob[[nm]]
+  if((!is.double(s))||(length(s)!=1)||any(is.na(s))||(s<min)||(s>max))
+    return(sprintf("'%s' must be a numeric double precision vector of length 1 with values between %g and %g.", nm, min, max))
+  TRUE
+}
+
+validScalarIntListElt = function(ob, nm, min=0L, max=.Machine$integer.max) {
+  s = ob[[nm]]
+  if((!is.integer(s))||(length(s)!=1)||any(is.na(s))||(s<min)||(s>max))
+    return(sprintf("'%s' must be an integer vector of length 1 with values between %g and %g.", nm, min, max))
   TRUE
 }
 
@@ -18,24 +33,18 @@ validLogical = function(ob, nm) {
 equalOrZero = function(i, j) ((i==j)||(i==0))
 
 validityVsnInput = function(object){
-  r = validScalar(object, "subsample", min=0, max=nrow(object))
-  if(!r)return(r)
+  r = validScalarNumericSlot(object, "subsample", min=0, max=nrow(object))
+  if(!identical(r, TRUE)) return(r)
 
-  r = validScalar(object, "cvg.niter", min=1)
-  if(!r)return(r)
-
-  r = validScalar(object, "cvg.eps",   min=0)
-  if(!r)return(r)
-
-  r = validScalar(object, "lts.quantile", min=0.5, max=1)
-  if(!r)return(r)
+  r = validScalarNumericSlot(object, "lts.quantile", min=0.5, max=1)
+  if(!identical(r, TRUE)) return(r)
 
   ## could also define class for this, might be a bit less tedious
   r = validLogical(object, "verbose")
-  if(!r)return(r)
+  if(!identical(r, TRUE)) return(r)
 
   r = validLogical(object, "ordered")
-  if(!r)return(r)
+  if(!identical(r, TRUE)) return(r)
 
   if(!equalOrZero(length(object@strata), nrow(object@x)))
     return("'length(strata)' must must match 'nrow(x)'.")
@@ -49,8 +58,24 @@ validityVsnInput = function(object){
   if(!all(dim(object@pstart)==c(nlevels(object@strata), ncol(object@x), 2)))
     return("Invalid dimensions of 'pstart'.")
 
-  if(!is.numeric(object@optimpar)||length(object@optimpar)!=5)
-    return("'optimpar' must be a numeric vector of length 5.")
+  if(!is.list(object@optimpar)||(length(object@optimpar)!=7)||
+     !identical(names(object@optimpar), c("factr", "pgtol", "lower", "maxit", "trace", "cvg.niter", "cvg.eps")))
+    return("'optimpar' must be a list with elements 'factr', 'pgtol', 'lower', 'maxit', 'trace', 'cvg.niter', 'cvg.eps'.")
+
+  r = validScalarDoubleListElt(object@optimpar, "factr")
+  if(!identical(r, TRUE)) return(r)
+  r = validScalarDoubleListElt(object@optimpar, "pgtol")
+  if(!identical(r, TRUE)) return(r)
+  r = validScalarDoubleListElt(object@optimpar, "lower")
+  if(!identical(r, TRUE)) return(r)
+  r = validScalarIntListElt(object@optimpar, "maxit", min=1)
+  if(!identical(r, TRUE)) return(r)
+  r = validScalarIntListElt(object@optimpar, "trace")
+  if(!identical(r, TRUE)) return(r)
+  r = validScalarIntListElt(object@optimpar, "cvg.niter", min=1)
+  if(!identical(r, TRUE)) return(r)
+  r = validScalarDoubleListElt(object@optimpar, "cvg.eps")
+  if(!identical(r, TRUE)) return(r)
 
   return(TRUE)
 }
@@ -130,9 +155,7 @@ setClass("vsnInput",
     subsample = "integer",
     verbose   = "logical",
     pstart    = "array",     ## Start parameters (3D array: nrstrata * d * 2)
-    optimpar  = "numeric",   ## factr, pgtol, lower, maxit, trace
-    cvg.niter = "integer",
-    cvg.eps   = "numeric"),
+    optimpar  = "list"),     ## factr, pgtol, lower, maxit, trace, cvg.niter, cvg.eps
   prototype = list(
     x = matrix(as.numeric(NA), nrow=0, ncol=0),
     reference = new("vsn"),
@@ -142,9 +165,8 @@ setClass("vsnInput",
     subsample = 0L,
     verbose = TRUE,
     pstart = array(as.numeric(NA), dim=c(1,0,2)),
-    optimpar = c(5e7, 2e-5, 2e-5, 40000, 0),  ## factr=5e7 and pgtol=0 were the values in vsn 1.x
-    cvg.niter = 1L,
-    cvg.eps  = 0),          
+    optimpar = list(factr=5e7, pgtol=0, lower=2e-5,
+                 maxit=60000L, trace=0L, cvg.niter=1L, cvg.eps=0)),
   validity = validityVsnInput)
                   
 

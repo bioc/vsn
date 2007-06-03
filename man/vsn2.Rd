@@ -31,8 +31,8 @@ vsnMatrix(x,
   verbose      = interactive(),
   returnData   = TRUE,
   pstart,
-  cvg.niter    = 5L,
-  cvg.eps      = 5e-3)
+  optimpar     = list(),
+  defaultpar   = list(factr=5e7, pgtol=0, lower=2e-5, maxit=60000L, trace=0L, cvg.niter=1L, cvg.eps=0))
 
 \S4method{vsn2}{matrix}(x, reference, strata, ...)
 \S4method{vsn2}{numeric}(x, reference, strata, ...)
@@ -69,13 +69,20 @@ vsnMatrix(x,
     The option to set this option to \code{FALSE} allows saving of memory
     if the data are not needed.}
   \item{pstart}{Optional, a three-dimensional numeric array.
-    Can be used to specify start values for the iterative parameter estimation algorithm.
+    Can be used to specify start values for the iterative parameter
+    estimation algorithm.
+    If not specified, the function tries to guess useful start values.
     The first dimension corresponds to the levels of \code{strata},
     the second dimension to the columns of \code{x} and the third dimension
     must be 2, corresponding to offsets and factors.}
-  \item{cvg.niter}{Integer. The number of iterations to be used in the least
-    trimmed sum of squares regression.}
-  \item{cvg.eps}{Numeric. A convergence treshold.}
+  \item{optimpar}{Optional, a list with parameters for the likelihood
+    optimisation algorithm. Default parameters are taken from
+    \code{defaultpar}. See details.}
+  \item{defaultpar}{The default parameters  for the likelihood
+    optimisation algorithm. Values in \code{optimpar} take precedence
+    over those in \code{defaultpar}. The purpose of this argument is to
+    expose the default values in the function manual page - it is not
+    intended to be changed, please use \code{optimpar} for that.}
   \item{...}{Arguments that get passed on to \code{vsnMatrix}.}
 }
 \value{
@@ -99,9 +106,46 @@ vsnMatrix(x,
   If \code{reference} is specified, the model parameters  $\mu_k$ and $\sigma$ are taken from
   it. This allows for 'incremental' normalization. See the vignette
   \emph{Likelihood Calculations for vsn}.
+
+  \code{L-BFGS-B} uses three termination criteria:
+  \enumerate{
+    \item \code{(f_k - f_{k+1}) / max(|f_k|, |f_{k+1}|, 1) <= factr * epsmch}
+      where \code{epsmch} is the machine precision.
+    \item \code{|gradient| < pgtol}
+    \item \code{iterations > maxit}
+  }
+  These are set by the elements \code{factr}, \code{pgtol} and
+  \code{maxit} of \code{optimpar}. The remaining elements are
+  \describe{
+    \item{\code{lower}}{Lower bound for the multiplicative parameters of the
+      vsn model}
+    \item{\code{trace}}{Verbosity level of \code{L-BFGS-B}, positive values
+      create more output.}
+    \item{\code{cvg.niter}}{The number of iterations to be used in the least
+      trimmed sum of squares regression.}
+    \item{\code{cvg.eps}}{Numeric. A convergence threshold for the least
+      trimmed sum of squares regression.}
+  }
 }
 
 \seealso{\code{\link{justvsn}}, \code{\link[vsn:vsn2trsf]{predict}}}
+
+\references{Variance stabilization applied to microarray data
+calibration and to the quantification of differential expression,
+Wolfgang Huber, Anja von Heydebreck, Holger Sueltmann, Annemarie
+Poustka, Martin Vingron; Bioinformatics (2002) 18 Suppl.1 S96-S104.
+
+Parameter estimation for the calibration and variance stabilization 
+of microarray data, 
+Wolfgang Huber, Anja von Heydebreck, Holger Sueltmann, 
+Annemarie Poustka, and Martin Vingron;  
+Statistical Applications in Genetics and Molecular Biology (2003)
+Vol. 2 No. 1, Article 3.
+http://www.bepress.com/sagmb/vol2/iss1/art3.
+
+L-BFGS-B: Fortran Subroutines for Large-Scale Bound Constrained
+Optimization, C. Zhu, R.H. Byrd, P. Lu and J. Nocedal,
+Technical Report, Northwestern University (1996).}
 
 \author{Wolfgang Huber \url{http://www.ebi.ac.uk/huber}}
 
