@@ -7,7 +7,7 @@ library("vsn")
 options(error=recover)
 
 ## Generate data
-n = 500*(2^(1:7))
+n = 500*(2^(1:9))
 set.seed(569)
 dat = sagmbSimulateData(n=n[length(n)], d=1, de=0, nrstrata=1, miss=0, log2scale=TRUE)
 ref = new("vsn", n=length(dat$mu), refh=dat$mu, refsigma=dat$sigma, par=dat$par)

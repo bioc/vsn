@@ -14,6 +14,7 @@ pdfsubject={vsn},%
 pdfkeywords={Bioconductor},%
 pagebackref,bookmarks,colorlinks,linkcolor=darkblue,citecolor=darkblue,%
 pagecolor=darkblue,raiselinks,plainpages,pdftex]{hyperref}
+\usepackage{geometry}
 
 %------------------------------------------------------------
 % newcommand
@@ -30,80 +31,254 @@ pagecolor=darkblue,raiselinks,plainpages,pdftex]{hyperref}
 %---------------------------------------------------------------------------
 \author{Wolfgang Huber}
 \maketitle
+\tableofcontents
 
-This vignette contains some of the computations that underlie the
+\section{Introduction}
+This vignette contains the computations that underlie the
 numerical code of \Rpackage{vsn}.  If you are a new user and looking for an
 introduction on how to \textbf{use} \Rpackage{vsn}, please refer to the
 vignette \emph{Robust calibration and variance stabilization with
 \Rpackage{vsn}}, which is provided separately.
 
-\section{Likelihood for Incremental Normalization}\label{sec:inc}
+\section{Setup and Notation}
+Consider the model
+\begin{equation}
+\arsinh\left(\frac{y_{ki}+a_i}{b_i}\right) = \mu_k + \varepsilon_{ki}
+\end{equation}
+where $\mu_k$, for $k=1,\ldots,n$, and $a_i$, $b_i$, for $i=1,\ldots,d$
+are real-valued parameters ($b_i>0$), and $\varepsilon_{ki}$ are i.i.d.
+Normal with mean 0 and variance $\sigma^2$. $y_{ki}$ are the data.
 
+The probability of the data $(y_{ki})_{k=1\ldots n,\;i=1\ldots d}$ 
+lying in a certain volume element of $y$-space
+(hyperrectangle with sides $[y_{ki}^\alpha,y_{ki}^\beta]$)  is 
+\begin{equation}
+P=\prod_{k=1}^n\prod_{i=1}^d
+\int\limits_{y_{ki}^\alpha}^{y_{ki}^\beta} dy_{ki}\;\;
+p_{\mbs{Normal}}(h(y_{ki}),\mu_k,\sigma^2)\;\;
+\frac{dh}{dy}(y_{ki}),
+\end{equation}
+where $y_{ki}$ is the intensity of the $k$-th feature 
+on the $i$-th array (and/or colour channel),
+$\mu_k$ is the expectation value for feature $k$ and
+$\sigma^2$ the variance.
+The transformation $h$ is
+\begin{equation}
+h(y)\equiv h(y,a,b) = 
+\arsinh\frac{y+a}{b} =
+\arsinh Y,
+\end{equation}
+where I have defined the to-be-useful shorthand notation
+$Y=\frac{y+a}{b}$. 
+Hence we have the derivatives
+\begin{eqnarray}
+\frac{dh}{dy}&=&
+\frac{1}{b\sqrt{1+\left(\frac{y+a}{b}\right)^2}}=
+\frac{1}{b\sqrt{1+Y^2}},\\
+\frac{\partial h}{\partial a}&=&\frac{1}{b\sqrt{1+Y^2}},\\
+\frac{\partial h}{\partial b}&=&-\frac{Y}{b\sqrt{1+Y^2}}.
+\end{eqnarray}
+With
+\begin{equation}
+p_{\mbs{Normal}}(x,\mu,\sigma^2)=\frac{1}{\sqrt{2\pi\sigma^2}}
+\exp\left(-\frac{(x-\mu)^2}{2\sigma^2}\right)
+\end{equation}
+the likelihood is
+\begin{equation}\label{eq:likelihood}
+\left(\frac{1}{\sqrt{2\pi\sigma^2}}\right)^{nd}
+\prod_{k=1}^n \prod_{i=1}^d
+\exp\left(-\frac{(h(y_{ki})-\mu_k)^2}{2\sigma^2}\right)
+\cdot\frac{dh}{dy}(y_{ki})\,.
+\end{equation}
+
+%----------------------------------------------------------------
+\section{Likelihood for Incremental Normalization}\label{sec:inc}
+%----------------------------------------------------------------
 Here, \textit{incremental normalization} means that the model
-parameters $\mu_1,\ldots,\mu_n$ and $\sigma$ are already known from a
-fit to a previous set of $\mu$arrays, ie a set of reference
+parameters $\mu_1,\ldots,\mu_n$ and $\sigma^2$ are already known from a
+fit to a previous set of $\mu$arrays, i.\,e.\ a set of reference
 arrays. See Section~\ref{sec:prof} for the profile likelihood approach
-that is used if $\mu_1,\ldots,\mu_n$ and $\sigma$ are not known and
+that is used if $\mu_1,\ldots,\mu_n$ and $\sigma^2$ are not known and
 need to be estimated from the data. The latter is the approach that
 was presented in the initial publication on
 \Rpackage{vsn}~\cite{HuberISMB2002} and implemented in versions 1.X of
 the package.
 
-The probability of the data is 
-\begin{equation}
-P(\mbox{data})=\prod_{k=1}^n\int\limits_{y_k^\alpha}^{y_k^\beta} dy_k\;\;
-p_{\mbs{Normal}}(h(y_k),\mu_k,\sigma)\;\;
-\frac{dh}{dy}(y_k),
-\end{equation}
-where $h(y)\equiv h(y,a,b) = \arsinh(a+by)$,
-\[
-\frac{dh}{dy}=\frac{b}{\sqrt{1+(a+by)^2}},
-\]
-and the integration is over a volume element of $y$-space. 
-With
-\[
-p_{\mbs{Normal}}(x,\mu,\sigma)=\frac{1}{\sqrt{2\pi}\sigma}
-\exp\left(-\frac{(x-\mu)^2}{2\sigma^2}\right),
-\]
-the likelihood is
-\[
-\left(\frac{1}{\sqrt{2\pi}\sigma}\right)^n
-\prod_{k=1}^n \exp\left(-\frac{(h(y_k)-\mu_k)^2}{2\sigma^2}\right)
-\frac{dh}{dy}(y_k),
-\]
-and the negative log-likelihood
-\begin{equation}\label{eq:nll}
--LL=n\log\left(\sqrt{2\pi}\sigma\right)+
-\sum_{k=1}^n \left(\frac{(h(y_k)-\mu_k)^2}{2\sigma^2}
-  -\log\frac{b}{\sqrt{1+(a+b y_k)^2}}\right).
-\end{equation}
-This is what we want to optimize as a function of $a$ and $b$. The optimizer benefits 
-from the derivatives. The  derivative with respect to $a$ is
-\begin{equation}\label{eq:ddanll}
-\frac{\partial}{\partial a}(-LL) =
-\sum_{k=1}^n \frac{1}{\sigma^2}
-\frac{h(y_k)-\mu_k}{\sqrt{1+(a+by_k)^2}}
--\frac{a+by_k}{1+(a+b y_k)^2}
-\end{equation}
-and with respect to $b$
-\begin{equation}\label{eq:ddbnll}
-\frac{\partial}{\partial b}(-LL) =
--\frac{n}{b} +
-\sum_{k=1}^n \left( \frac{1}{\sigma^2}
-\frac{h(y_k)-\mu_k}{\sqrt{1+(a+by_k)^2}}
--\frac{a+by_k}{1+(a+b y_k)^2}\right)y_k
-\end{equation}
-
-
+First, let us note that the likelihood (\ref{eq:likelihood}) 
+is simply a product of independent terms for different $i$. 
+Assuming that the parameters $a$ and $b$ are the same within each array
+(i.\,e.\ for different $k$), but different for different $i$,
+we can optimize the parameters $(a_i,b_i)$ 
+separately for each $i=1,\ldots,d$.
+From the likelihood (\ref{eq:likelihood}) we get the 
+$i$-th negative log-likelihood
+\begin{eqnarray}\label{eq:nll}
+-LL_i&=&\frac{n}{2}\log\left(2\pi\sigma^2\right)+
+\sum_{k=1}^n \left(\frac{(h(y_{ki})-\mu_k)^2}{2\sigma^2}
++\log\left(b_i\sqrt{1+Y_{ki}^2}\right)\right)
+\end{eqnarray}
+This is what we want to optimize as a function of $a_i$ and $b_i$. 
+The optimizer benefits from the derivatives. 
+The  derivative with respect to $a_i$ is
+\begin{eqnarray}
+\frac{\partial}{\partial a_i}(-LL_i) &=&
+\frac{1}{b_i} \sum_{k=1}^n \left( \frac{h(y_{ki})-\mu_k}{\sigma^2}
++\frac{Y_{ki}}{\sqrt{1+Y_{ki}^2}} \right)
+\cdot\frac{1}{\sqrt{1+Y_{ki}^2}}
+\nonumber\\
+&=&\frac{1}{b_i} \sum_{k=1}^n 
+\left(\frac{r_{ki}}{\sigma^2}+B_{ki}\right)A_{ki}
+\label{eq:ddanll}
+\end{eqnarray}
+and with respect to $b_i$
+\begin{eqnarray}
+\frac{\partial}{\partial b_i}(-LL_i) &=&
+\frac{n}{b_i} 
+-\frac{1}{b_i}\sum_{k=1}^n \left( \frac{h(y_{ki})-\mu_k}{\sigma^2}
++\frac{Y_{ki}}{\sqrt{1+Y_{ki}^2}}\right)
+\cdot\frac{Y_{ki}}{\sqrt{1+Y_{ki}^2}}
+\nonumber\\
+&=&\frac{n}{b_i} 
+-\frac{1}{b_i}\sum_{k=1}^n 
+\left(\frac{r_{ki}}{\sigma^2}+B_{ki}\right)B_{ki}
+\label{eq:ddbnll}
+\end{eqnarray}
+Here, I have introduced the following shorthand notation for the 
+``intermediate results'' terms
+\begin{eqnarray}
+r_{ki}&=& h(y_{ki})-\mu_k\\
+A_{ki}&=&\frac{1}{\sqrt{1+Y_{ki}^2}}\\
+B_{ki}&=&\frac{Y_{ki}}{\sqrt{1+Y_{ki}^2}}.
+\end{eqnarray}
+These variables are also used in the C code to simplify and 
+speed up the computations of the gradient.
+ 
+%--------------------------------------------------
 \section{Profile Likelihood}\label{sec:prof}
-The derivation of the negative log profile likelihood is given in
-reference~\cite{HuberSAGMB2003}. It turns out that the expression is
-contains similarities to Equation~(\ref{eq:nll}), and the expression for its
-gradient is obtained similarly as that in Equations~(\ref{eq:ddanll}) and (\ref{eq:ddbnll}).
+%--------------------------------------------------
+If $\mu_1,\ldots,\mu_n$ and $\sigma^2$ are not already known,
+we can plug in their maximum likelihood estimates
+\begin{eqnarray}
+\hat{\mu}_k &=& \frac{1}{d}\sum_{j=1}^d h(y_{kj})\label{eq:muhat}\\
+\hat{\sigma}^2 &=& \frac{1}{nd}\sum_{k=1}^n\sum_{j=1}^d 
+(h(y_{kj})-\hat{\mu}_k)^2\label{eq:sigmahat}
+\end{eqnarray}
+into the negative log-likelihood. 
+The result is called the negative profile log-likelihood
+\begin{equation}\label{eq:npll}
+-PLL=
+ \frac{nd}{2}\log\left(2\pi\hat{\sigma}^2\right)
++\frac{nd}{2}+\sum_{k=1}^n\sum_{j=1}^d 
+\log\left(b_j{\sqrt{1+Y_{kj}^2}}\right).
+\end{equation}
+Note that this no longer decomposes into a sum of terms for each $j$
+that are independent of each other -- the terms for different $j$
+are coupled through Equations (\ref{eq:muhat}) and (\ref{eq:sigmahat}).
+We need the following derivatives.
+\begin{eqnarray}
+\frac{\partial \hat{\mu}_k}{\partial a_i} &=&
+ \frac{1}{d}\cdot\frac{A_{ki}}{b_i}\\
+\frac{\partial \hat{\mu}_k}{\partial b_i} &=&
+-\frac{1}{d}\cdot \frac{B_{ki}}{b_i}\\
+\frac{\partial \hat{\sigma}^2}{\partial a_i} &=&
+\frac{2}{nd}\sum_{k=1}^n
+r_{ki}\left(
+ \frac{\partial h(y_{ki})}{\partial a_i}
+-\frac{\partial \hat{\mu}_{k}}{\partial a_i}
+\right)\nonumber\\
+&=&
+\frac{2(d-1)}{nd^2}\cdot \frac{1}{b_i} 
+\sum_{k=1}^n r_{ki}A_{ki}\\
+\frac{\partial \hat{\sigma}^2}{\partial b_i} &=&
+-\frac{2(d-1)}{nd^2}\cdot\frac{1}{b_i} 
+\sum_{k=1}^n r_{ki}B_{ki}
+\end{eqnarray}
+So, finally
+\begin{eqnarray}
+\frac{\partial}{\partial a_i}(-PLL) &=&
+\frac{nd}{2\hat{\sigma}^2}\cdot 
+\frac{\partial \hat{\sigma}^2}{\partial a_i} 
++\frac{1}{b_i}\sum_{k=1}^n A_{ki}B_{ki}\nonumber\\
+&=&
+\frac{1}{b_i}\sum_{k=1}^n 
+\left(\frac{r_{ki}}{\hat{\sigma}^2}\cdot\frac{d-1}{d}+B_{ki}\right) 
+A_{ki}\label{eq:ddanpll}\\
+\frac{\partial}{\partial b_i}(-PLL) &=&
+\frac{nd}{2\hat{\sigma}^2}\cdot 
+\frac{\partial \hat{\sigma}^2}{\partial b_i} 
++\frac{n}{b_i}
+-\frac{1}{b_i} \sum_{k=1}^n B_{ki}^2\nonumber\\
+&=&\frac{n}{b_i}
+-\frac{1}{b_i}\sum_{k=1}^n 
+\left(\frac{r_{ki}}{\hat{\sigma}^2}\cdot\frac{d-1}{d}+B_{ki}\right) 
+B_{ki}\label{eq:ddbnpll}
+\end{eqnarray}
 
+
+%--------------------------------------------------
+\newpage
+\section{Gegen\"uberstellung}\label{sec:ggu}
+%--------------------------------------------------
+Likelihoods, from Equations~(\ref{eq:nll}) and (\ref{eq:npll}):
+\begin{eqnarray}
+-LL_i&=&
+\underbrace{%
+  \frac{n}{2}\log\left(2\pi\sigma^2\right)
+}_{\mbox{scale}} +
+\underbrace{%
+  \sum_{k=1}^n \frac{(h(y_{ki})-\mu_k)^2}{2\sigma^2}
+}_{\mbox{residuals}} +
+\underbrace{%
+  n\log b_i + 
+  \frac{1}{2}\sum_{k=1}^n \log(1+Y_{ki}^2)
+}_{\mbox{jacobian}}\\
+-PLL&=&
+\underbrace{%
+\frac{nd}{2}\log\left(2\pi\hat{\sigma}^2\right)
+}_{\mbox{scale}}+
+\underbrace{%
+\frac{nd}{2}
+}_{\mbox{residuals}} +
+\underbrace{%  
+  \sum_{i=1}^d\left(
+  n\log b_i + 
+  \frac{1}{2}\sum_{k=1}^n \log(1+Y_{ki}^2)\right)
+}_{\mbox{jacobian}}
+\end{eqnarray}
+The computations in the C code are organised into steps for computing the
+terms ``scale'', ``residuals'' and ``jacobian''.
+
+Partial derivatives with respect to $a_i$,
+from Equations~(\ref{eq:ddanll}) and (\ref{eq:ddanpll}):
+\begin{eqnarray}
+\frac{\partial}{\partial a_i}(-LL_i) &=&
+\frac{1}{b_i} \sum_{k=1}^n 
+\left(\frac{r_{ki}}{\sigma^2}+B_{ki}\right)A_{ki}\\
+%
+\frac{\partial}{\partial a_i}(-PLL) &=&
+\frac{1}{b_i}\sum_{k=1}^n 
+\left(\frac{r_{ki}}{\hat{\sigma}^2}\cdot\frac{d-1}{d}+B_{ki}\right) 
+A_{ki}
+\end{eqnarray}
+
+Partial derivatives with respect to $b_i$,
+from Equations~(\ref{eq:ddbnll}) and (\ref{eq:ddbnpll}):
+\begin{eqnarray}
+\frac{\partial}{\partial b_i}(-LL_i) &=&
+\frac{n}{b_i} -\frac{1}{b_i}\sum_{k=1}^n 
+\left(\frac{r_{ki}}{\sigma^2}+B_{ki}\right)B_{ki}\\
+%
+\frac{\partial}{\partial b_i}(-PLL) &=&
+\frac{n}{b_i}
+-\frac{1}{b_i}\sum_{k=1}^n 
+\left(\frac{r_{ki}}{\hat{\sigma}^2}\cdot\frac{d-1}{d}+B_{ki}\right) 
+B_{ki}
+\end{eqnarray}
+
+We can see that the computations are quite similar - this fact
+is used in the implementation in the C code.
 
 \begin{thebibliography}{10}
-
 \bibitem{HuberISMB2002}
 W. Huber, A. von Heydebreck, H. {S\"ultmann}, A. Poustka, and M. Vingron.
 \newblock Variance stablization applied to microarray data calibration and to
