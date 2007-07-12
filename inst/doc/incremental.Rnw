@@ -42,12 +42,20 @@ vignette \emph{Robust calibration and variance stabilization with
 
 \section{Setup and Notation}
 Consider the model
-\begin{equation}
+\begin{equation}\label{eq:model}
 \arsinh\left(\frac{y_{ki}+a_i}{b_i}\right) = \mu_k + \varepsilon_{ki}
 \end{equation}
 where $\mu_k$, for $k=1,\ldots,n$, and $a_i$, $b_i$, for $i=1,\ldots,d$
-are real-valued parameters ($b_i>0$), and $\varepsilon_{ki}$ are i.i.d.
-Normal with mean 0 and variance $\sigma^2$. $y_{ki}$ are the data.
+are real-valued parameters ($b_i>0$), and $\varepsilon_{ki}$ are 
+i.i.d.\ Normal with mean 0 and variance $\sigma^2$. $y_{ki}$ are the data.
+In applications to $\mu$array data, $k$ indexes the features and $i$ the 
+arrays and/or colour channels.
+
+In the following calculations, I will also use the notation
+\begin{eqnarray}
+h \equiv h(y,a,b) &=& \arsinh\frac{y+a}{b}\\
+Y \equiv Y(y,a,b)  &=& \frac{y+a}{b}.
+\end{eqnarray}
 
 The probability of the data $(y_{ki})_{k=1\ldots n,\;i=1\ldots d}$ 
 lying in a certain volume element of $y$-space
@@ -58,26 +66,9 @@ P=\prod_{k=1}^n\prod_{i=1}^d
 p_{\mbs{Normal}}(h(y_{ki}),\mu_k,\sigma^2)\;\;
 \frac{dh}{dy}(y_{ki}),
 \end{equation}
-where $y_{ki}$ is the intensity of the $k$-th feature 
-on the $i$-th array (and/or colour channel),
-$\mu_k$ is the expectation value for feature $k$ and
+where $\mu_k$ is the expectation value for feature $k$ and
 $\sigma^2$ the variance.
-The transformation $h$ is
-\begin{equation}
-h(y)\equiv h(y,a,b) = 
-\arsinh\frac{y+a}{b} =
-\arsinh Y,
-\end{equation}
-where I have defined the to-be-useful shorthand notation
-$Y=\frac{y+a}{b}$. 
-Hence we have the derivatives
-\begin{eqnarray}
-\frac{dh}{dy}&=&
-\frac{1}{b\sqrt{1+\left(\frac{y+a}{b}\right)^2}}=
-\frac{1}{b\sqrt{1+Y^2}},\\
-\frac{\partial h}{\partial a}&=&\frac{1}{b\sqrt{1+Y^2}},\\
-\frac{\partial h}{\partial b}&=&-\frac{Y}{b\sqrt{1+Y^2}}.
-\end{eqnarray}
+
 With
 \begin{equation}
 p_{\mbs{Normal}}(x,\mu,\sigma^2)=\frac{1}{\sqrt{2\pi\sigma^2}}
@@ -91,6 +82,17 @@ the likelihood is
 \cdot\frac{dh}{dy}(y_{ki})\,.
 \end{equation}
 
+For the following, I will need the derivatives
+\begin{eqnarray}
+\frac{dh}{dy}&=&
+\frac{1}{b\sqrt{1+\left(\frac{y+a}{b}\right)^2}}=
+\frac{1}{b\sqrt{1+Y^2}},\\
+\frac{\partial h}{\partial a}&=&\frac{1}{b\sqrt{1+Y^2}},\\
+\frac{\partial h}{\partial b}&=&-\frac{Y}{b\sqrt{1+Y^2}}\\
+\frac{\partial Y}{\partial a}&=&\frac{1}{b}\\
+\frac{\partial Y}{\partial b}&=&-\frac{Y}{b}.
+\end{eqnarray}
+
 %----------------------------------------------------------------
 \section{Likelihood for Incremental Normalization}\label{sec:inc}
 %----------------------------------------------------------------
@@ -99,23 +101,27 @@ parameters $\mu_1,\ldots,\mu_n$ and $\sigma^2$ are already known from a
 fit to a previous set of $\mu$arrays, i.\,e.\ a set of reference
 arrays. See Section~\ref{sec:prof} for the profile likelihood approach
 that is used if $\mu_1,\ldots,\mu_n$ and $\sigma^2$ are not known and
-need to be estimated from the data. The latter is the approach that
-was presented in the initial publication on
-\Rpackage{vsn}~\cite{HuberISMB2002} and implemented in versions 1.X of
-the package.
+need to be estimated from the same data. 
+Versions $\ge2.0$ of the \Rpackage{vsn} package implement both of 
+these approaches; 
+in versions $1.X$ only the profile likelihood approach was implemented, 
+and it was described in the initial publication~\cite{HuberISMB2002}.
 
 First, let us note that the likelihood (\ref{eq:likelihood}) 
 is simply a product of independent terms for different $i$. 
-Assuming that the parameters $a$ and $b$ are the same within each array
-(i.\,e.\ for different $k$), but different for different $i$,
-we can optimize the parameters $(a_i,b_i)$ 
+We can optimize the parameters $(a_i,b_i)$ 
 separately for each $i=1,\ldots,d$.
 From the likelihood (\ref{eq:likelihood}) we get the 
 $i$-th negative log-likelihood
 \begin{eqnarray}\label{eq:nll}
+-\log(L) &=&\sum_{i=1}^d -LL\\
 -LL_i&=&\frac{n}{2}\log\left(2\pi\sigma^2\right)+
 \sum_{k=1}^n \left(\frac{(h(y_{ki})-\mu_k)^2}{2\sigma^2}
-+\log\left(b_i\sqrt{1+Y_{ki}^2}\right)\right)
++\log\left(b_i\sqrt{1+Y_{ki}^2}\right)\right)\\
+&=&\frac{n}{2}\log\left(2\pi\sigma^2\right)+
+n\log b_i+
+\sum_{k=1}^n \left(\frac{(h(y_{ki})-\mu_k)^2}{2\sigma^2}
++\frac{1}{2}\log\left(1+Y_{ki}^2\right)\right)
 \end{eqnarray}
 This is what we want to optimize as a function of $a_i$ and $b_i$. 
 The optimizer benefits from the derivatives. 
@@ -157,7 +163,8 @@ speed up the computations of the gradient.
 \section{Profile Likelihood}\label{sec:prof}
 %--------------------------------------------------
 If $\mu_1,\ldots,\mu_n$ and $\sigma^2$ are not already known,
-we can plug in their maximum likelihood estimates
+we can plug in their maximum likelihood estimates, obtained 
+from optimizing $LL$ for $\mu_1,\ldots,\mu_n$ and $\sigma^2$:
 \begin{eqnarray}
 \hat{\mu}_k &=& \frac{1}{d}\sum_{j=1}^d h(y_{kj})\label{eq:muhat}\\
 \hat{\sigma}^2 &=& \frac{1}{nd}\sum_{k=1}^n\sum_{j=1}^d 
@@ -217,7 +224,7 @@ B_{ki}\label{eq:ddbnpll}
 
 %--------------------------------------------------
 \newpage
-\section{Gegen\"uberstellung}\label{sec:ggu}
+\section{Summary}\label{sec:ggu}
 %--------------------------------------------------
 Likelihoods, from Equations~(\ref{eq:nll}) and (\ref{eq:npll}):
 \begin{eqnarray}
