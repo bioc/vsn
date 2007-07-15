@@ -42,7 +42,7 @@ for(i in seq_len(nrpar))  {
 }
 
 cat("PLL=", logLik(v, matrix(coef(fit), ncol=1)),
-    " LL=", logLik(v, matrix(coef(fit), ncol=1),  mu=fit@mu, sigsq=fit@sigsq), sep="\n")
+   "\n LL=", logLik(v, matrix(coef(fit), ncol=1),  mu=fit@mu, sigsq=fit@sigsq), "\n")
 
 
 

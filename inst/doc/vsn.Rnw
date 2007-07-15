@@ -30,7 +30,7 @@ pagecolor=darkblue,raiselinks,plainpages,pdftex]{hyperref}
 \newcommand{\Rfunction}[1]{{\small\texttt{#1}}}
 
 \newcommand{\myincfig}[3]{%
-  \begin{figure}[tbp]
+  \begin{figure}[tb]
     \begin{center}
       \includegraphics[width=#2]{#1}
       \caption{\label{#1}#3}
@@ -38,7 +38,8 @@ pagecolor=darkblue,raiselinks,plainpages,pdftex]{hyperref}
   \end{figure}
 }
 
-\setlength\columnsep{20pt}
+\setlength\columnsep{20pt}  
+\renewcommand{\floatpagefraction}{0.99}
 \renewcommand{\dblfloatpagefraction}{0.99}
 \renewcommand{\textfraction}{0.2}
 \renewcommand{\topfraction}{0.65}
@@ -53,6 +54,7 @@ pagecolor=darkblue,raiselinks,plainpages,pdftex]{hyperref}
 
 <<setup,echo=FALSE,results=hide>>=
 options(width=41, signif=3, digits=3)
+options(error=recover, warn=2)
 set.seed(0xdada)
 @ 
 
@@ -147,7 +149,7 @@ These need to be addressed by other methods.
 %------------------------------------------------------------
 \section{Running VSN on data from a single two-colour array} 
 %------------------------------------------------------------
-\begin{figure*}[tbp]\begin{center}
+\begin{figure*}[tb]\begin{center}
 \includegraphics[width=0.9\textwidth]{vsn-nkid-scp}  
 \caption{\label{vsn-nkid-scp}%
 Scatterplots of the kidney example data, which were obtained from a 
@@ -161,7 +163,7 @@ spots for which both red and green net intensities were greater than 0.
 Those spots which are missing in panel a are coloured in orange in panel b.}
 \end{center}\end{figure*}
 %
-\begin{figure*}[tbp]\begin{center}
+\begin{figure*}[tb]\begin{center}
 \includegraphics[width=0.9\textwidth]{vsn-nkid-sdmean}  
 \caption{\label{vsn-nkid-sdmean}%
 Standard deviation versus rank of the mean, and the mean, respectively.}
@@ -312,8 +314,8 @@ reading and processing Affymetrix genechip data, and you are encouraged
 to refer to the documentation of the package \Rpackage{affy} 
 for more information about data structures and methodology. 
 %
-\begin{figure*}[tp]\begin{center}
-\includegraphics[width=0.9\textwidth]{vsn-figaffy}  
+\begin{figure*}[tb]\begin{center}
+\includegraphics[width=0.8\textwidth]{vsn-figaffy}  
 \caption{\label{vsn-figaffy}%
 Results of \Rfunction{justvsn} and \Rfunction{rma} on the Dilution 
 example data. Chip 1 was hybridised with 20 $\mu$g RNA from liver,
@@ -347,10 +349,14 @@ par(mfrow=c(2,2), pch=".")
 w = c(1,3)
 titvsn = "vsn: chip 1 vs 3"
 titrma = "rma: chip 1 vs 3"
-plot(exprs(d.vsn)[,w], main=titvsn, asp=1)
-plot(exprs(d.rma)[,w], main=titrma, asp=1)
+ax = c(2, 16)
+plot(exprs(d.vsn)[,w], main=titvsn, 
+  asp=1, xlim=ax, ylim=ax)
+plot(exprs(d.rma)[,w], main=titrma, 
+  asp=1, xlim=ax, ylim=ax)
 plot(exprs(d.rma)[,1], exprs(d.vsn)[,1], 
-  xlab="rma", ylab="vsn", asp=1, 
+  xlab="rma", ylab="vsn", 
+  asp=1, xlim=ax, ylim=ax,
   main="chip 1: expression values")
 abline(a=0, b=1, col="red")
 plot(diff(t(exprs(d.rma)[,w])), 
@@ -377,8 +383,7 @@ getMethod("justvsn", "AffyBatch")
 %
 Users who are interested in trying out other probeset summarization
 methods than RMA are encouraged to take this function and modify it
-accordingly, for example, by replacing the call to \Rfunction{rma}
-with one to \Rfunction{mas5}.
+accordingly.
 
 %---------------------------------------------------------
 \section{Running VSN on \Robject{RGList} objects} \label{limma}
@@ -404,8 +409,14 @@ The method combines the \Robject{R} and \Robject{G} slots of the
 %
 \begin{table*}[tbp]
 \begin{minipage}{\textwidth}
+<<width1,echo=FALSE>>=
+oo=options(width=75L)
+@ 
 <<lymES>>=
 lymES
+@ 
+<<width2,echo=FALSE>>=
+options(oo)
 @ 
 \end{minipage}
 \caption{\label{tab:lymES}%
@@ -466,7 +477,7 @@ Figure~\ref{vsn-figlimma} shows the resulting $p$-values and
 the expression profiles of the genes corresponding to the 
 top 5 features.
 %
-\begin{figure*}[tbp]\begin{center}
+\begin{figure*}[tb]\begin{center}
 \includegraphics[width=0.9\textwidth]{vsn-figlimma}  
 \caption{\label{vsn-figlimma}%
 Left: histogramme of $p$-values from the moderated $t$-test between the 
@@ -538,7 +549,7 @@ Here we only do this for the first 3 arrays to save compute time.
 %--------------------------------------------------
 \subsection{Print-tip groups}\label{sec:strata}
 %--------------------------------------------------
-\begin{figure}[tbp]\begin{center}
+\begin{figure}[tb]\begin{center}
 \includegraphics[width=0.45\textwidth]{vsn-figstrata}  
 \caption{\label{vsn-figstrata}%
 Scatterplot of normalised and transformed intensities for 
@@ -605,7 +616,7 @@ plot(exprs(EsenzaStr)[,j],
 %---------------------------------------------------------------------
 \section{Missing values} \label{sec:miss}
 %---------------------------------------------------------------------
-\begin{figure*}[tbp]\begin{center}
+\begin{figure*}[tb]\begin{center}
 \includegraphics[width=0.9\textwidth]{vsn-figmiss}  
 \caption{\label{vsn-figmiss}%
 Scatterplots of fitted parameters, values on the $x$-axis correspond 
@@ -637,10 +648,10 @@ see Figure~\ref{vsn-figmiss}.
 <<figmiss,fig=TRUE,width=8>>=
 par(mfrow=c(1,2))
 for(j in 1:2){
-  p1 = fit1@par[,,j]
-  p2 = fit2@par[,,j]
+  p1 = coef(fit1)[,,j]
+  p2 = coef(fit2)[,,j]
   d  = max(abs(p1-p2))
-  stopifnot(d<0.1)
+  stopifnot(d<(2/j))
   plot(p1, p2, pch = 16, asp = 1,
     main = paste(c("offset","factor")[j], 
       "  d=", signif(d,2), sep = ""),
@@ -676,7 +687,8 @@ intensities after normalisation by reference ($x$-axis, \Robject{f8})
 and joint normalisation ($y$-axis, \Robject{fall}).
 They are almost identical.}
 %
-To simulate this situation, we pretend that the Cy5 channels of the 
+To simulate this situation with the available example data, 
+pretend that the Cy5 channels of the 
 \Robject{lymphoma} dataset can be treated as 8
 single-colour arrays, and fit a model to the first 7.
 %
@@ -697,11 +709,12 @@ to all 8 arrays,
 <<ref3, results=hide>>=
 fall = vsn2(lymphoma[, ismp])
 <<ref4>>=
-f8@par[,1,]
-fall@par[,8,]
+coefficients(f8)[,1,]
+coefficients(fall)[,8,]
 @
 % 
-and compare the resulting values in the scatterplot Figure~\ref{vsn-figref}.
+and compare the resulting values in the scatterplot Figure~\ref{vsn-figref}:
+they are very similar. 
 %
 <<figref,fig=TRUE>>=
 plot(exprs(f8), exprs(fall)[,8], 
@@ -729,7 +742,7 @@ If $y_{ki}$ is the matrix of uncalibrated data, with $k$ indexing the
 rows and $i$ the columns, then the calibrated data $y_{ki}'$ is
 obtained through scaling by $\lambda_{si}$ and shifting by $o_{si}$:
 \begin{equation}\label{eq.cal}
-y_{ki}' = \frac {y_{ki}-o_{si}}{\lambda_{si}},
+y_{ki}' = \frac {y_{ki}+o_{si}}{\lambda_{si}},
 \end{equation}
 where $s\equiv s(k)$ is the so-called \textit{stratum} for feature $k$. In the
 simplest case, there is only one stratum, i.\,e.\ the index $s$ is always
@@ -748,35 +761,39 @@ of unspecific background signal.
 The transformation to a scale where the variance of the data is approximately
 independent of the mean is 
 \begin{eqnarray}
-h_{ki} &=& \arsinh(a_0+b_0y_{ki}') \label{eq.vs} \\
-&=& \log\left(a_0+b_0y_{ki}'+\sqrt{\left(a_0+b_0y_{ki}'\right)^2+1}\right).\nonumber
+h_{ki} &=& \arsinh(\frac{y_{ki}'+a_0}{b_0}) \label{eq.vs} \\
+&=& \log\left(\frac{y_{ki}'+a_0}{b_0}+
+\sqrt{\left(\frac{y_{ki}'+a_0}{b_0}\right)^2+1}\right),\nonumber
 \end{eqnarray}
+with two parameters $a_0$ and $b_0$.
 Equations~(\ref{eq.cal}) and (\ref{eq.vs}) can be combined, so that the whole 
 transformation is given by 
 \begin{equation}\label{eq.transf}
-h_{ki} = \arsinh(a_{si} + b_{si} y_{ki}). 
+h_{ki} = \arsinh\left(\frac{y_{ki}+a_{si}}{b_{si}}\right). 
 \end{equation}
-Here, $a_{si}=a_0-b_0o_{si}/\lambda_{si}$ and $b_{si}=b_0/\lambda_{si}$ 
+Here, 
+$a_{si}=o_{si}+a_0\lambda_{si}$ and 
+$b_{si}=b_0\lambda_{si}$ 
 are the combined calibation and transformation parameters for features from
 stratum $s$ and sample $i$.
 
 We can access the calibration and transformation parameters through
 <<nkid-calib1>>=
-fit@par[1,,]
+coef(fit)[1,,]
 @
 % 
 For a dataset with $d$ samples and $s$ strata,
-\Robject{fit@par} is a numeric array with dimensions $(s, d, 2)$. 
+\Robject{coef(fit)} is a numeric array with dimensions $(s, d, 2)$. 
 For the example data that was used in Section~\ref{sec:overv} to generate 
 \Robject{fit}, $d=2$ and $s=1$.
-\Robject{fit@par[s, i, 1]}, the first line in the results of the above code chunk, 
+\Robject{coef(fit)[s, i, 1]}, the first line in the results of the above code chunk, 
 is what was called $a_{si}$ in Eqn.~(\ref{eq.transf}), and
-\Robject{fit@par[s, i, 2]}, the second line, is $b_{si}$. 
+\Robject{coef(fit)[s, i, 2]}, the second line, is $b_{si}$. 
 
 %---------------------------------------------------------------------
 \subsection{More on calibration} 
 %---------------------------------------------------------------------
-\begin{figure*}[tbp]\begin{center}
+\begin{figure*}[tb]\begin{center}
 \includegraphics[width=0.9\textwidth]{vsn-nkid-calib4}  
 \caption{\label{vsn-nkid-calib4}%
 Scatterplots for badly biased data. 
@@ -809,7 +826,7 @@ plot(exprs(bkid), main="raw",
      pch=".", log="xy")
 plot(exprs(bfit), main="vsn", 
      pch=".")
-bfit@par[1,,]
+coef(bfit)[1,,]
 @
 % 
 <<nkid-calib-warn2,echo=FALSE,results=hide>>=
@@ -817,7 +834,7 @@ options(oldwarn)
 rm(oldwarn)
 @
 %
-The factor for the red channel is now about four times as large as
+The numerator for the red channel is now about a fourth of the value
 before.  The result is shown in Figure~\ref{vsn-nkid-calib4}.
 
 %-------------------------------------------------------------------
@@ -925,7 +942,7 @@ segments(x2, m-2*s, x2, m+2*s, lwd=lwd, col=colq, lty=lty)
 legend(8.75, -0.1, c("q","h"), col=colq, pch=pch, lty=lty, lwd=lwd)
 @
 %
-\begin{figure}
+\begin{figure}[tb]
 \begin{center}
 \includegraphics[width=0.45\textwidth]{vsn-figshrink}
 \caption{\label{vsn-figshrink}The shrinkage property of the 
@@ -970,7 +987,7 @@ downweighted, and the posterior is still strongly influenced by the prior.
 %---------------------------------------------------------
 \section{Quality assessment}\label{sec.qc}
 %---------------------------------------------------------
-\begin{figure*}[tbp]\begin{center}
+\begin{figure*}[tb]\begin{center}
 \includegraphics[width=0.9\textwidth]{vsn-lymbox}  
 \caption{\label{fig:lymbox}%
 Boxplot of \Robject{A} values of array \texttt{CLL-13}
@@ -1161,11 +1178,10 @@ Richard Bourgon, Martin Vingron and Ulrich Mansmann.
 %---------------------------------------------------------
 \begin{table*}[tbp]
 \begin{minipage}{\textwidth}
-{\small
-<<sessionInfo, print=TRUE>>=
-sessionInfo()
+<<sessionInfo, results=latex, print=TRUE>>=
+toLatex(sessionInfo())
 @ 
-}\end{minipage}
+\end{minipage}
 \caption{\label{tab:sessioninfo}%
 The output of \Rfunction{sessionInfo} on the build system 
 after running this vignette.}

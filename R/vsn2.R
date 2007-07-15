@@ -89,10 +89,8 @@ vsnLTS = function(v) {
 
   ## for calculating a convergence criterion: earlier result
   oldhy   = Inf
-  
   ## the number of iterations that have already met the convergence criterion
   cvgcCnt = 0L
-
   ## integer version of "v@strata"
   intStrat = if(length(v@strata)==0L) rep(1L, nrow(v@x)) else as.integer(v@strata)
 
@@ -100,40 +98,52 @@ vsnLTS = function(v) {
       progress(0, v@optimpar$cvg.niter)
 
   for(iter in seq_len(v@optimpar$cvg.niter)) {
-    sv  = if(iter==1) v else v[whsel, ]
+    sv  = if(iter==1L) v else v[whsel, ]
     rsv = vsnML(sv)
 
+    ## if LTS.quantile is 1, then the following stuff is not necessary
+    if (isSmall(v@lts.quantile-1))
+      break
+       
     ## apply to all data
     hy = vsn2trsf(v@x, coefficients(rsv), intStrat)
     v@pstart = coefficients(rsv)
 
-    ## if LTS.quantile is 1, then the following stuff is not necessary
-    if (abs(v@lts.quantile-1)<sqrt(.Machine$double.eps))
-      break
-       
     ## Calculate residuals
-    hmean  = if(length(v@reference@mu)>0) {
-      v@reference@mu           ## WITH reference
+    if(length(v@reference@mu)>0) {
+      ## without reference:
+      hmean = v@reference@mu
     } else {
-      rowMeans(hy, na.rm=TRUE)   ## WITHOUT reference
+      ## without reference:
+      hmean = rowMeans(hy, na.rm=TRUE) 
+      ## double check with what was computed in vsnML:
+      if(iter==1L) {
+        stopifnot(isSmall(rsv@mu-hmean))
+      } else {
+        stopifnot(isSmall(rsv@mu-hmean[whsel]))
+        ## and create rsv@mu with mu of the right length (NA for the 'outliers' not in whsel)
+        tmp = rep(as.numeric(NA), nrow(v))
+        tmp[whsel] = rsv@mu
+        rsv@mu = tmp
+      }
     }
-
+    
     ## row variances
-    rsd  = rowVars(hy, mean=hmean, na.rm=TRUE)
+    rvar  = rowVars(hy, mean=hmean, na.rm=TRUE)
 
-    ## select those data points whose rsd is within the quantile; do this separately
+    ## select those data points whose rvar is within the quantile; do this separately
     ## within each stratum, and also within strata defined by hmean
     ## (see the SAGMB 2003 paper for details)
     nrslice = 5
     slice   = ceiling(rank(hmean, na.last=TRUE)/length(hmean)*nrslice)
     slice   = factor((intStrat-1)*nrslice + slice)
-    grmed   = tapply(rsd, slice, quantile, probs=v@lts.quantile, na.rm=TRUE)
+    grmed   = tapply(rvar, slice, quantile, probs=v@lts.quantile, na.rm=TRUE)
     if(any(is.na(grmed)))
       stop(sprintf("Too many data points are NA (%d of %d), not enough data for fitting, am giving up.",
                    sum(is.na(sv@x)), length(sv@x)))
     
     meds    = grmed[as.character(slice)]
-    whsel   = which(rsd <= meds)
+    whsel   = which(rvar <= meds)
 
     ## diagnostic plot (most useful for d=2)
     ## plot(hy, pch=".", col=2-sel, main=sprintf("iter=%d", iter))
@@ -393,3 +403,8 @@ int2factor = function(strata) {
          "the range of  1...n.")
   factor(strata, levels=ssu)
 }
+
+## -----
+## check if all elements of a vector are close to 0
+## ------
+isSmall = function(x, tol=sqrt(.Machine$double.eps)) (max(abs(x))<tol)

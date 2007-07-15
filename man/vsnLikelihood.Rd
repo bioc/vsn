@@ -65,7 +65,7 @@ v = new("vsnInput", x=exprs(kidney),
  
 fit = vsn2(kidney)
 
-p = sapply(exp(seq(-1, 1, length=31)), function(f) fit@par*c(1,1,f,1))
+p = sapply(exp(seq(-1, 1, length=31)), function(f) coef(fit)*c(1,1,f,1))
 
 ll = logLik(v, p)
 

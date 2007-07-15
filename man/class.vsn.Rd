@@ -9,7 +9,8 @@
 \alias{ncol,vsn-method} 
 \alias{show,vsn-method} 
 \alias{exprs,vsn-method} 
-
+\alias{coef,vsn-method} 
+\alias{coefficients,vsn-method} 
 
 \title{
   Class to contain result of a vsn fit
