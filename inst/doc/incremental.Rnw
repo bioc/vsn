@@ -183,21 +183,14 @@ that are independent of each other -- the terms for different $j$
 are coupled through Equations (\ref{eq:muhat}) and (\ref{eq:sigmahat}).
 We need the following derivatives.
 \begin{eqnarray}
-\frac{\partial \hat{\mu}_k}{\partial a_i} &=&
- \frac{1}{d}\cdot\frac{A_{ki}}{b_i}\\
-\frac{\partial \hat{\mu}_k}{\partial b_i} &=&
--\frac{1}{d}\cdot \frac{B_{ki}}{b_i}\\
 \frac{\partial \hat{\sigma}^2}{\partial a_i} &=&
 \frac{2}{nd}\sum_{k=1}^n
-r_{ki}\left(
- \frac{\partial h(y_{ki})}{\partial a_i}
--\frac{\partial \hat{\mu}_{k}}{\partial a_i}
-\right)\nonumber\\
+r_{ki}\frac{\partial h(y_{ki})}{\partial a_i}\nonumber\\
 &=&
-\frac{2(d-1)}{nd^2}\cdot \frac{1}{b_i} 
+\frac{2}{nd}\cdot \frac{1}{b_i} 
 \sum_{k=1}^n r_{ki}A_{ki}\\
 \frac{\partial \hat{\sigma}^2}{\partial b_i} &=&
--\frac{2(d-1)}{nd^2}\cdot\frac{1}{b_i} 
+-\frac{2}{nd}\cdot\frac{1}{b_i} 
 \sum_{k=1}^n r_{ki}B_{ki}
 \end{eqnarray}
 So, finally
@@ -208,7 +201,7 @@ So, finally
 +\frac{1}{b_i}\sum_{k=1}^n A_{ki}B_{ki}\nonumber\\
 &=&
 \frac{1}{b_i}\sum_{k=1}^n 
-\left(\frac{r_{ki}}{\hat{\sigma}^2}\cdot\frac{d-1}{d}+B_{ki}\right) 
+\left(\frac{r_{ki}}{\hat{\sigma}^2}+B_{ki}\right) 
 A_{ki}\label{eq:ddanpll}\\
 \frac{\partial}{\partial b_i}(-PLL) &=&
 \frac{nd}{2\hat{\sigma}^2}\cdot 
@@ -217,7 +210,7 @@ A_{ki}\label{eq:ddanpll}\\
 -\frac{1}{b_i} \sum_{k=1}^n B_{ki}^2\nonumber\\
 &=&\frac{n}{b_i}
 -\frac{1}{b_i}\sum_{k=1}^n 
-\left(\frac{r_{ki}}{\hat{\sigma}^2}\cdot\frac{d-1}{d}+B_{ki}\right) 
+\left(\frac{r_{ki}}{\hat{\sigma}^2}+B_{ki}\right) 
 B_{ki}\label{eq:ddbnpll}
 \end{eqnarray}
 
@@ -264,7 +257,7 @@ from Equations~(\ref{eq:ddanll}) and (\ref{eq:ddanpll}):
 %
 \frac{\partial}{\partial a_i}(-PLL) &=&
 \frac{1}{b_i}\sum_{k=1}^n 
-\left(\frac{r_{ki}}{\hat{\sigma}^2}\cdot\frac{d-1}{d}+B_{ki}\right) 
+\left(\frac{r_{ki}}{\hat{\sigma}^2}+B_{ki}\right) 
 A_{ki}
 \end{eqnarray}
 
@@ -278,7 +271,7 @@ from Equations~(\ref{eq:ddbnll}) and (\ref{eq:ddbnpll}):
 \frac{\partial}{\partial b_i}(-PLL) &=&
 \frac{n}{b_i}
 -\frac{1}{b_i}\sum_{k=1}^n 
-\left(\frac{r_{ki}}{\hat{\sigma}^2}\cdot\frac{d-1}{d}+B_{ki}\right) 
+\left(\frac{r_{ki}}{\hat{\sigma}^2}+B_{ki}\right) 
 B_{ki}
 \end{eqnarray}
 

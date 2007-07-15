@@ -5,23 +5,31 @@
 
 library("vsn")
 options(error=recover)
-data("kidney")
-x = exprs(kidney)
 
-nrpt  = 25 ## number of points p0 from which to consider
-nrstr = 2
-nrpar = 2*ncol(x)*nrstr
+switch(1L,
+       { data("kidney")
+         x = exprs(kidney)
+         nrpt = 25L ## number of points p0 from which to consider
+         strata = cut(1:nrow(x), 3) },
+       { data("lymphoma")
+         x = exprs(lymphoma)[, 1:8]*1.0
+         mode(x) = "double"
+         nrpt  = 3L ## number of points p0 from which to consider
+         strata = factor(rep(1L, nrow(x)))
+       })
+
+nrpar = 2L*ncol(x)*nlevels(strata)
 eps   = 1e-4
 
 norm = function(x) sqrt(sum(x*x))
 
-v = new("vsnInput", x=exprs(kidney),
-  pstart=array(as.numeric(NA), dim=c(nrstr, ncol(kidney), 2)),
-  strata=factor(seq(0, 1, length=nrow(kidney))<0.5), ordered=TRUE)
+v = new("vsnInput", x=x,
+  pstart=array(as.numeric(NA), dim=c(nlevels(strata), ncol(x), 2L)),
+  strata=strata, ordered=TRUE)
 
-df = array(NA, dim=c(nrpar, nrpt, 2))
+df = array(NA, dim=c(nrpar, nrpt, 2L))
 
-doit = function(fun) {
+doit = function(nm, fun) {
   cat("Wait for", nrpt, "points: ")
   for (ip in 1:nrpt) {
     cat(ip, "")
@@ -34,22 +42,22 @@ doit = function(fun) {
       grn = diff(fn)/norm(2*dp)
       stopifnot(is.finite(grn))
       df[il,ip,2]  = grn
-      ##browser()
-    }
+      }
   }
   cat("\n\n")
 
   x11(width=14, height=7)
-  par(mfrow=c(2, ncol(x)*nrstr+1))
-  k = c(1, 2)
-  lj = list(offset=1:(ncol(x)*nrstr), factor=ncol(x)*nrstr+(1:(ncol(x)*nrstr)))
+  par(mfrow=c(2, ncol(x)*nlevels(strata)+1))
+  lj = list(offset=1:(ncol(x)*nlevels(strata)),
+            factor=ncol(x)*nlevels(strata)+(1:(ncol(x)*nlevels(strata))))
   for(j in seq(along=lj)){
-    for(il in lj[[j]]) {
-      plot(df[il,,k[1]], df[il,,k[2]], pch=16, xlab=paste(k[1]), ylab=paste(k[2]),
-           main=sprintf("%s %d", names(lj)[j], il))
+    for(i in seq(along=lj[[j]])) {
+      il = lj[[j]][i]
+      plot(df[il,,1], df[il,,2], pch=16, xlab="analytic", ylab="numeric",
+           main=sprintf("%s %s %d", nm, names(lj)[j], i))
       abline(a=0, b=1, col="blue")
     }
-    hist(df[lj[[j]],,k[1]]-df[lj[[j]],,k[2]], col="orange", xlab="difference",
+    hist(df[lj[[j]],,1]-df[lj[[j]],,2], col="orange", xlab="difference",
        main=paste(names(lj)[j], "s", sep=""), breaks=30)
     abline(v=0, col="blue")
   }
@@ -57,5 +65,5 @@ doit = function(fun) {
 
 graphics.off()
 
-doit(function(p) logLik(v, p))
-doit(function(p) logLik(v, p, refh = rowMeans(x), refsigma = mean(diff(t(x)))))
+doit("prof", function(p) logLik(v, p))
+doit("ref",  function(p) logLik(v, p, mu = rowMeans(x), sigsq = mean(diff(t(x))^2)))

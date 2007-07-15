@@ -26,7 +26,7 @@
 
 \section{Slots}{
  \describe{
-  \item{\code{par}:}{A 3D array of size (number of strata) x (number of
+  \item{\code{coefficients}:}{A 3D array of size (number of strata) x (number of
     columns of the data matrix) x 2 containing fitted normalization parameters
     (see vignette).}
   \item{\code{n}:}{An integer scalar containing n,
@@ -51,6 +51,7 @@
     \item{\code{ncol}}{Get number of columns of data matrix.}
     \item{\code{show}}{Print a summary of the object}
     \item{\code{exprs}}{Accessor to slot \code{hx}.}
+    \item{\code{coef}, \code{coefficients}}{Accessors to slot \code{coefficients}.}
 }}
 
 

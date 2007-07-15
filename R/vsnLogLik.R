@@ -2,35 +2,35 @@
 ## given vsnInput object (containg data matrix and possibly strata)
 ## calculate likelihood for parameters p
 ##----------------------------------------------------------------
-checkArgs = function(object, refh, refsigma) {
+checkArgs = function(object, mu, sigsq) {
 
-  if(length(refh)>0) {
-    if(length(refh)!=nrow(object))
-      stop("length(refh) must be either 0 or nrow(object).")
-    if((length(refsigma)!=1) || !is.numeric(refsigma) || !is.finite(refsigma))
-      stop("'refsigma' must be a finite scalar numeric not NA.")
+  if(length(mu)>0) {
+    if(length(mu)!=nrow(object))
+      stop("length(mu) must be either 0 or nrow(object).")
+    if((length(sigsq)!=1) || !is.numeric(sigsq) || !is.finite(sigsq))
+      stop("'sigsq' must be a finite scalar numeric not NA.")
   } else {
-    if(!is.na(refsigma))
-      stop("If length(refh) is 0, refsigma must not be specified.")
+    if(!is.na(sigsq))
+      stop("If length(mu) is 0, sigsq must not be specified.")
   }
 }
 
-vsnLogLik = function(object, p, refh=numeric(0), refsigma=as.numeric(NA)) {
-  checkArgs(object, refh, refsigma)
+vsnLogLik = function(object, p, mu=numeric(0), sigsq=as.numeric(NA)) {
+  checkArgs(object, mu, sigsq)
   if(is.vector(p))
     dim(p)=c(length(p), 1)  
     
   res = matrix(as.numeric(NA), nrow=1+nrow(p), ncol=ncol(p))
   istrat = calcistrat(object) 
   for(j in 1:ncol(p))
-    res[, j] = .Call("vsn2_point", object@x, p[,j], istrat, refh, refsigma, PACKAGE="vsn")
+    res[, j] = .Call("vsn2_point", object@x, p[,j], istrat, mu, sigsq, PACKAGE="vsn")
 
-  ## invert sign since the above calculate the _negative_ log likelihood
+  ## invert sign since the above calculates the _negative_ log likelihood
   return(-res)
 }
 
-vsnHessian = function(object, p, refh=numeric(0), refsigma=as.numeric(NA), eps=1e-4) {
-  checkArgs(object, refh, refsigma)
+vsnHessian = function(object, p, mu=numeric(0), sigsq=as.numeric(NA), eps=1e-4) {
+  checkArgs(object, mu, sigsq)
 
   if((length(dim(p))!=3)||(any(dim(p)!=c(nlevels(object@strata), ncol(object), 2L))))
     stop("'p' has wrong dimensions.")
@@ -45,7 +45,7 @@ vsnHessian = function(object, p, refh=numeric(0), refsigma=as.numeric(NA), eps=1
     pp[j, j, 2] = pp[j, j, 2] + dp[j]/2
   }
   dim(pp) = c(np, np*2L)
-  ll = vsnLogLik(object, pp, refh, refsigma)[-1, ]
+  ll = vsnLogLik(object, pp, mu, sigsq)[-1, ]
   dim(ll) = c(np, np, 2L)
 
   res = matrix(as.numeric(NA), nrow=np, ncol=np)

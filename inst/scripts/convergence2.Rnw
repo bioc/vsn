@@ -256,7 +256,7 @@ at the ML estimates rather than their robustified modifications).
 %
 <<incr1>>=
 dat = sagmbSimulateData(n=10000, d=12, de=0, nrstrata=1, miss=0, log2scale=TRUE)
-v  = new("vsn", refh=dat$mu, refsigma=dat$sigma, n=length(dat$mu)) 
+v  = new("vsn", mu=dat$mu, sigsq=dat$sigsq)
 fit = vsn2(dat$y, lts.quantile=1, verbose=FALSE)
 @ 
 %

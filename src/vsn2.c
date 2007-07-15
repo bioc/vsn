@@ -1,9 +1,9 @@
-/*******************************************************************
-   C functions for vsn 2.X
-   (C) W. Huber 2002-2007
-   This code replaces the deprecated code in vsn.c
-   (and has evolved from that)
-*******************************************************************/
+/*********************************************************************
+  C functions for vsn 2.X
+  (C) W. Huber 2002-2007
+  This code replaces the deprecated code in vsn.c
+  See the vignette 'incremental.Rnw' for the derivation of the maths
+***********************************************************************/
 #include <R.h>
 #include <Rdefines.h>
 
@@ -23,18 +23,17 @@ typedef struct {
   int *strat;      /* strat[j] is the index of the first element of j-th stratum */
   int nrstrat;     /* no. of strata */
 
-  double ssq;
+  int profiling;   /* 0 for normal likelihood, 0xffff for profiling                  */
+  double *mu;      /* mu and sigma^2. For the normal likelihood, these are provided. */
+  double sigsq;    /* For profile likelihood, they are computed from the data.       */
 
-  double *refh;    /* reference values mu and sigma^2 */
-  double refsigsq; 
-
-  /* Workspaces -  used to store intermediate results from the computation 
-     of the likelihood function. These are reused in the computation of the 
-     function gradient */
-  double *ly;      /* affine transformed matrix: offs_ik + facs_ik * y_ik */
-  double *asly;    /* transformed expression matrix: asinh(ly)            */
-  double *resid;   /* row centered version of asly                        */
-  double *dh;      /* another auxilliary array                            */
+  /* Workspaces -  used to store intermediate results from the computation of the */
+  /* likelihood function. These are reused in the computation of the gradient.    */
+  double *ly;      /* is called Y_ki in the vignette   */
+  double *asly;    /* is called h_ki in the vignette   */
+  double *resid;   /* r_ki  */
+  double *ma;      /* A_ki  */
+  double *mb;      /* B_ki  */
 
   double *lastpar;
 } vsn_data;
@@ -54,15 +53,11 @@ SEXP getListElement(SEXP list, char *str) {
 
 /*--------------------------------------------------
   Apply the transformation to the matrix px->y
-  Note: in contrast in to previous versions, the result
-   is returned on the glog-scale to basis 2, not e.
-  However, the likelihood computations further below
-  are all done using the asinh and natural log scale 
   --------------------------------------------------*/
 void calctrsf(vsn_data *px, double* par, double *hy)
 {
     int i, j, ns, s, nr, nc;
-    double z, fac, off;      
+    double z, a, b;
  
     nc = px->ncol;
     nr = px->nrow;
@@ -75,9 +70,9 @@ void calctrsf(vsn_data *px, double* par, double *hy)
         if(ISNA(z)){
 	  hy[i + j*nr] = NA_REAL;
 	} else {
-	  off = par[s + j*ns];
-	  fac = par[s + j*ns + ns*nc];
-          hy[i + j*nr] = asinh(z*fac + off);
+	  a = par[s + j*ns];
+	  b = par[s + j*ns + ns*nc];
+          hy[i + j*nr] = asinh((z+a)/b);
 	}
       }
     }
@@ -86,59 +81,71 @@ void calctrsf(vsn_data *px, double* par, double *hy)
 
 /*----------------------------------------------------------------------
   The function to be optimized:
-  offs[j] for j=0,..,nrstrat-1 are the offsets, facs[j] the factors. 
-  
-  For the normal likelihood, see the vignette 'incremental.Rnw'
-  For the profile likelihood, see the SAGMB 2003 paper, and my grey 
-   notebook p. 206 for the gradient.
+  a[j] for j=0,..,nrstrat-1 are the offsets, b[j] the factors. 
 -----------------------------------------------------------------------*/
 double loglik(int n, double *par, void *ex)
 {
-  double *facs, *offs;      
-  double fj, oj, mu, s, z, res, ssq, jac;  
+  double *a, *b;      
+  double aj, bj, mu, s, z, ll, ssq, jac1, jac2, jacobian, scale, residuals;
   int i, j, ni, nt;
   int nr, nc;
   vsn_data *px;
 
   R_CheckUserInterrupt();
 
-  px   = (vsn_data*) ex;
-  offs = par;
-  facs = par + px->nrstrat;
-  nr   = px->nrow;
-  nc   = px->ncol;
+  px = (vsn_data*) ex;
+  a  = par;
+  b  = par + px->nrstrat;
+  nr = px->nrow;
+  nc = px->ncol;
 
   for(i=0; i < px->npar; i++) 
     px->lastpar[i] = par[i];  
 
-  jac = 0.0;
+  /*---------------------------------------------------------------*/
+  /* 1st sweep through the data: compute Y_ki, h(y_ki), A_ki, B_ki */
+  /*---------------------------------------------------------------*/
+  jac1 = jac2 = 0.0;
+  nt = 0;
   for(j=0; j < px->nrstrat; j++){
-    fj = facs[j];
-    oj = offs[j];
+    aj = a[j];
+    bj = b[j];
+    ni = 0;
     for(i = px->strat[j]; i < px->strat[j+1]; i++){
       z = px->y[i];
       if(!ISNA(z)) {
-	z = z*fj + oj;  /* Affine transformation */
-	s = 1.0/sqrt(1.0+z*z);   /* Jacobi term dh/dy */
-	px->ly[i] = z;
+	z = (z+aj)/bj;  
+	px->ly[i]   = z;
 	px->asly[i] = asinh(z);
-	px->dh[i] = s;
-	jac += log(s*fj);    /* logarithm since log-likelihood */
+
+	s = 1.0/sqrt(1.0+z*z); 
+	px->ma[i] = s;
+	px->mb[i] = z*s;
+	
+	jac1 += log(1.0+z*z); 
+        ni++;
       } else {
-	px->ly[i] = px->asly[i]	= px->dh[i] = NA_REAL;
+	px->ly[i] = px->asly[i]	= px->ma[i] = px->mb[i] = NA_REAL;
       }
     } /* for i */
+    jac2 += ni*log(bj);
+    nt += ni;
   } /* for j */
   
-  /* calculate ssq of residuals and resid  */
-  /* resid  = row-centered version of asly */
-  /* ssq     = sum_k sum_i resid_ik^2      */
+  jacobian = jac1/2.0 + jac2;
+
+  if(px->ntot != nt)   /* Just double-check - the code with 'nt' can be removed in future versions */
+    error("Internal error 1 in 'loglik'.");
+
+  /*---------------------------------------------------------------*/
+  /* 2nd sweep through the data: compute r_ki                      */
+  /*---------------------------------------------------------------*/
   ssq = 0.0;
   nt = 0;
   for(i=0; i<nr; i++){
-
-    if(px->refh==NULL) {
-      /* profiling: mu = arithmetic mean */
+    /* first, need to compute mu (if profiling) or just take it as 
+       given (if not profiling) */
+    if(px->profiling) {
       mu = 0.0;
       ni = 0;   /* count the number of data points in this row i (excl. NA) */
       for(j=0; j < nc; j++){
@@ -149,45 +156,46 @@ double loglik(int n, double *par, void *ex)
 	}
       }
       mu = (ni>0) ? (mu/ni) : NA_REAL;
-      nt += ni;
+      px->mu[i] = mu;
     } else {
-      /* use the given parameter mu */
-      mu = px->refh[i];
+      /* no profiling: use the given parameter mu */
+      mu = px->mu[i];
     }
 
     for(j=0; j < nc; j++){
       z = px->asly[j*nr+i];
-      if(!(ISNA(mu)||ISNA(z))){
-	z = z - mu;
-	px->resid[j*nr+i] = z;
+      if(!(ISNA(mu)||ISNA(z))) {
+        z = z-mu;
 	ssq += z*z;
+        nt++;
       } else {
-	px->resid[j*nr+i] = NA_REAL;
+        z = NA_REAL;
       }
-    }
+      px->resid[j*nr+i] = z;
+    } /* for j */
   } /* for i */
 
-  px->ssq = ssq;
+  if(px->ntot != nt)   /* Just double-check - the code with 'nt' can be removed in future versions */
+    error("Internal error 2 in 'loglik'.");
 
-  if(px->refh==NULL) {
-    if(px->ntot != nt)      
-      error("Internal error in 'loglik'.");
+  if(px->profiling) {
     /* Negative profile log likelihood */
-    res = (px->ntot)*log(ssq)/2.0 - jac;
+    residuals = (double)nt/2.0;
+    scale = (double)nt/2.0 * log(2.0*M_PI*ssq/(double)nt);
+    /* save for reuse in grad_loglik */
+    px->sigsq = ssq/(double)nt;
   } else {
     /* Negative log likelihood */
-    /* Omitting the constant term nr*log(sqrt(2.0*M_PI)*sigma) 
-       which is not relevant for the parameter optimization */
-    res = ssq/(2.0*px->refsigsq) - jac;
+    residuals = ssq /(2.0*(px->sigsq));
+    scale = ((double)nt/2.0)*log(2.0*M_PI*(px->sigsq)); 
   }
 
-#ifdef VSN_DEBUG
-  Rprintf("loglik %9g", res); 
-  for(j=0; j < px->npar; j++) Rprintf(" %9g", par[j]); 
-  Rprintf("\n"); 
-#endif
+  ll = scale + residuals + jacobian;
 
-  return(res);
+  /* Rprintf("loglik[%d]=%8g: scale=%8g, res=%8g, jac1=%8g, jac2=%8g, nt=%d, sigsq=%8g, ssq/nt=%8g\n", 
+     px->profiling, ll, scale, residuals, jac1, jac2, nt, px->sigsq, ssq/(double)nt); */
+
+  return(ll);
 }
 
 /*------------------------------------------------------------
@@ -195,53 +203,39 @@ double loglik(int n, double *par, void *ex)
 ------------------------------------------------------------*/
 void grad_loglik(int n, double *par, double *gr, void *ex)
 {
-  double *facs;       
-  double s1, s2, s3, s4, z1, z2, z3;
-  double vorfak;
-  int i, j, k;
-  int nr, nc, nj;
+  double *b;      
   vsn_data *px;
+  double sa, sb, rfac, bki, z;
+  int j, k, nj;
 
-  px   = (vsn_data*) ex;
-  facs = par + px->nrstrat;
-  nr   = px->nrow;
-  nc   = px->ncol;
+  px = (vsn_data*) ex;
+  b  = par + px->nrstrat;
 
-  for(i=0; i < px->npar; i++) {
-    if (px->lastpar[i] != par[i]) {
-      Rprintf("%d\t%g\t%g\n", i, px->lastpar[i], par[i]);
+  for(j=0; j < px->npar; j++) {
+    if (px->lastpar[j] != par[j]) {
+      Rprintf("%d\t%g\t%g\n", j, px->lastpar[j], par[j]);
       error("Parameters in 'grad_loglik' are different from those in 'loglik'.");
     }
   }
 
-  if(px->refh==NULL) {
-    /* Negative profile log likelihood */
-    vorfak = (px->ntot)/(px->ssq);
-  } else {
-    /* Negative log likelihood */
-   vorfak = 1.0/(px->refsigsq);
-  } 
-
+  rfac = 1.0/(px->sigsq);
+  
+  /* Loop over the data */
   for(j = 0; j < px->nrstrat; j++) {
-    s1 = s2 = s3 = s4 = 0.0;
+    sa = sb = 0.0;
     nj = 0;
     for(k = px->strat[j]; k < px->strat[j+1]; k++) {
-      z1 = px->resid[k];
-      if(!ISNA(z1)){
-	z1 *= (px->dh[k]); 
-	s1 += z1;             /* deviation term for offset  */
-	s2 += z1 * px->y[k];  /* deviation term for factor  */
-	  
-	z2 = px->ly[k];
-	z3 = z2/(1+z2*z2);    
-	s3 += z3;             /* jacobi term for offset     */
-	s4 += z3 * px->y[k];  /* jacobi term for factor     */
+      z = px->resid[k];
+      if(!ISNA(z)){
+        bki = px->mb[k];
+	z = z*rfac + bki;
+        sa += z*(px->ma[k]);
+        sb += z*bki;
 	nj++;
       }
     } /* for k */
-    s4 -= (double)nj / facs[j];
-    gr[j]             =  vorfak * s1 + s3;
-    gr[px->nrstrat+j] = (vorfak * s2 + s4);
+    gr[j]               =  sa / b[j];
+    gr[j+(px->nrstrat)] = ((double)nj - sb) / b[j];
   }
 
 
@@ -291,10 +285,12 @@ void setupEverybody(SEXP Sy, SEXP Spar, SEXP Sstrat, vsn_data* px)
   return;
 }
 
+/*------------------------------------------------------------------------------*/
 /* This setup function is used by vsn2_optim, vsn2_point (but not by vsn2_trsf) */
-/* It sets up workspaces and processes the Sstrat parameters  */
+/* It sets up workspaces and processes the Sstrat parameters                    */
+/*------------------------------------------------------------------------------*/
 
-double* setupLikelihoodstuff(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP Srefsigma, vsn_data* px) 
+double* setupLikelihoodstuff(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Smu, SEXP Ssigsq, vsn_data* px) 
 {  
   int i, nr, nc, np, ns;
   double* cpar;
@@ -315,20 +311,21 @@ double* setupLikelihoodstuff(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP S
       error("Elements of argument 'Sstrat' must be in ascending order.");
   }
 
-  /* Process Srefh and Srefsigma; If Srefh has length 0, then we do
+  /* Process Smu and Ssigsq; If Smu has length 0, then we do
      the 2002 model. If it has length nr, normalize against reference */
-  if(!(isReal(Srefh)&&(isReal(Srefsigma))))
-    error("Invalid arguments: 'Srefh' and 'Srefsigma' must be real vectors.");
-  if((LENGTH(Srefh)==nr)&&(LENGTH(Srefsigma)==1)) {
-    px->refh = REAL(Srefh);
-    px->refsigsq = REAL(Srefsigma)[0];
-    px->refsigsq *= px->refsigsq;  /* square */
+  if(!(isReal(Smu)&&(isReal(Ssigsq))))
+    error("Invalid arguments: 'Smu' and 'Ssigsq' must be real vectors.");
+  if((LENGTH(Smu)==nr)&&(LENGTH(Ssigsq)==1)) {
+    px->mu    = REAL(Smu);
+    px->sigsq = REAL(Ssigsq)[0];
+    px->profiling = 0;
   } else {
-    if(LENGTH(Srefh)==0) {
-      px->refh = NULL;
-      px->refsigsq = 0.0;
+    if(LENGTH(Smu)==0) {
+      px->mu = (double *) R_alloc(nr, sizeof(double));
+      px->sigsq = NA_REAL;
+      px->profiling = 0xffff;
     } else {
-      error("Invalid length of arguments 'Srefh', 'Srefsigma'.");
+      error("Invalid length of arguments 'Smu', 'Ssigsq'.");
     }
   }
 
@@ -336,7 +333,8 @@ double* setupLikelihoodstuff(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP S
   px->ly      = (double *) R_alloc(nr*nc,  sizeof(double)); 
   px->asly    = (double *) R_alloc(nr*nc,  sizeof(double));
   px->resid   = (double *) R_alloc(nr*nc,  sizeof(double));
-  px->dh      = (double *) R_alloc(nr*nc,  sizeof(double));
+  px->ma      = (double *) R_alloc(nr*nc,  sizeof(double));
+  px->mb      = (double *) R_alloc(nr*nc,  sizeof(double));
   px->lastpar = (double *) R_alloc(np, sizeof(double));
 
   /* parameters  */
@@ -354,14 +352,14 @@ double* setupLikelihoodstuff(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP S
    vsn2_point: R interface for calculation of loglikelihood and gradient
    This is used by vsnLikelihood
 ------------------------------------------------------------*/
-SEXP vsn2_point(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP Srefsigma)
+SEXP vsn2_point(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Smu, SEXP Ssigsq)
 {
   double* cpar;
   SEXP res;
   vsn_data x;
 
   setupEverybody(Sy, Spar, Sstrat, &x);
-  cpar = setupLikelihoodstuff(Sy, Spar, Sstrat, Srefh, Srefsigma, &x);
+  cpar = setupLikelihoodstuff(Sy, Spar, Sstrat, Smu, Ssigsq, &x);
  
   res = allocVector(REALSXP, x.npar+1);
 
@@ -374,15 +372,16 @@ SEXP vsn2_point(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, SEXP Srefsigma)
 /*------------------------------------------------------------
    vsn2_optim
 ------------------------------------------------------------*/
-SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh, 
-                SEXP Srefsigma, SEXP Soptimpar)
+SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Smu, 
+                SEXP Ssigsq, SEXP Soptimpar)
 {
   int i, lmm, fail, fncount, grcount, maxit, trace, nREPORT;
   int *nbd;
-  double *cpar, *lower, *upper, *scale;
+  double *cpar, *lower, *upper, *scale, *z;
   double factr, pgtol, fmin, low;
   char msg[60];
-  SEXP res;
+
+  SEXP res, namesres, vfail, coef, dimcoef, mu, sigsq;
   vsn_data x;
 
   lmm      = 20;   
@@ -402,7 +401,7 @@ SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh,
   nREPORT  = 1;
 
   setupEverybody(Sy, Spar, Sstrat, &x);
-  cpar = setupLikelihoodstuff(Sy, Spar, Sstrat, Srefh, Srefsigma, &x);
+  cpar = setupLikelihoodstuff(Sy, Spar, Sstrat, Smu, Ssigsq, &x);
  
   lower   = (double *) R_alloc(x.npar, sizeof(double));
   upper   = (double *) R_alloc(x.npar, sizeof(double));
@@ -433,12 +432,47 @@ SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Srefh,
 	 (void *) &x, factr, pgtol, &fncount, &grcount, maxit, msg,
 	 trace, nREPORT); 
 
-  /* write new values in result */
-  res = allocVector(REALSXP, x.npar+1);
-  for(i=0; i < x.npar; i++) 
-    REAL(res)[i] = cpar[i];
-  REAL(res)[x.npar] = (double) fail;
+  /* optimisation result "fail" */
+  PROTECT(vfail = allocVector(INTSXP, 1));
+  INTEGER(vfail)[0] = fail;
+
+  /* optimisation result "sigsq" */
+  PROTECT(sigsq = allocVector(REALSXP, 1));
+  REAL(sigsq)[0] = x.sigsq;
+
+  /* optimisation result "mu" */
+  PROTECT(mu = allocVector(REALSXP, x.nrow));
+  z = REAL(mu);
+  for(i=0; i < x.nrow; i++) 
+    z[i] = x.mu[i];
 	  
+  /* optimisation result "coef" */
+  PROTECT(coef = allocVector(REALSXP, x.npar));
+  z = REAL(coef);
+  for(i=0; i < x.npar; i++) 
+    z[i] = cpar[i];
+
+  PROTECT(dimcoef = allocVector(INTSXP, 3)); 
+  INTEGER(dimcoef)[0] = x.npar/(x.ncol*2);
+  INTEGER(dimcoef)[1] = x.ncol;
+  INTEGER(dimcoef)[2] = 2;
+  setAttrib(coef, R_DimSymbol, dimcoef);
+ 
+  /* return value: a list with four elements: fail, coefficients, mu, sigsq */
+  PROTECT(res = allocVector(VECSXP, 4));
+  SET_VECTOR_ELT(res, 0, vfail);
+  SET_VECTOR_ELT(res, 1, coef);  /* coefficients */
+  SET_VECTOR_ELT(res, 2, sigsq); 
+  SET_VECTOR_ELT(res, 3, mu);    
+
+  PROTECT(namesres = allocVector(STRSXP, 4));
+  SET_STRING_ELT(namesres, 0, mkChar("fail"));
+  SET_STRING_ELT(namesres, 1, mkChar("coefficients"));
+  SET_STRING_ELT(namesres, 2, mkChar("sigsq"));
+  SET_STRING_ELT(namesres, 3, mkChar("mu"));
+  setAttrib(res, R_NamesSymbol, namesres);
+
+  UNPROTECT(7); /* vfail, sigsq, mu, coef, dimcoef, res, namesres */
   return(res);
 }
 

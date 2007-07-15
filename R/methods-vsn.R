@@ -33,10 +33,10 @@ setMethod("predict", signature("vsn"),
       strata = as.integer(int2factor(strata))
     }
     
-    hy = .Call("vsn2_trsf", newdata, as.vector(object@par), strata, PACKAGE="vsn")
+    hy = .Call("vsn2_trsf", newdata, as.vector(object@coefficients), strata, PACKAGE="vsn")
 
     if(log2scale)
-      hy = trsf2log2scale(hy, object@par)
+      hy = trsf2log2scale(hy, object@coefficients)
     
     dim(hy) = dim(newdata)
     dimnames(hy) = dimnames(newdata)
@@ -44,9 +44,9 @@ setMethod("predict", signature("vsn"),
   })
        
 
-setMethod("nrow", signature("vsn"), function(x) x@n)
-setMethod("ncol", signature("vsn"), function(x) dim(x@par)[2])
-setMethod("dim",  signature("vsn"), function(x) c(x@n, dim(x@par)[2]))
+setMethod("nrow", signature("vsn"), function(x) length(x@mu))
+setMethod("ncol", signature("vsn"), function(x) dim(x@coefficients)[2])
+setMethod("dim",  signature("vsn"), function(x) c(nrow(x), ncol(x)))
 
 setMethod("show", signature("vsn"),
   function(object) {
@@ -54,35 +54,36 @@ setMethod("show", signature("vsn"),
       nrow(object), ncol(object)))
     if(length(object@strata)>0)
       cat(sprintf("strata: %d level%s.\n", nlevels(object@strata), c("", "s")[1+(nlevels(object@strata)>1)]))
+    cat(sprintf("sigsq=%g\n", round(object@sigsq, 3)))
     if(nrow(object@hx)>0)
       cat(sprintf("hx: %d x %d matrix.\n", nrow(object@hx), ncol(object@hx)))
-    if(length(object@refh)>0)
-      cat(sprintf("refsigma: %g.\n", round(object@refsigma, 3)))
   })
 
 setMethod("[", "vsn",
   function(x, i, j, ..., drop=FALSE) {
     stopifnot(missing(j), length(list(...))==0, !drop)
 
+    x@mu = x@mu[i,drop=FALSE]
+    
     if(length(x@strata)>0)
       x@strata = x@strata[i,drop=FALSE]
-    if(length(x@refh)>0)
-      x@refh = x@refh[i,drop=FALSE]
-    if(nrow(x@hx)>0) {
+    if(nrow(x@hx)>0) 
       x@hx = x@hx[i,,drop=FALSE]
-      x@n= nrow(x@hx)
-    } else {
-      x@n = length(seq_len(x@n)[i])
-    }
+    
     return(x)
   })
        
+setMethod("coef", signature(object="vsn"),
+          function(object) object@coefficients)
+setMethod("coefficients", signature(object="vsn"),
+          function(object) object@coefficients)
+
 setMethod("exprs", signature(object="vsn"),
           function(object) object@hx)
 
-#------------------------------------------------------------
-# methods for the generic function 'vsn2'
-#------------------------------------------------------------
+##------------------------------------------------------------
+## methods for the generic function 'vsn2'
+##------------------------------------------------------------
 setMethod("vsn2", "matrix", vsnMatrix)
 
 setMethod("vsn2", "numeric",

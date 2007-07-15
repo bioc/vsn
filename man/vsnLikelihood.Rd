@@ -70,9 +70,9 @@ p = sapply(exp(seq(-1, 1, length=31)), function(f) fit@par*c(1,1,f,1))
 ll = logLik(v, p)
 
 plot(p[3, ], ll[1, ], type="l", xlab=expression(b[1]), ylab=expression(-log(L)), log="x")
-abline(v=fit@par[3], col="red")
+abline(v=coef(fit)[3], col="red")
 
-plotVsnLogLik(v, fit@par, whichp=c(1,3), expand=c(0.01, 1))
+plotVsnLogLik(v, coef(fit), whichp=c(1,3), expand=c(0.01, 1))
 }
 
 \keyword{}

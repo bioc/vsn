@@ -1,6 +1,6 @@
 plotVsnLogLik = function(object, p, whichp=1:2, expand=1, ngrid=31, fun=logLik, ...) {
 
-  stopifnot(length(whichp)==2)
+  stopifnot(length(whichp)==2L, ngrid>=2L)
 
   if(length(expand)==1)
     expand=rep(expand,2)

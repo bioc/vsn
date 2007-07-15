@@ -82,62 +82,54 @@ validityVsnInput = function(object){
 
 
 ## strata may be of length 0 (in which case there are no strata).
-## refh may be of length 0 (in which case there is no reference).
-## hx may be of length 0 (in which case the data is not provided).
-## If any these slots is of length>0, then they must agree in size.
+## hx may have 0 rows (in which case the transformed data has not (yet) been computed).
+## If length(strata) or nrow(hx) are >0, then they must be the same
+##   as length(mu) (which is always >0).
 validityVsn = function(object){
-  if(any(is.na(object@par))||(length(dim(object@par))!=3))
-    return("'par' must be a 3D array and not contain NA values.")
+  if(any(is.na(object@coefficients))||(length(dim(object@coefficients))!=3))
+    return("'coefficients' must be a 3D array and not contain NA values.")
 
-  if(dim(object@par)[3]!=2)
-    return("'dim(par)[3]' must be equal to 2.")
+  if(dim(object@coefficients)[3]!=2)
+    return("'dim(coefficients)[3]' must be equal to 2.")
   
-  if((length(object@n)!=1)||any(is.na(object@n)))
-    return("'n' must be of length 1 and not NA.")
+  if(length(object@sigsq)!=1)
+    return("'sigsq' must be of length 1.")
 
-##  if(any(is.na(object@refh)))
-##    warning("'refh' contains NA.")
-  
-  if(length(object@refsigma)!=1)
-    return("'refsigma' must be of length 1.")
+  if(!equalOrZero(ncol(object@hx), dim(object@coefficients)[2]))
+    return("'ncol(hx)' and 'dim(object@coefficients)[2]' must match.")
 
-  if(!equalOrZero(ncol(object@hx), dim(object@par)[2]))
-    return("'ncol(hx)' and 'dim(object@par)[2]' must match.")
+  if(!equalOrZero(length(object@strata), length(object@mu)))
+    return("'length(strata)' must be 0 or equal to 'length(mu)'.")
 
-  if(!equalOrZero(length(object@strata), object@n))
-    return("'length(strata)' must match 'n'.")
-
-  if(!equalOrZero(length(object@refh), object@n))
-    return("'length(refh)' must match 'n'.")
-
-  if(!equalOrZero(nrow(object@hx), object@n))
-    return("'nrow(hx)' must match 'n'.")
+  if(!equalOrZero(nrow(object@hx), length(object@mu)))
+    return("'nrow(hx)' must be 0 or equal to 'length(mu)'.")
 
   if(length(object@strata)>0)
-    if(nlevels(object@strata)!=dim(object@par)[1])
-      return("'nlevels(strata)' and 'dim(par)[1]' must match.")
+    if(nlevels(object@strata)!=dim(object@coefficients)[1])
+      return("'nlevels(strata)' and 'dim(coefficients)[1]' must match.")
   
   return(TRUE)
 }
 
-##------------------------------------------------------------
+##------------------------------------------------------------------------------------
 ## Class vsn
-##------------------------------------------------------------
+## Slot 'coefficients' is a 3D array: nrstrata * d * 2, with 2 parameters for each stratum and
+##   array. The first of these 2 is the background offset off, the second the scaling
+##   factor fac. The transformation is hence y -> asinh((y+off)/fac)
+##------------------------------------------------------------------------------------
 setClass("vsn",
   representation(
-    par    = "array",
-    n      = "integer",
+    coefficients    = "array",
     strata = "factor", 
-    refh   = "numeric",
-    refsigma  = "numeric",
+    mu   = "numeric",
+    sigsq  = "numeric",
     hx   = "matrix"),
   prototype = list(
-    par    = array(0, dim=c(0,0,2)),
-    n      = as.integer(0),
-    strata = factor(integer(0), levels="all"),
-    refh   = numeric(0),
-    refsigma  = as.numeric(NA),
-    hx   = matrix(0, nrow=0, ncol=0)),
+    coefficients = array(0, dim=c(0,0,2)),
+    strata       = factor(integer(0), levels="all"),
+    mu           = numeric(0),
+    sigsq        = as.numeric(NA),
+    hx           = matrix(0, nrow=0, ncol=0)),
   validity = validityVsn)
 
 ##------------------------------------------------------------
@@ -154,7 +146,7 @@ setClass("vsnInput",
     lts.quantile = "numeric",
     subsample = "integer",
     verbose   = "logical",
-    pstart    = "array",     ## Start parameters (3D array: nrstrata * d * 2)
+    pstart    = "array",     ## Start parameters: see comment on slot 'coefficients' in definition of class 'vsn'
     optimpar  = "list"),     ## factr, pgtol, lower, maxit, trace, cvg.niter, cvg.eps
   prototype = list(
     x = matrix(as.numeric(NA), nrow=0, ncol=0),
@@ -164,7 +156,7 @@ setClass("vsnInput",
     lts.quantile = 1,
     subsample = 0L,
     verbose = TRUE,
-    pstart = array(as.numeric(NA), dim=c(1,0,2)),
+    pstart = array(as.numeric(NA), dim=c(1L,0L,2L)),
     optimpar = list(factr=5e7, pgtol=0, lower=2e-5,
                  maxit=60000L, trace=0L, cvg.niter=1L, cvg.eps=0)),
   validity = validityVsnInput)
