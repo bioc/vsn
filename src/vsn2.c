@@ -11,8 +11,6 @@
 #include <R_ext/Utils.h>          /* for R_CheckUserInterrupt */
 extern double asinh(double);
 
-#undef VSN_DEBUG 
-
 typedef struct {
   double *y;       /* expression matrix: y_ik     */
   int nrow;        /* no. of features             */
@@ -86,7 +84,7 @@ void calctrsf(vsn_data *px, double* par, double *hy)
 double loglik(int n, double *par, void *ex)
 {
   double *a, *b;      
-  double aj, bj, mu, s, z, ll, ssq, jac1, jac2, jacobian, scale, residuals;
+  double aj, bj, mu, s, z, ll, ssq, sigsq, jac1, jac2, jacobian, scale, residuals;
   int i, j, ni, nt;
   int nr, nc;
   vsn_data *px;
@@ -180,20 +178,22 @@ double loglik(int n, double *par, void *ex)
 
   if(px->profiling) {
     /* Negative profile log likelihood */
+    /* Calculate sigsq and save for reuse in grad_loglik */
+    sigsq = ssq/(double)nt; 
+    px->sigsq = sigsq;
     residuals = (double)nt/2.0;
-    scale = (double)nt/2.0 * log(2.0*M_PI*ssq/(double)nt);
-    /* save for reuse in grad_loglik */
-    px->sigsq = ssq/(double)nt;
   } else {
     /* Negative log likelihood */
-    residuals = ssq /(2.0*(px->sigsq));
-    scale = ((double)nt/2.0)*log(2.0*M_PI*(px->sigsq)); 
+    sigsq = px->sigsq;
+    residuals = ssq/(2.0*sigsq);
   }
-
+  scale = (double)nt/2.0 * log(2.0*M_PI*sigsq); 
   ll = scale + residuals + jacobian;
 
-  /* Rprintf("loglik[%d]=%8g: scale=%8g, res=%8g, jac1=%8g, jac2=%8g, nt=%d, sigsq=%8g, ssq/nt=%8g\n", 
-     px->profiling, ll, scale, residuals, jac1, jac2, nt, px->sigsq, ssq/(double)nt); */
+#ifdef VSN_DEBUG
+  Rprintf("negloglik[%d]=%8g: scale=%8g, res=%8g, jac1=%8g, jac2=%8g, nt=%d, sigsq=%8g, ssq/nt=%8g\n", 
+     px->profiling, ll, scale, residuals, jac1, jac2, nt, px->sigsq, ssq/(double)nt); 
+#endif
 
   return(ll);
 }
@@ -240,10 +240,13 @@ void grad_loglik(int n, double *par, double *gr, void *ex)
 
 
 #ifdef VSN_DEBUG
-  Rprintf("grad_loglik    "); 
-  for(j=0; j < px->npar; j++) Rprintf(" %9g", gr[j]); 
+  Rprintf(" gradient[%d]\npar:  ", px->profiling); 
+  for(j=0; j < px->npar; j++) Rprintf(" %8g", par[j]); 
+  Rprintf("\ngrad: "); 
+  for(j=0; j < px->npar; j++) Rprintf(" %8g", gr[j]); 
   Rprintf("\n"); 
-#endif 
+#endif
+
   return;
 }
 

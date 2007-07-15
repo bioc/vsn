@@ -28,8 +28,7 @@ vsnML = function(v) {
     v@reference@sigsq, v@optimpar, PACKAGE="vsn")
 
   rv = new("vsn", coefficients=o$coefficients, 
-           mu=o$mu, sigsq=o$sigsq,
-           strata=v@strata)
+           mu=o$mu, sigsq=o$sigsq, strata=v@strata, lbfgsb=o$fail)
   
   if (o$fail!=0L) {
     nrp = if(length(p)<=6L) length(p) else 6L
@@ -118,9 +117,9 @@ vsnLTS = function(v) {
       hmean = rowMeans(hy, na.rm=TRUE) 
       ## double check with what was computed in vsnML:
       if(iter==1L) {
-        stopifnot(isSmall(rsv@mu-hmean))
+        if(rsv@lbfgsb==0L) stopifnot(isSmall(rsv@mu-hmean))
       } else {
-        stopifnot(isSmall(rsv@mu-hmean[whsel]))
+        if(rsv@lbfgsb==0L) stopifnot(isSmall(rsv@mu-hmean[whsel]))
         ## and create rsv@mu with mu of the right length (NA for the 'outliers' not in whsel)
         tmp = rep(as.numeric(NA), nrow(v))
         tmp[whsel] = rsv@mu
@@ -253,7 +252,7 @@ vsnMatrix = function(x,
   returnData   = TRUE,
   pstart,
   optimpar   = list(),
-  defaultpar = list(factr=5e7, pgtol=0, lower=2e-5, maxit=60000L, trace=0L, cvg.niter=1L, cvg.eps=0)) {
+  defaultpar = list(factr=5e7, pgtol=2e-4, lower=2e-4, maxit=60000L, trace=0L, cvg.niter=7L, cvg.eps=0)) {
 
   storage.mode(x) = "double"
   storage.mode(subsample) = "integer"

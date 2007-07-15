@@ -32,7 +32,7 @@ vsnMatrix(x,
   returnData   = TRUE,
   pstart,
   optimpar     = list(),
-  defaultpar   = list(factr=5e7, pgtol=0, lower=2e-5, maxit=60000L, trace=0L, cvg.niter=1L, cvg.eps=0))
+  defaultpar   = list(factr=5e7, pgtol=2e-4, lower=2e-4, maxit=60000L, trace=0L, cvg.niter=7L, cvg.eps=0))
 
 \S4method{vsn2}{matrix}(x, reference, strata, ...)
 \S4method{vsn2}{numeric}(x, reference, strata, ...)
@@ -89,11 +89,11 @@ vsnMatrix(x,
   An object of class \code{\linkS4class{vsn}}.
   The transformed data are on a glog scale to base 2. More precisely,
   the transformed data are subject to the transformation
-  asinh(a+bx)/log(2)+c, where
-  $\mbox{asinh}(x)/log(2)=log_2(x+sqrt{x^2+1})$ is also called the 'glog', and
-  the constant c is an overall constant offset that is computed such that for
+  asinh((x+a)/b) / log(2) + c, where
+  asinh(x) / log(2) = log2(x+sqrt(x^2+1)) is also called the 'glog', and
+  the constant c is an overall constant offset that is computed from b such that for
   large x the transformation approximately corresponds to the
-  $\log_2$ function. The offset c is inconsequential for all differential expression
+  log2 function. The offset c is inconsequential for all differential expression
   calculations, but many users like to see the data in a range that they
   are familiar with.
 }

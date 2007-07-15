@@ -54,7 +54,7 @@ pagecolor=darkblue,raiselinks,plainpages,pdftex]{hyperref}
 
 <<setup,echo=FALSE,results=hide>>=
 options(width=41, signif=3, digits=3)
-options(error=recover, warn=2)
+##options(error=recover, warn=2)
 set.seed(0xdada)
 @ 
 

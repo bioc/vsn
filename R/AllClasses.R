@@ -39,7 +39,6 @@ validityVsnInput = function(object){
   r = validScalarNumericSlot(object, "lts.quantile", min=0.5, max=1)
   if(!identical(r, TRUE)) return(r)
 
-  ## could also define class for this, might be a bit less tedious
   r = validLogical(object, "verbose")
   if(!identical(r, TRUE)) return(r)
 
@@ -107,6 +106,9 @@ validityVsn = function(object){
   if(length(object@strata)>0)
     if(nlevels(object@strata)!=dim(object@coefficients)[1])
       return("'nlevels(strata)' and 'dim(coefficients)[1]' must match.")
+
+  if(!((length(object@lbfgsb)==1)&&(is.integer(object@lbfgsb))))
+    return("'lbfgsb' must be an integer of length 1.")
   
   return(TRUE)
 }
@@ -119,17 +121,19 @@ validityVsn = function(object){
 ##------------------------------------------------------------------------------------
 setClass("vsn",
   representation(
-    coefficients    = "array",
+    coefficients = "array",
     strata = "factor", 
-    mu   = "numeric",
+    mu     = "numeric",
     sigsq  = "numeric",
-    hx   = "matrix"),
+    hx     = "matrix",
+    lbfgsb = "integer"),
   prototype = list(
     coefficients = array(0, dim=c(0,0,2)),
     strata       = factor(integer(0), levels="all"),
     mu           = numeric(0),
     sigsq        = as.numeric(NA),
-    hx           = matrix(0, nrow=0, ncol=0)),
+    hx           = matrix(0, nrow=0, ncol=0),
+    lbfgsb       = as.integer(NA)),
   validity = validityVsn)
 
 ##------------------------------------------------------------
@@ -157,8 +161,8 @@ setClass("vsnInput",
     subsample = 0L,
     verbose = TRUE,
     pstart = array(as.numeric(NA), dim=c(1L,0L,2L)),
-    optimpar = list(factr=5e7, pgtol=0, lower=2e-5,
-                 maxit=60000L, trace=0L, cvg.niter=1L, cvg.eps=0)),
+    optimpar = list(factr=5e7, pgtol=2e-4, lower=2e-4,
+                 maxit=60000L, trace=0L, cvg.niter=7L, cvg.eps=0)),
   validity = validityVsnInput)
                   
 

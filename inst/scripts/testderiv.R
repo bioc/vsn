@@ -19,7 +19,7 @@ switch(1L,
        })
 
 nrpar = 2L*ncol(x)*nlevels(strata)
-eps   = 1e-4
+eps   = 1e-6
 
 norm = function(x) sqrt(sum(x*x))
 

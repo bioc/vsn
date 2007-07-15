@@ -56,7 +56,7 @@ dat = sagmbSimulateData(n=16000, d=1, de=0, nrstrata=1, miss=0, log2scale=TRUE)
 ref = new("vsn", mu=dat$mu, sigsq=dat$sigsq, coefficients=dat$coefficients)
 vin = new("vsnInput", x=dat$y, pstart=array(as.numeric(NA), dim=c(1,1,2)), lts.quantile = 1)
 
-ex = c(0.05, 0.05)
+ex = c(.2, 0.05)
 x11(xpos=400)
 lp1 = plotVsnLogLik(vin, dat$coefficients, mu=ref@mu, sigsq=ref@sigsq, expand=ex)
 
@@ -72,26 +72,25 @@ cat(sprintf("True parameters   %11g %11g\n", dat$coefficients[1], dat$coefficien
 cat(sprintf("Maximum of logLik %11g %11g\n\n", lp1[wm,1], lp1[wm,2]))
 
 
-## Test 3:
-## What happen if noise is only multiplicative
+## Test 4:
+## What happen if noise is only multiplicative (no profiling)
 n = 32000L
-mu = 10+rnorm(n)+exp(rnorm(n))
-sigsq = 0.1
-y  = cbind(mu*exp(rnorm(length(mu), sd=sqrt(sigsq))))
-pp = array(0, dim=c(1,1,2))
-ref = new("vsn", mu=mu, sigsq=sigsq, coefficients=pp)
-v = vsn2(x=y, ref=ref, lts.quantile=1)
+mu = runif(n)*2+4
+sigsq = 0.01
+y  = exp(mu+matrix(rnorm(2L*length(mu), sd=sqrt(sigsq)), ncol=2L))
+
+ref = new("vsn", mu=mu, sigsq=sigsq, coefficients=array(0, dim=c(1,1,2)))
+v = vsn2(x=y, ref=ref, lts.quantile=1, optimpar = list(lower=1e-6))
 hy = predict(v, newdata=y)
 
-plot(log(y), hy, pch=".")
+x11(width=7, height=4); par(mfrow=c(1,2))
+plot(log2(y), hy, pch=".", main="with ref")
+abline(a=0, b=1, col="orange")
 
-
-## Test 4:
-## What happen if noise is only multiplicative
-y  = cbind(mu*exp(rnorm(length(mu), sd=sqrt(sigsq))),
-           mu*exp(rnorm(length(mu), sd=sqrt(sigsq))))
+## Test 5:
+## What happen if noise is only multiplicative (profiling)
 v = vsn2(x=y, lts.quantile=1)
 
 hy = predict(v, newdata=y)
-
-plot(log(y), hy, pch=".")
+plot(log2(y), hy, pch=".", main="profiling")
+abline(a=0, b=1, col="orange")
