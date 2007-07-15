@@ -1171,14 +1171,14 @@ differentially transcribed genes balance out.
 
 \section{Acknowledgements}
 I acknowledge helpful comments and feedback from Anja von Heydebreck, 
-Richard Bourgon, Martin Vingron and Ulrich Mansmann.
+Richard Bourgon, Martin Vingron, Ulrich Mansmann and Robert Gentleman.
 
 %---------------------------------------------------------
 % SessionInfo
 %---------------------------------------------------------
 \begin{table*}[tbp]
 \begin{minipage}{\textwidth}
-<<sessionInfo, results=latex, print=TRUE>>=
+<<sessionInfo, results=tex, print=TRUE>>=
 toLatex(sessionInfo())
 @ 
 \end{minipage}
