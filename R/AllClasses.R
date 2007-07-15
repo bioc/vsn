@@ -19,7 +19,7 @@ validScalarDoubleListElt = function(ob, nm, min=0, max=+Inf) {
 validScalarIntListElt = function(ob, nm, min=0L, max=.Machine$integer.max) {
   s = ob[[nm]]
   if((!is.integer(s))||(length(s)!=1)||any(is.na(s))||(s<min)||(s>max))
-    return(sprintf("'%s' must be an integer vector of length 1 with values between %g and %g.", nm, min, max))
+    return(sprintf("'%s' must be an integer vector of length 1 with values between %d and %d.", nm, min, max))
   TRUE
 }
 
@@ -57,9 +57,10 @@ validityVsnInput = function(object){
   if(!all(dim(object@pstart)==c(nlevels(object@strata), ncol(object@x), 2)))
     return("Invalid dimensions of 'pstart'.")
 
-  if(!is.list(object@optimpar)||(length(object@optimpar)!=7)||
-     !identical(names(object@optimpar), c("factr", "pgtol", "lower", "maxit", "trace", "cvg.niter", "cvg.eps")))
-    return("'optimpar' must be a list with elements 'factr', 'pgtol', 'lower', 'maxit', 'trace', 'cvg.niter', 'cvg.eps'.")
+  compulsoryElements = c("factr", "pgtol", "lower", "maxit", "trace", "REPORT", "cvg.niter", "cvg.eps")
+  if(!is.list(object@optimpar)||!identical(names(object@optimpar), compulsoryElements))
+    return(paste("'optimpar' must be a list with elements ",
+                 paste("'", compulsoryElements, "'", collapse=", ", sep=""), ".", sep=""))
 
   r = validScalarDoubleListElt(object@optimpar, "factr")
   if(!identical(r, TRUE)) return(r)
@@ -67,11 +68,13 @@ validityVsnInput = function(object){
   if(!identical(r, TRUE)) return(r)
   r = validScalarDoubleListElt(object@optimpar, "lower")
   if(!identical(r, TRUE)) return(r)
-  r = validScalarIntListElt(object@optimpar, "maxit", min=1)
+  r = validScalarIntListElt(object@optimpar, "maxit", min=1L)
   if(!identical(r, TRUE)) return(r)
-  r = validScalarIntListElt(object@optimpar, "trace")
+  r = validScalarIntListElt(object@optimpar, "trace", min=0L, max=6L)
   if(!identical(r, TRUE)) return(r)
-  r = validScalarIntListElt(object@optimpar, "cvg.niter", min=1)
+  r = validScalarIntListElt(object@optimpar, "REPORT")
+  if(!identical(r, TRUE)) return(r)
+  r = validScalarIntListElt(object@optimpar, "cvg.niter", min=1L)
   if(!identical(r, TRUE)) return(r)
   r = validScalarDoubleListElt(object@optimpar, "cvg.eps")
   if(!identical(r, TRUE)) return(r)
@@ -151,7 +154,7 @@ setClass("vsnInput",
     subsample = "integer",
     verbose   = "logical",
     pstart    = "array",     ## Start parameters: see comment on slot 'coefficients' in definition of class 'vsn'
-    optimpar  = "list"),     ## factr, pgtol, lower, maxit, trace, cvg.niter, cvg.eps
+    optimpar  = "list"),     
   prototype = list(
     x = matrix(as.numeric(NA), nrow=0, ncol=0),
     reference = new("vsn"),
@@ -162,7 +165,7 @@ setClass("vsnInput",
     verbose = TRUE,
     pstart = array(as.numeric(NA), dim=c(1L,0L,2L)),
     optimpar = list(factr=5e7, pgtol=2e-4, lower=2e-4,
-                 maxit=60000L, trace=0L, cvg.niter=7L, cvg.eps=0)),
+                 maxit=60000L, trace=0L, REPORT=10L, cvg.niter=7L, cvg.eps=0)),
   validity = validityVsnInput)
                   
 

@@ -252,7 +252,7 @@ vsnMatrix = function(x,
   returnData   = TRUE,
   pstart,
   optimpar   = list(),
-  defaultpar = list(factr=5e7, pgtol=2e-4, lower=2e-4, maxit=60000L, trace=0L, cvg.niter=7L, cvg.eps=0)) {
+  defaultpar = list(factr=5e7, pgtol=2e-4, lower=2e-4, maxit=60000L, trace=0L, REPORT=10L, cvg.niter=7L, cvg.eps=0)) {
 
   storage.mode(x) = "double"
   storage.mode(subsample) = "integer"

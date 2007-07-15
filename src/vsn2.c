@@ -173,9 +173,6 @@ double loglik(int n, double *par, void *ex)
     } /* for j */
   } /* for i */
 
-  if(px->ntot != nt)   /* Just double-check - the code with 'nt' can be removed in future versions */
-    error("Internal error 2 in 'loglik'.");
-
   if(px->profiling) {
     /* Negative profile log likelihood */
     /* Calculate sigsq and save for reuse in grad_loglik */
@@ -387,21 +384,21 @@ SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Smu,
   SEXP res, namesres, vfail, coef, dimcoef, mu, sigsq;
   vsn_data x;
 
-  lmm      = 20;   
+  lmm      = 5;   
   fail     = 0;
 
-  if(!(isNewList(Soptimpar)&&(LENGTH(Soptimpar)==7)))
-    error("Invalid argument: 'Soptimpar' must be a real vector of length 7.");
+  if(!(isNewList(Soptimpar)&&(LENGTH(Soptimpar)==8)))
+    error("Invalid argument: 'Soptimpar' must be a list of length 8.");
 
   factr    = REAL(getListElement(Soptimpar, "factr"))[0];
   pgtol    = REAL(getListElement(Soptimpar, "pgtol"))[0];
   low      = REAL(getListElement(Soptimpar, "lower"))[0];
   maxit    = INTEGER(getListElement(Soptimpar, "maxit"))[0]; 
   trace    = INTEGER(getListElement(Soptimpar, "trace"))[0];
+  nREPORT  = INTEGER(getListElement(Soptimpar, "REPORT"))[0];
  
   fncount  = 0;
   grcount  = 0;
-  nREPORT  = 1;
 
   setupEverybody(Sy, Spar, Sstrat, &x);
   cpar = setupLikelihoodstuff(Sy, Spar, Sstrat, Smu, Ssigsq, &x);

@@ -32,7 +32,7 @@ vsnMatrix(x,
   returnData   = TRUE,
   pstart,
   optimpar     = list(),
-  defaultpar   = list(factr=5e7, pgtol=2e-4, lower=2e-4, maxit=60000L, trace=0L, cvg.niter=7L, cvg.eps=0))
+  defaultpar   = list(factr=5e7, pgtol=2e-4, lower=2e-4, maxit=60000L, trace=0L, REPORT=10L, cvg.niter=7L, cvg.eps=0))
 
 \S4method{vsn2}{matrix}(x, reference, strata, ...)
 \S4method{vsn2}{numeric}(x, reference, strata, ...)
@@ -90,7 +90,7 @@ vsnMatrix(x,
   The transformed data are on a glog scale to base 2. More precisely,
   the transformed data are subject to the transformation
   asinh((x+a)/b) / log(2) + c, where
-  asinh(x) / log(2) = log2(x+sqrt(x^2+1)) is also called the 'glog', and
+  asinh(x) / log(2) = log2(x+sqrt(x*x+1)) is also called the 'glog', and
   the constant c is an overall constant offset that is computed from b such that for
   large x the transformation approximately corresponds to the
   log2 function. The offset c is inconsequential for all differential expression
@@ -119,8 +119,10 @@ vsnMatrix(x,
   \describe{
     \item{\code{lower}}{Lower bound for the multiplicative parameters of the
       vsn model}
-    \item{\code{trace}}{Verbosity level of \code{L-BFGS-B}, positive values
+    \item{\code{trace}}{An integer between 1 and 6, indicating the
+      verbosity level of \code{L-BFGS-B}, higher values
       create more output.}
+    \item{\code{REPORT}}{The frequency of reports if \code{trace==3}.}
     \item{\code{cvg.niter}}{The number of iterations to be used in the least
       trimmed sum of squares regression.}
     \item{\code{cvg.eps}}{Numeric. A convergence threshold for the least

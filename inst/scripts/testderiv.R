@@ -19,6 +19,7 @@ switch(1L,
        })
 
 nrpar = 2L*ncol(x)*nlevels(strata)
+k     = ncol(x)*nlevels(strata)
 eps   = 1e-6
 
 norm = function(x) sqrt(sum(x*x))
@@ -27,13 +28,18 @@ v = new("vsnInput", x=x,
   pstart=array(as.numeric(NA), dim=c(nlevels(strata), ncol(x), 2L)),
   strata=strata, ordered=TRUE)
 
+fit = vsn2(x, lts.quantile=1, strata=strata)
+
 df = array(NA, dim=c(nrpar, nrpt, 2L))
 
 doit = function(nm, fun) {
   cat("Wait for", nrpt, "points: ")
   for (ip in 1:nrpt) {
     cat(ip, "")
-    p0 = runif(nrpar)+1.2
+    p0 = as.vector(coef(fit))
+    p0[   1:k ] = p0[   1:k ] + runif(k)*1000
+    p0[k+(1:k)] = p0[k+(1:k)] * exp(rnorm(k, sd=0.2))
+    
     df[,ip,1] = fun(p0)[-1]
 
     for(il in 1:nrpar) {
