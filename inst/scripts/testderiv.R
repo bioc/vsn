@@ -30,28 +30,29 @@ v = new("vsnInput", x=x,
 
 fit = vsn2(x, lts.quantile=1, strata=strata)
 
-df = array(NA, dim=c(nrpar, nrpt, 2L))
 
 doit = function(nm, fun) {
   cat("Wait for", nrpt, "points: ")
+  
+  df = array(NA, dim=c(nrpar, nrpt, 3L))
   for (ip in 1:nrpt) {
     cat(ip, "")
     p0 = as.vector(coef(fit))
-    p0[   1:k ] = p0[   1:k ] + runif(k)*1000
-    p0[k+(1:k)] = p0[k+(1:k)] * exp(rnorm(k, sd=0.2))
+    p0 = p0 + runif(length(p0), min=-.2, max=.2)
     
-    df[,ip,1] = fun(p0)[-1]
+    df[,ip,1L] = fun(p0)[-1L]
 
     for(il in 1:nrpar) {
       dp = eps*(il==1:nrpar)
-      fn = fun(cbind(p0-dp, p0+dp))[1, ]
+      fn = fun(cbind(p0-dp, p0+dp))[1L, ]
       grn = diff(fn)/norm(2*dp)
       stopifnot(is.finite(grn))
-      df[il,ip,2]  = grn
+      df[il,ip,2L]  = grn
       }
+
+    df[,ip,3L] = p0
   }
   cat("\n\n")
-
   x11(width=14, height=7)
   par(mfrow=c(2, ncol(x)*nlevels(strata)+1))
   lj = list(offset=1:(ncol(x)*nlevels(strata)),

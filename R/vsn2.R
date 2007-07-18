@@ -1,3 +1,8 @@
+
+
+BUMMER PLEASE DONT USE ME YET
+
+
 ##----------------------------------------------------------------------
 ## Robust calibration and variance stabilization
 ##   revised version vsn2
@@ -39,10 +44,6 @@ vsnML = function(v) {
     warning(msg)
   }
   
-  if (any(coefficients(rv)[,,2L]<0))
-    stop("Internal error: likelihood optimization produced negative scale factor estimates.\n",
-         "Please contact the package maintainer.\n")
-  
   return(rv)
 }
 
@@ -57,18 +58,17 @@ vsnML = function(v) {
 ##------------------------------------------------------------
 calcistrat = function(vp) {
   nrs = nlevels(vp@strata)
-  one = as.integer(1)
 
-  if(length(vp@strata)>0) {
+  if(length(vp@strata)>0L) {
     stopifnot(vp@ordered)
-    istr = which(!duplicated(vp@strata))-one
+    istr = which(!duplicated(vp@strata))-1L
   } else {
-    istr = as.integer(0)
+    istr = 0L
   }
   stopifnot(length(istr)==nrs)
 
-  istrat = integer(ncol(vp@x)*nrs+one)
-  for(i in 0:(ncol(vp@x)-one))
+  istrat = integer(ncol(vp@x)*nrs+1L)
+  for(i in 0:(ncol(vp@x)-1L))
     istrat[i*nrs + seq_len(nrs)] = i*nrow(vp@x) + istr
 
   istrat[length(istrat)] = nrow(vp@x)*ncol(vp@x)  ## end point
@@ -252,7 +252,7 @@ vsnMatrix = function(x,
   returnData   = TRUE,
   pstart,
   optimpar   = list(),
-  defaultpar = list(factr=5e7, pgtol=2e-4, lower=2e-4, maxit=60000L, trace=0L, REPORT=10L, cvg.niter=7L, cvg.eps=0)) {
+  defaultpar = list(factr=5e7, pgtol=2e-4, maxit=60000L, trace=0L, cvg.niter=7L, cvg.eps=0)) {
 
   storage.mode(x) = "double"
   storage.mode(subsample) = "integer"
@@ -284,8 +284,9 @@ vsnMatrix = function(x,
       stop(sprintf("The slot 'reference@mu' has length %d, but expected is n=%d", nrow(reference)))
   }
 
-  if(!(is.list(optimpar)&&all(names(optimpar)%in%names(defaultpar))))
-    stop("'optimpar' must be a list whose elements have the same names as elements of 'defaultpar'.")
+  if(!(is.list(optimpar)&&all(names(optimpar)%in%optimparNames)&&!any(duplicated(names(optimpar)))))
+    stop(paste("Names of elements of 'optimpar' must be from: ",
+               paste("'", optimparNames, "'", collapse=", ", sep=""), ".", sep=""))
   opar = defaultpar
   opar[names(optimpar)] = optimpar
   
@@ -325,7 +326,7 @@ vsnMatrix = function(x,
 ## trsf2log2scale
 ##--------------------------------------------------------------------
 trsf2log2scale = function(x, coefficients)
-  (x-mean(log(2/coefficients[,,2])))/log(2)
+  (x-mean(coefficients[,,2]))/log(2)-1
 
 ##---------------------------------------------------------------------
 ## The glog transformation
@@ -351,8 +352,6 @@ vsn2trsf = function(x, p, strata) {
   
   if(length(dim(p))!=3L || dim(p)[1L]!=nrstrata || dim(p)[2L]!=ncol(x) || dim(p)[3L]!=2L)
     stop("'p' has wrong dimensions.")
-  if (any(p[,,2L]<=0))
-    stop("'p' contains invalid values: factors must be non-negative.")
 
   hx = .Call("vsn2_trsf", x, as.vector(p), strata, PACKAGE="vsn")
 
@@ -377,16 +376,16 @@ rowVars = function(x, mean, ...) {
 ## A heuristic to set the start parameters for offset and scale.
 pstartHeuristic = function(x, sp) {
   pstart = array(0, dim=c(length(sp), ncol(x), 2L))
-#  for(i in seq_along(sp)) {
-#    for(j in seq_len(ncol(x))) {
-#      rg = quantile(x[sp[[i]], j], probs=c(0.10, 0.75), na.rm=TRUE)
-#      z = 8/(rg[2]-rg[1])
-#      pstart[i,j,] = c(2-rg[1]*z, z)
-#    }
-#  }
-  pstart[,,2] = 1
+  pstart[,,2L] = 1
   return(pstart)
 }
+##  for(i in seq_along(sp)) {
+##    for(j in seq_len(ncol(x))) {
+##      rg = quantile(x[sp[[i]], j], probs=c(0.10, 0.75), na.rm=TRUE)
+##      z = 8/(rg[2]-rg[1])
+##      pstart[i,j,] = c(2-rg[1]*z, z)
+##    }
+##  }
 
 ## -------------------- 
 ## integer to factor

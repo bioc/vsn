@@ -44,24 +44,25 @@ vignette \emph{Robust calibration and variance stabilization with
 \section{Setup and Notation}
 Consider the model
 \begin{equation}\label{eq:model}
-\arsinh\left(\frac{y_{ki}}{f(b_i)}+a_i\right) = \mu_k + \varepsilon_{ki}
+\arsinh\left(f(b_i)\cdot y_{ki}+a_i\right) = \mu_k + \varepsilon_{ki}
 \end{equation}
 where $\mu_k$, for $k=1,\ldots,n$, and $a_i$, $b_i$, for $i=1,\ldots,d$
-are real-valued parameters, $f$ is a function $\mathbb{R}\to\mathbb{R}$ (see below), 
+are real-valued parameters, $f$ is a function $\mathbb{R}\to\mathbb{R}$ 
+(see below), 
 and $\varepsilon_{ki}$ are i.i.d.\ Normal with mean 0 and variance $\sigma^2$. 
 $y_{ki}$ are the data. In applications to $\mu$array data, $k$ indexes the 
 features and $i$ the arrays and/or colour channels.
 
-Examples for $f$ are $f(b)=b$ and $f(b)=e^b$. The former is the most obvious choice;
-in that case we need to require $b_i>0$ in order to make sure that the denominator
-on the LHS of Equation~(\ref{eq:model}) is always positive.
-The choice $f(b)=e^b$ assures a positive denominator for all $b\in\mathbb{R}$, and as it 
-turns out, simplifies some of the computations.
+Examples for $f$ are $f(b)=b$ and $f(b)=e^b$. The former is the most
+obvious choice; in that case we will usually need to require $b_i>0$.
+The choice $f(b)=e^b$ assures that the factor in front of $y_{ki}$ is
+positive for all $b\in\mathbb{R}$, and as it turns out, simplifies
+some of the computations.
 
 In the following calculations, I will also use the notation
 \begin{eqnarray}
-h \equiv h(y,a,b) &=& \arsinh\left(\frac{y}{f(b)}+a\right)\\
-Y \equiv Y(y,a,b) &=&        \left(\frac{y}{f(b)}+a\right).
+Y \equiv Y(y,a,b) &=&              f(b)\cdot y+a\\
+h \equiv h(y,a,b) &=& \arsinh\left(f(b)\cdot y+a\right).
 \end{eqnarray}
 
 The probability of the data $(y_{ki})_{k=1\ldots n,\;i=1\ldots d}$ 
@@ -83,7 +84,7 @@ p_{\mbs{Normal}}(x,\mu,\sigma^2)=\frac{1}{\sqrt{2\pi\sigma^2}}
 \end{equation}
 the likelihood is
 \begin{equation}\label{eq:likelihood}
-\left(\frac{1}{\sqrt{2\pi\sigma^2}}\right)^{nd}
+L=\left(\frac{1}{\sqrt{2\pi\sigma^2}}\right)^{nd}
 \prod_{k=1}^n \prod_{i=1}^d
 \exp\left(-\frac{(h(y_{ki})-\mu_k)^2}{2\sigma^2}\right)
 \cdot\frac{dh}{dy}(y_{ki})\,.
@@ -91,16 +92,16 @@ the likelihood is
 
 For the following, I will need the derivatives
 \begin{eqnarray}
-\frac{dh}{dy}&=&
-\frac{1}{f(b)\sqrt{1+\left(\frac{y+a}{f(b)}\right)^2}}=
-\frac{1}{f(b)\sqrt{1+Y^2}},\\
-\frac{\partial h}{\partial a}&=&\frac{1}{\sqrt{1+Y^2}},\\
-\frac{\partial h}{\partial b}&=&-\frac{Y}{\sqrt{1+Y^2}}\cdot\frac{f'(b)}{f(b)}\\
 \frac{\partial Y}{\partial a}&=&1\\
-\frac{\partial Y}{\partial b}&=&-Y\cdot\frac{f'(b)}{f(b)}.
+\frac{\partial Y}{\partial b}&=&y\cdot f'(b)\\
+\frac{dh}{dy}&=&
+\frac{f(b)}{\sqrt{1+(f(b)y+a)^2}}=
+\frac{f(b)}{\sqrt{1+Y^2}},\\
+\frac{\partial h}{\partial a}&=&\frac{1}{\sqrt{1+Y^2}},\\
+\frac{\partial h}{\partial b}&=&\frac{y}{\sqrt{1+Y^2}}\cdot f'(b).
 \end{eqnarray}
-Note that for $f(b)=b$, we have $\frac{f'(b)}{f(b)}=\frac{1}{b}$,
-and for $f(b)=e^b$,  $\frac{f'(b)}{f(b)}=1$.
+Note that for $f(b)=b$, we have $f'(b)=1$,
+and for $f(b)=e^b$,  $f'(b)=f(b)=e^b$.
 
 %----------------------------------------------------------------
 \section{Likelihood for Incremental Normalization}\label{sec:inc}
@@ -126,10 +127,10 @@ $i$-th negative log-likelihood
 -\log(L) &=&\sum_{i=1}^d -LL\\
 -LL_i&=&\frac{n}{2}\log\left(2\pi\sigma^2\right)+
 \sum_{k=1}^n \left(\frac{(h(y_{ki})-\mu_k)^2}{2\sigma^2}
-+\log\left(f(b_i)\sqrt{1+Y_{ki}^2}\right)\right)\\
-&=&\frac{n}{2}\log\left(2\pi\sigma^2\right)+
-n\log f(b_i)+
-\sum_{k=1}^n \left(\frac{(h(y_{ki})-\mu_k)^2}{2\sigma^2}
++\log\frac{\sqrt{1+Y_{ki}^2}}{f(b_i)}\right)\\
+&=&\frac{n}{2}\log\left(2\pi\sigma^2\right)
+-n\log f(b_i)
++\sum_{k=1}^n\left(\frac{(h(y_{ki})-\mu_k)^2}{2\sigma^2}
 +\frac{1}{2}\log\left(1+Y_{ki}^2\right)\right)
 \end{eqnarray}
 This is what we want to optimize as a function of $a_i$ and $b_i$. 
@@ -142,28 +143,28 @@ The  derivative with respect to $a_i$ is
 \cdot\frac{1}{\sqrt{1+Y_{ki}^2}}
 \nonumber\\
 &=& \sum_{k=1}^n 
-\left(\frac{r_{ki}}{\sigma^2}+B_{ki}\right)A_{ki}
+\left(\frac{r_{ki}}{\sigma^2}+A_{ki}Y_{ki}\right)A_{ki}
 \label{eq:ddanll}
 \end{eqnarray}
 and with respect to $b_i$
 \begin{eqnarray}
 \frac{\partial}{\partial b_i}(-LL_i) &=&
-\frac{f'(b_i)}{f(b_i)} \left(n
--\sum_{k=1}^n \left( \frac{h(y_{ki})-\mu_k}{\sigma^2}
+-n\frac{f'(b_i)}{f(b_i)} 
++\sum_{k=1}^n \left( \frac{h(y_{ki})-\mu_k}{\sigma^2}
 +\frac{Y_{ki}}{\sqrt{1+Y_{ki}^2}}\right)
-\cdot\frac{Y_{ki}}{\sqrt{1+Y_{ki}^2}}\right)
+\cdot\frac{y_{ki}}{\sqrt{1+Y_{ki}^2}}\cdot f'(b_i)
 \nonumber\\
-&=&\frac{f'(b_i)}{f(b_i)} \left(n
--\sum_{k=1}^n 
-\left(\frac{r_{ki}}{\sigma^2}+B_{ki}\right)B_{ki}\right)
+&=&
+-n\frac{f'(b_i)}{f(b_i)} 
++f'(b_i)\sum_{k=1}^n \left(\frac{r_{ki}}{\sigma^2}+A_{ki}Y_{ki}\right)
+A_{ki}y_{ki}
 \label{eq:ddbnll}
 \end{eqnarray}
 Here, I have introduced the following shorthand notation for the 
 ``intermediate results'' terms
 \begin{eqnarray}
 r_{ki}&=& h(y_{ki})-\mu_k\\
-A_{ki}&=&\frac{1}{\sqrt{1+Y_{ki}^2}}\\
-B_{ki}&=&\frac{Y_{ki}}{\sqrt{1+Y_{ki}^2}}.
+A_{ki}&=&\frac{1}{\sqrt{1+Y_{ki}^2}}.
 \end{eqnarray}
 These variables are also used in the C code to simplify 
 the computations of the gradient.
@@ -184,12 +185,13 @@ The result is called the negative profile log-likelihood
 \begin{equation}\label{eq:npll}
 -PLL=
  \frac{nd}{2}\log\left(2\pi\hat{\sigma}^2\right)
-+\frac{nd}{2}+\sum_{k=1}^n\sum_{j=1}^d 
-\log\left(f(b_j){\sqrt{1+Y_{kj}^2}}\right).
++\frac{nd}{2}
+-n\sum_{j=1}^d\log f(b_j)
++\frac{1}{2}\sum_{k=1}^n\sum_{j=1}^d \log\sqrt{1+Y_{kj}^2}.
 \end{equation}
 Note that this no longer decomposes into a sum of terms for each $j$
 that are independent of each other -- the terms for different $j$
-are coupled through Equations (\ref{eq:muhat}) and (\ref{eq:sigmahat}).
+are coupled through Equation~(\ref{eq:sigmahat}).
 We need the following derivatives.
 \begin{eqnarray}
 \frac{\partial \hat{\sigma}^2}{\partial a_i} &=&
@@ -199,27 +201,23 @@ r_{ki}\frac{\partial h(y_{ki})}{\partial a_i}\nonumber\\
 \frac{2}{nd}
 \sum_{k=1}^n r_{ki}A_{ki}\\
 \frac{\partial \hat{\sigma}^2}{\partial b_i} &=&
--\frac{2}{nd}\cdot\frac{f'(b_i)}{f(b_i)} 
-\sum_{k=1}^n r_{ki}B_{ki}
+\frac{2}{nd}\cdot f'(b_i)
+\sum_{k=1}^n r_{ki}A_{ki}y_{ki}
 \end{eqnarray}
 So, finally
 \begin{eqnarray}
 \frac{\partial}{\partial a_i}(-PLL) &=&
 \frac{nd}{2\hat{\sigma}^2}\cdot 
 \frac{\partial \hat{\sigma}^2}{\partial a_i} 
-+\sum_{k=1}^n A_{ki}B_{ki}\nonumber\\
++\sum_{k=1}^n A_{ki}^2Y_{ki}\nonumber\\
 &=&\sum_{k=1}^n 
-\left(\frac{r_{ki}}{\hat{\sigma}^2}+B_{ki}\right) 
-A_{ki}\label{eq:ddanpll}\\
+\left(\frac{r_{ki}}{\hat{\sigma}^2}+A_{ki}Y_{ki}\right)A_{ki}
+\label{eq:ddanpll}\\
 \frac{\partial}{\partial b_i}(-PLL) &=&
-\frac{nd}{2\hat{\sigma}^2}\cdot 
-\frac{\partial \hat{\sigma}^2}{\partial b_i} 
-+ \frac{f'(b_i)}{f(b_i)} \left(n
-- \sum_{k=1}^n B_{ki}^2\right)\nonumber\\
-&=& \frac{f'(b_i)}{f(b_i)} \left(n
-- \sum_{k=1}^n 
-\left(\frac{r_{ki}}{\hat{\sigma}^2}+B_{ki}\right) \right)
-B_{ki}\label{eq:ddbnpll}
+-n\frac{f'(b_i)}{f(b_i)} 
++ f'(b_i) \sum_{k=1}^n 
+\left(\frac{r_{ki}}{\hat{\sigma}^2}+A_{ki}Y_{ki}\right)A_{ki}y_{ki}
+\label{eq:ddbnpll}
 \end{eqnarray}
 
 
@@ -235,9 +233,9 @@ Likelihoods, from Equations~(\ref{eq:nll}) and (\ref{eq:npll}):
 }_{\mbox{scale}} +
 \underbrace{%
   \sum_{k=1}^n \frac{(h(y_{ki})-\mu_k)^2}{2\sigma^2}
-}_{\mbox{residuals}} +
+}_{\mbox{residuals}} 
 \underbrace{%
-  n\log f(b_i) + 
+  -n\log f(b_i) + 
   \frac{1}{2}\sum_{k=1}^n \log(1+Y_{ki}^2)
 }_{\mbox{jacobian}}\\
 -PLL&=&
@@ -249,7 +247,7 @@ Likelihoods, from Equations~(\ref{eq:nll}) and (\ref{eq:npll}):
 }_{\mbox{residuals}} +
 \underbrace{%  
   \sum_{i=1}^d\left(
-  n\log f(b_i) + 
+  -n\log f(b_i) + 
   \frac{1}{2}\sum_{k=1}^n \log(1+Y_{ki}^2)\right)
 }_{\mbox{jacobian}}
 \end{eqnarray}
@@ -261,23 +259,25 @@ from Equations~(\ref{eq:ddanll}) and (\ref{eq:ddanpll}):
 \begin{eqnarray}
 \frac{\partial}{\partial a_i}(-LL_i) &=&
 \sum_{k=1}^n 
-\left(\frac{r_{ki}}{\sigma^2}+B_{ki}\right)A_{ki}\\
+\left(\frac{r_{ki}}{\sigma^2}+A_{ki}Y_{ki}\right)A_{ki}\\
 %
 \frac{\partial}{\partial a_i}(-PLL) &=&
 \sum_{k=1}^n 
-\left(\frac{r_{ki}}{\hat{\sigma}^2}+B_{ki}\right)A_{ki}
+\left(\frac{r_{ki}}{\hat{\sigma}^2}+A_{ki}Y_{ki}\right)A_{ki}
 \end{eqnarray}
 
 Partial derivatives with respect to $b_i$,
 from Equations~(\ref{eq:ddbnll}) and (\ref{eq:ddbnpll}):
 \begin{eqnarray}
 \frac{\partial}{\partial b_i}(-LL_i) &=&
-\frac{f'(b_i)}{f(b_i)}\left(n-\sum_{k=1}^n 
-\left(\frac{r_{ki}}{\sigma^2}+B_{ki}\right)B_{ki}\right)\\
+-n\frac{f'(b_i)}{f(b_i)}
++f'(b_i)\sum_{k=1}^n 
+\left(\frac{r_{ki}}{\sigma^2}+A_{ki}Y_{ki}\right)A_{ki}y_{ki}\\
 %
 \frac{\partial}{\partial b_i}(-PLL) &=&
-\frac{f'(b_i)}{f(b_i)}\left(n-\sum_{k=1}^n 
-\left(\frac{r_{ki}}{\hat{\sigma}^2}+B_{ki}\right)B_{ki}\right)
+-n\frac{f'(b_i)}{f(b_i)}
++f'(b_i)\sum_{k=1}^n 
+\left(\frac{r_{ki}}{\hat{\sigma}^2}+A_{ki}Y_{ki}\right)A_{ki}y_{ki}.
 \end{eqnarray}
 
 Note that the terms have many similarities -- this

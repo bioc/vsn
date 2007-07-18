@@ -11,6 +11,13 @@
 #include <R_ext/Utils.h>          /* for R_CheckUserInterrupt */
 extern double asinh(double);
 
+/* #define FUN(b) exp((b))  */
+/* #define DFDB(b) exp((b)) see vignette */
+#define FUN(b)  ((b<=0.0) ? exp(b) : b+1.0)
+#define DFDB(b) ((b<=0.0) ? exp(b) : 1.0)
+
+#undef VSN_DEBUG
+
 typedef struct {
   double *y;       /* expression matrix: y_ik     */
   int nrow;        /* no. of features             */
@@ -31,7 +38,6 @@ typedef struct {
   double *asly;    /* is called h_ki in the vignette   */
   double *resid;   /* r_ki  */
   double *ma;      /* A_ki  */
-  double *mb;      /* B_ki  */
 
   double *lastpar;
 } vsn_data;
@@ -70,7 +76,7 @@ void calctrsf(vsn_data *px, double* par, double *hy)
 	} else {
 	  a = par[s + j*ns];
 	  b = par[s + j*ns + ns*nc];
-          hy[i + j*nr] = asinh((z+a)/b);
+          hy[i + j*nr] = asinh(FUN(b)*z+a);
 	}
       }
     }
@@ -84,7 +90,7 @@ void calctrsf(vsn_data *px, double* par, double *hy)
 double loglik(int n, double *par, void *ex)
 {
   double *a, *b;      
-  double aj, bj, mu, s, z, ll, ssq, sigsq, jac1, jac2, jacobian, scale, residuals;
+  double aj, bj, mu, z, ll, ssq, sigsq, jac1, jac2, jacobian, scale, residuals;
   int i, j, ni, nt;
   int nr, nc;
   vsn_data *px;
@@ -107,30 +113,26 @@ double loglik(int n, double *par, void *ex)
   nt = 0;
   for(j=0; j < px->nrstrat; j++){
     aj = a[j];
-    bj = b[j];
+    bj = FUN(b[j]);
     ni = 0;
     for(i = px->strat[j]; i < px->strat[j+1]; i++){
       z = px->y[i];
       if(!ISNA(z)) {
-	z = (z+aj)/bj;  
+	z = bj*z+aj;  
 	px->ly[i]   = z;
 	px->asly[i] = asinh(z);
-
-	s = 1.0/sqrt(1.0+z*z); 
-	px->ma[i] = s;
-	px->mb[i] = z*s;
-	
+	px->ma[i]   = 1.0/sqrt(1.0+z*z); 
 	jac1 += log(1.0+z*z); 
         ni++;
       } else {
-	px->ly[i] = px->asly[i]	= px->ma[i] = px->mb[i] = NA_REAL;
+	px->ly[i] = px->asly[i]	= px->ma[i] = NA_REAL;
       }
     } /* for i */
     jac2 += ni*log(bj);
     nt += ni;
   } /* for j */
   
-  jacobian = jac1/2.0 + jac2;
+  jacobian = jac1*0.5 - jac2;
 
   if(px->ntot != nt)   /* Just double-check - the code with 'nt' can be removed in future versions */
     error("Internal error 1 in 'loglik'.");
@@ -139,7 +141,6 @@ double loglik(int n, double *par, void *ex)
   /* 2nd sweep through the data: compute r_ki                      */
   /*---------------------------------------------------------------*/
   ssq = 0.0;
-  nt = 0;
   for(i=0; i<nr; i++){
     /* first, need to compute mu (if profiling) or just take it as 
        given (if not profiling) */
@@ -165,7 +166,6 @@ double loglik(int n, double *par, void *ex)
       if(!(ISNA(mu)||ISNA(z))) {
         z = z-mu;
 	ssq += z*z;
-        nt++;
       } else {
         z = NA_REAL;
       }
@@ -202,7 +202,7 @@ void grad_loglik(int n, double *par, double *gr, void *ex)
 {
   double *b;      
   vsn_data *px;
-  double sa, sb, rfac, bki, z;
+  double sa, sb, rfac, aki, yki, lyki, z;
   int j, k, nj;
 
   px = (vsn_data*) ex;
@@ -224,15 +224,17 @@ void grad_loglik(int n, double *par, double *gr, void *ex)
     for(k = px->strat[j]; k < px->strat[j+1]; k++) {
       z = px->resid[k];
       if(!ISNA(z)){
-        bki = px->mb[k];
-	z = z*rfac + bki;
-        sa += z*(px->ma[k]);
-        sb += z*bki;
+        aki  = px->ma[k];       /* A_ki in the vignette */
+        yki  = px->y[k];        /* y_ki in the vignette */
+        lyki = px->ly[k];       /* Y_ki in the vignette */
+	z = z*rfac + aki*lyki;
+        sa += z*aki;
+        sb += z*aki*yki;
 	nj++;
       }
     } /* for k */
-    gr[j]               =  sa / b[j];
-    gr[j+(px->nrstrat)] = ((double)nj - sb) / b[j];
+    gr[j]               = sa;
+    gr[j+(px->nrstrat)] = DFDB(b[j])*(sb-(double)nj/FUN(b[j]));
   }
 
 
@@ -334,16 +336,12 @@ double* setupLikelihoodstuff(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Smu, SEXP Ssi
   px->asly    = (double *) R_alloc(nr*nc,  sizeof(double));
   px->resid   = (double *) R_alloc(nr*nc,  sizeof(double));
   px->ma      = (double *) R_alloc(nr*nc,  sizeof(double));
-  px->mb      = (double *) R_alloc(nr*nc,  sizeof(double));
   px->lastpar = (double *) R_alloc(np, sizeof(double));
 
   /* parameters  */
   cpar = (double *) R_alloc(np, sizeof(double));
   for(i=0; i < 2*ns; i++) 
     cpar[i] = REAL(Spar)[i];
-  for(i=ns; i < 2*ns; i++)
-    if(cpar[i] <=0 )
-      error("'Spar': factors must be >0.");
   
   return(cpar);
 } 
@@ -386,16 +384,15 @@ SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Smu,
 
   lmm      = 5;   
   fail     = 0;
+  nREPORT  = 10;
 
-  if(!(isNewList(Soptimpar)&&(LENGTH(Soptimpar)==8)))
-    error("Invalid argument: 'Soptimpar' must be a list of length 8.");
+  if(!(isNewList(Soptimpar)&&(LENGTH(Soptimpar)==6)))
+    error("Invalid argument: 'Soptimpar' must be a list of length 6.");
 
   factr    = REAL(getListElement(Soptimpar, "factr"))[0];
   pgtol    = REAL(getListElement(Soptimpar, "pgtol"))[0];
-  low      = REAL(getListElement(Soptimpar, "lower"))[0];
   maxit    = INTEGER(getListElement(Soptimpar, "maxit"))[0]; 
   trace    = INTEGER(getListElement(Soptimpar, "trace"))[0];
-  nREPORT  = INTEGER(getListElement(Soptimpar, "REPORT"))[0];
  
   fncount  = 0;
   grcount  = 0;
@@ -417,14 +414,11 @@ SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Smu,
                3 if x(i) has only an upper bound. */
 
   for(i=0; i<x.npar; i++) {
-    lower[i] = low;
-    upper[i] = 0.;
-    scale[i] = 1.;
+    lower[i] = R_NegInf;
+    upper[i] = R_PosInf;
+    scale[i] = 1.0;
+    nbd[i] = 0;
   } 
-  for(i=0; i<x.nrstrat; i++) {
-    nbd[i]           = 0;
-    nbd[i+x.nrstrat] = 1; /* lower bound for factors */
-  }
   
   /* optimize (see below for documentation of the function arguments) */
   lbfgsb(x.npar, lmm, cpar, lower, upper, nbd, &fmin, 

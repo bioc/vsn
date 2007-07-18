@@ -18,15 +18,12 @@ par(mfcol=c(2, nrpar))
 
 for(i in seq_len(nrpar))  {
   pars = matrix(coef(fit), nrow=nrpar, ncol=nplot)
+  pars[i,] = coef(fit)[i] +  seq(-1, 1, length=nplot)
+  logarg  = ""
   if(i<=d*nrstr) {
-    pars[i,] = coef(fit)[i] +  (seq(-1, 1, length=nplot) * 0.1 *
-          diff(quantile(exprs(fit)[,i], probs=c(0.01, 0.99))))
     xlab = substitute(a[k], list(k=i))
-    logarg  = ""
   } else {
-    pars[i,] = coef(fit)[i] * exp(seq(-1, 1, length=nplot))    
     xlab = substitute(b[k], list(k=i-nrpar/2))
-    logarg  = "x"
   }
   
   for(what in 1:2){

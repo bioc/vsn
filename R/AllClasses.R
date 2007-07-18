@@ -57,8 +57,7 @@ validityVsnInput = function(object){
   if(!all(dim(object@pstart)==c(nlevels(object@strata), ncol(object@x), 2)))
     return("Invalid dimensions of 'pstart'.")
 
-  compulsoryElements = c("factr", "pgtol", "lower", "maxit", "trace", "REPORT", "cvg.niter", "cvg.eps")
-  if(!is.list(object@optimpar)||!identical(names(object@optimpar), compulsoryElements))
+  if(!is.list(object@optimpar)||!identical(names(object@optimpar), optimparNames))
     return(paste("'optimpar' must be a list with elements ",
                  paste("'", compulsoryElements, "'", collapse=", ", sep=""), ".", sep=""))
 
@@ -66,13 +65,9 @@ validityVsnInput = function(object){
   if(!identical(r, TRUE)) return(r)
   r = validScalarDoubleListElt(object@optimpar, "pgtol")
   if(!identical(r, TRUE)) return(r)
-  r = validScalarDoubleListElt(object@optimpar, "lower")
-  if(!identical(r, TRUE)) return(r)
   r = validScalarIntListElt(object@optimpar, "maxit", min=1L)
   if(!identical(r, TRUE)) return(r)
   r = validScalarIntListElt(object@optimpar, "trace", min=0L, max=6L)
-  if(!identical(r, TRUE)) return(r)
-  r = validScalarIntListElt(object@optimpar, "REPORT")
   if(!identical(r, TRUE)) return(r)
   r = validScalarIntListElt(object@optimpar, "cvg.niter", min=1L)
   if(!identical(r, TRUE)) return(r)
@@ -153,8 +148,9 @@ setClass("vsnInput",
     lts.quantile = "numeric",
     subsample = "integer",
     verbose   = "logical",
-    pstart    = "array",     ## Start parameters: see comment on slot 'coefficients' in definition of class 'vsn'
-    optimpar  = "list"),     
+    pstart    = "array",     ## Start parameters: see comment on slot 'coefficients'
+                             ## in definition of class 'vsn'
+    optimpar  = "list"),     ## See below: optimparnames
   prototype = list(
     x = matrix(as.numeric(NA), nrow=0, ncol=0),
     reference = new("vsn"),
@@ -164,8 +160,9 @@ setClass("vsnInput",
     subsample = 0L,
     verbose = TRUE,
     pstart = array(as.numeric(NA), dim=c(1L,0L,2L)),
-    optimpar = list(factr=5e7, pgtol=2e-4, lower=2e-4,
-                 maxit=60000L, trace=0L, REPORT=10L, cvg.niter=7L, cvg.eps=0)),
+    optimpar = list(factr=5e7, pgtol=2e-4, 
+                 maxit=60000L, trace=0L, cvg.niter=7L, cvg.eps=0)),
   validity = validityVsnInput)
                   
 
+optimparNames = c("factr", "pgtol", "maxit", "trace", "cvg.niter", "cvg.eps")

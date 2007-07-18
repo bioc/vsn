@@ -32,7 +32,7 @@ vsnMatrix(x,
   returnData   = TRUE,
   pstart,
   optimpar     = list(),
-  defaultpar   = list(factr=5e7, pgtol=2e-4, lower=2e-4, maxit=60000L, trace=0L, REPORT=10L, cvg.niter=7L, cvg.eps=0))
+  defaultpar   = list(factr=5e7, pgtol=2e-4, maxit=60000L, trace=0L, cvg.niter=7L, cvg.eps=0))
 
 \S4method{vsn2}{matrix}(x, reference, strata, ...)
 \S4method{vsn2}{numeric}(x, reference, strata, ...)
@@ -117,12 +117,9 @@ vsnMatrix(x,
   These are set by the elements \code{factr}, \code{pgtol} and
   \code{maxit} of \code{optimpar}. The remaining elements are
   \describe{
-    \item{\code{lower}}{Lower bound for the multiplicative parameters of the
-      vsn model}
-    \item{\code{trace}}{An integer between 1 and 6, indicating the
+    \item{\code{trace}}{An integer between 0 and 6, indicating the
       verbosity level of \code{L-BFGS-B}, higher values
       create more output.}
-    \item{\code{REPORT}}{The frequency of reports if \code{trace==3}.}
     \item{\code{cvg.niter}}{The number of iterations to be used in the least
       trimmed sum of squares regression.}
     \item{\code{cvg.eps}}{Numeric. A convergence threshold for the least

@@ -80,7 +80,7 @@ sigsq = 0.01
 y  = exp(mu+matrix(rnorm(2L*length(mu), sd=sqrt(sigsq)), ncol=2L))
 
 ref = new("vsn", mu=mu, sigsq=sigsq, coefficients=array(0, dim=c(1,1,2)))
-v = vsn2(x=y, ref=ref, lts.quantile=1, optimpar = list(lower=1e-6))
+v = vsn2(x=y, ref=ref, lts.quantile=1)
 hy = predict(v, newdata=y)
 
 x11(width=7, height=4); par(mfrow=c(1,2))
