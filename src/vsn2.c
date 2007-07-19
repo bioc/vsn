@@ -13,10 +13,11 @@
 #include <R_ext/Utils.h>          /* for R_CheckUserInterrupt */
 extern double asinh(double);
 
-/* #define FUN(b) exp((b))  */
-/* #define DFDB(b) exp((b)) see vignette */
-#define FUN(b)  ((b<=0.0) ? exp(b) : b+1.0)
-#define DFDB(b) ((b<=0.0) ? exp(b) : 1.0)
+/* Transformation of the parameter 'b': see vignette */
+#define FUN(b)  exp((b)) 
+#define DFDB(b) exp((b)) 
+/* #define FUN(b)  ((b<=0.0) ? exp(b) : b+1.0)  */
+/* #define DFDB(b) ((b<=0.0) ? exp(b) : 1.0) */
 
 #undef VSN_DEBUG
 
@@ -117,9 +118,8 @@ double loglik(int n, double *par, void *ex)
     aj = a[j];
     bj = FUN(b[j]);
 
-    if(bj<=0) {
-      Rprintf("Nonpositive factor bj=%g (b[%d]=%g).\n", bj, j, b[j]);
-
+    if(bj<=0)
+      error("Nonpositive factor bj=%g (b[%d]=%g).\n", bj, j, b[j]);
 
     ni = 0;
     for(i = px->strat[j]; i < px->strat[j+1]; i++){
@@ -215,12 +215,10 @@ void grad_loglik(int n, double *par, double *gr, void *ex)
   px = (vsn_data*) ex;
   b  = par + px->nrstrat;
 
-  for(j=0; j < px->npar; j++) {
-    if (px->lastpar[j] != par[j]) {
-      Rprintf("%d\t%g\t%g\n", j, px->lastpar[j], par[j]);
-      error("Parameters in 'grad_loglik' are different from those in 'loglik'.");
-    }
-  }
+  for(j=0; j < px->npar; j++)
+    if (px->lastpar[j] != par[j])
+      error("Parameters in 'grad_loglik' are different from those in 'loglik': px->lastpar[%d]=%g but par[%d]=%g.\n",
+             j, px->lastpar[j], j, par[j]);
 
   rfac = 1.0/(px->sigsq);
   
@@ -421,12 +419,17 @@ SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Smu,
                3 if x(i) has only an upper bound. */
 
   for(i=0; i<x.npar; i++) {
+    scale[i] = 1.0;
+  } 
+  for(i=0; i<x.nrstrat; i++) {
     lower[i] = R_NegInf;
     upper[i] = R_PosInf;
-    scale[i] = 1.0;
-    nbd[i] = 0;
-  } 
-  
+    nbd[i]   = 0;
+    lower[i+x.nrstrat] = -100.0;   /* exp(-100) is a very small positive number */
+    upper[i+x.nrstrat] = +100.0;   /* exp(+100) is a very large positive number */
+    nbd[i+x.nrstrat]   = 2;
+  }
+
   /* optimize (see below for documentation of the function arguments) */
   lbfgsb(x.npar, lmm, cpar, lower, upper, nbd, &fmin, 
          loglik, grad_loglik, &fail,
@@ -524,9 +527,10 @@ SEXP vsn2_scalingFactorTransformation(SEXP Sb)
 
   n = LENGTH(Sb);
   b = REAL(Sb);
-
-  res = allocVector(REALSXP, n); /* No PROTECT since we do not call back into R or otherwise allocate memory */
-  r =  REAL(res);
+  
+  /* No PROTECT since we do not call back into R or otherwise allocate memory */
+  res = allocVector(REALSXP, n); 
+  r = REAL(res);
 
   for(i=0; i<n; i++)
     r[i] = FUN(b[i]);

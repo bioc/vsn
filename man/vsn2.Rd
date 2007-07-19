@@ -89,9 +89,11 @@ vsnMatrix(x,
   An object of class \code{\linkS4class{vsn}}.
   The transformed data are on a glog scale to base 2. More precisely,
   the transformed data are subject to the transformation
-  asinh((x+a)/b) / log(2) + c, where
-  asinh(x) / log(2) = log2(x+sqrt(x*x+1)) is also called the 'glog', and
-  the constant c is an overall constant offset that is computed from b such that for
+  glog2(f(b)*x+a) + c, where
+  glog2(u) = log2(u+sqrt(u*u+1)) = asinh(u)/log(2) is called the
+  generalised logarithm, a and b are the fitted model parameters
+  (see references), f is a parameter transformation [4],
+  and the overall constant offset c is computed from b such that for
   large x the transformation approximately corresponds to the
   log2 function. The offset c is inconsequential for all differential expression
   calculations, but many users like to see the data in a range that they
@@ -104,8 +106,7 @@ vsnMatrix(x,
   This is the mode of operation described in the 2002 Bioinformatics
   paper and that was the only option in versions 1.X of this package.
   If \code{reference} is specified, the model parameters  $\mu_k$ and $\sigma$ are taken from
-  it. This allows for 'incremental' normalization. See the vignette
-  \emph{Likelihood Calculations for vsn}.
+  it. This allows for 'incremental' normalization [4].
 
   \code{L-BFGS-B} uses three termination criteria:
   \enumerate{
@@ -129,12 +130,13 @@ vsnMatrix(x,
 
 \seealso{\code{\link{justvsn}}, \code{\link[vsn:vsn2trsf]{predict}}}
 
-\references{Variance stabilization applied to microarray data
+\references{
+[1] Variance stabilization applied to microarray data
 calibration and to the quantification of differential expression,
 Wolfgang Huber, Anja von Heydebreck, Holger Sueltmann, Annemarie
 Poustka, Martin Vingron; Bioinformatics (2002) 18 Suppl.1 S96-S104.
 
-Parameter estimation for the calibration and variance stabilization 
+[2] Parameter estimation for the calibration and variance stabilization 
 of microarray data, 
 Wolfgang Huber, Anja von Heydebreck, Holger Sueltmann, 
 Annemarie Poustka, and Martin Vingron;  
@@ -142,9 +144,12 @@ Statistical Applications in Genetics and Molecular Biology (2003)
 Vol. 2 No. 1, Article 3.
 http://www.bepress.com/sagmb/vol2/iss1/art3.
 
-L-BFGS-B: Fortran Subroutines for Large-Scale Bound Constrained
+[3] L-BFGS-B: Fortran Subroutines for Large-Scale Bound Constrained
 Optimization, C. Zhu, R.H. Byrd, P. Lu and J. Nocedal,
-Technical Report, Northwestern University (1996).}
+Technical Report, Northwestern University (1996).
+
+[4] Package vignette: Likelihood Calculations for vsn
+}
 
 \author{Wolfgang Huber \url{http://www.ebi.ac.uk/huber}}
 

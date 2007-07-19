@@ -16,7 +16,7 @@ setMethod("predict", signature("vsn"),
       return(res)
     }
     
-    ## If we get here, 'newdata' must be either a matrix or a vector
+    ## Once we get here, 'newdata' must be either a matrix or a vector
     if(is.vector(newdata))
       dim(newdata)=c(length(newdata), 1)
 
@@ -25,8 +25,8 @@ setMethod("predict", signature("vsn"),
     if(storage.mode(newdata) != "double")
       storage.mode(newdata) = "double"
     
-    if(length(strata)==0) {
-      strata = rep(as.integer(1), nrow(newdata))
+    if(length(strata)==0L) {
+      strata = rep(1L, nrow(newdata))
     } else {
       if(length(strata)!=nrow(newdata))
         stop("'nrow(newdata)' must match 'strata'.")

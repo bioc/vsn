@@ -5,6 +5,7 @@
 
 library("vsn")
 options(error=recover)
+graphics.off()
 ## set.seed(0xbeeb)
 
 ## Generate data
@@ -17,15 +18,14 @@ vin = new("vsnInput", x=dat$y, pstart=array(as.numeric(NA), dim=c(1,1,2)), lts.q
 fitpar = sapply(n, function(k) {
   subs = 1:k
   fit = vsn2(dat$y[subs,], reference=ref[subs,], lts.quantile=1, verbose=FALSE)
-  m = mad(abs(dat$hy[subs,]-fit@hx))
-  c(coef(fit), m)
+  coef(fit)
 })
 
 graphics.off()
 
 ## Test 1:
 ## Do the estimated parameters converge to the true ones when the data is increased?
-x11(height=8, width=5)
+x11(height=6, width=5)
 par(mfrow=c(nrow(fitpar), 1))
 for(i in 1:nrow(fitpar)) {
   target = if(i<=2) dat$coefficients[1,1,i] else 0
@@ -39,11 +39,12 @@ myLLfun = function(object, p, mu, sigsq) {
   res = matrix(as.numeric(NA), nrow=1, ncol=ncol(p))
   stopifnot(nrow(p)==2)
   for(j in 1:ncol(p))  {
-    Y = (p[1,j]+object@x)/p[2,j]
+    fb = scalingFactorTransformation(p[2,j])
+    Y = p[1,j]+(object@x*fb)
     h = asinh(Y)
     scale = nrow(object)/2*log(2*pi*sigsq)
     residuals = sum((h-mu)^2/(2*sigsq))
-    jacobi = nrow(object)*log(p[2,j]) + 0.5*sum(log(1+Y^2))
+    jacobi = -nrow(object)*log(fb) + 0.5*sum(log(1+Y^2))
     res[, j] = -(scale+residuals+jacobi)
   }
   return(res)
@@ -56,7 +57,7 @@ dat = sagmbSimulateData(n=16000, d=1, de=0, nrstrata=1, miss=0, log2scale=TRUE)
 ref = new("vsn", mu=dat$mu, sigsq=dat$sigsq, coefficients=dat$coefficients)
 vin = new("vsnInput", x=dat$y, pstart=array(as.numeric(NA), dim=c(1,1,2)), lts.quantile = 1)
 
-ex = c(.2, 0.05)
+ex = c(.2, .2)
 x11(xpos=400)
 lp1 = plotVsnLogLik(vin, dat$coefficients, mu=ref@mu, sigsq=ref@sigsq, expand=ex)
 

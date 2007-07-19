@@ -71,9 +71,8 @@ calcistrat = function(vp) {
 }
 
 progress = function(i, imax) {
-  if(i>0)
-    cat("\b\b\b\b\b\b\b\b\b\b")
-  cat(sprintf("%3d", as.integer((1-((i-imax)/imax)^2)*100)), "% done.", sep="") ## 10 characters
+  if(i>0) cat("\b\b\b\b\b\b\b\b\b\b")
+  cat(sprintf("%3d", as.integer(i/imax*100)), "% done.", sep="") ## 10 characters
 }
  
 ##-------------------------------------------------------------------------
@@ -88,10 +87,11 @@ vsnLTS = function(v) {
   ## integer version of "v@strata"
   intStrat = if(length(v@strata)==0L) rep(1L, nrow(v@x)) else as.integer(v@strata)
 
-  if(v@verbose)
-      progress(0, v@optimpar$cvg.niter)
-
   for(iter in seq_len(v@optimpar$cvg.niter)) {
+
+    if(v@verbose)
+      progress(iter-1L, v@optimpar$cvg.niter)
+
     sv  = if(iter==1L) v else v[whsel, ]
     rsv = vsnML(sv)
 
@@ -139,9 +139,6 @@ vsnLTS = function(v) {
     meds    = grmed[as.character(slice)]
     whsel   = which(rvar <= meds)
 
-    ## diagnostic plot (most useful for d=2)
-    ## plot(hy, pch=".", col=2-sel, main=sprintf("iter=%d", iter))
-    
     ## Convergence check
     ## after a suggestion from David Kreil, kreil@ebi.ac.uk
     if(v@optimpar$cvg.eps>0) {
@@ -152,15 +149,13 @@ vsnLTS = function(v) {
       oldhy = hy
     }
 
-    if(v@verbose)
-      progress(iter, v@optimpar$cvg.niter)
-
   } ## end of for-loop
   
-  if(v@verbose) {
-    progress(v@optimpar$cvg.niter, v@optimpar$cvg.niter)
+  if(v@verbose){
+    progress(1L, 1L)
     cat("\n")
   }
+  
   return(rsv)
 }
 
@@ -319,9 +314,11 @@ vsnMatrix = function(x,
 
 ##---------------------------------------------------------------------
 ## trsf2log2scale
+## See the 'value' section of the man page of 'vsn2'
 ##--------------------------------------------------------------------
-trsf2log2scale = function(x, coefficients)
-  (x-mean(coefficients[,,2]))/log(2)-1
+trsf2log2scale = function(x, coefficients) {
+  (x/log(2))-log2(2*scalingFactorTransformation(mean(coefficients[,,2])))
+}
 
 ##---------------------------------------------------------------------
 ## The glog transformation
@@ -362,11 +359,10 @@ scalingFactorTransformation = function(b) {
   .Call("vsn2_scalingFactorTransformation", b, PACKAGE="vsn")
 }
 
-
 ##----------------------------------------------------------
-## helper function: row-wise variances of a matrix
+## row-wise variances of a matrix (slightly more efficient
+##  than geneplotter:rowVars since can pass 'mean')
 ##-----------------------------------------------------------
-
 rowV = function(x, mean, ...) {
   sqr     = function(x)  x*x
   n       = rowSums(!is.na(x))
@@ -376,24 +372,18 @@ rowV = function(x, mean, ...) {
   return(rowSums(sqr(x-mean), ...)/n)
 }
 
-##
+##--------------------------------------------------------------
 ## A heuristic to set the start parameters for offset and scale.
+##--------------------------------------------------------------
 pstartHeuristic = function(x, sp) {
   pstart = array(0, dim=c(length(sp), ncol(x), 2L))
   pstart[,,2L] = 1
   return(pstart)
 }
-##  for(i in seq_along(sp)) {
-##    for(j in seq_len(ncol(x))) {
-##      rg = quantile(x[sp[[i]], j], probs=c(0.10, 0.75), na.rm=TRUE)
-##      z = 8/(rg[2]-rg[1])
-##      pstart[i,j,] = c(2-rg[1]*z, z)
-##    }
-##  }
 
-## -------------------- 
+##-------------------- 
 ## integer to factor
-## -------------------- 
+##-------------------- 
 int2factor = function(strata) {
   if(is.factor(strata))
     return(strata)
@@ -406,7 +396,7 @@ int2factor = function(strata) {
   factor(strata, levels=ssu)
 }
 
-## -----
+##-------------------------------------------------------
 ## check if all elements of a vector are close to 0
-## ------
+##--------------------------------------------------------
 isSmall = function(x, tol=sqrt(.Machine$double.eps)) (max(abs(x))<tol)

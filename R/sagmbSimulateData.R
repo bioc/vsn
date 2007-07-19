@@ -30,7 +30,7 @@ sagmbSimulateData <- function(n=8064, d=2, de=0, up=0.5, nrstrata=1, miss=0, log
 
   ##------------------------------------------------------------
   ## generate simulated data:
-  ##  hy = asinh((y+a)/b)   <=>   y = b*sinh(hy)-a
+  ##  hy = asinh(f(b)*y+a)   <=>  y = (sinh(hy)-a)/f(b)
   ##------------------------------------------------------------
   is.de  <- (runif(n)<de)
   hy     <- matrix(as.numeric(NA), nrow=n, ncol=d)
@@ -44,7 +44,7 @@ sagmbSimulateData <- function(n=8064, d=2, de=0, up=0.5, nrstrata=1, miss=0, log
   facs   <- coefficients[strata,,2]
   stopifnot(all(dim(facs)==dim(hy)), all(dim(offs)==dim(hy)))
 
-  y = (sinh(hy)-offs)/facs
+  y = (sinh(hy)-offs)/scalingFactorTransformation(facs)
   if(miss>0)
     y[sample(length(y), length(y)*miss)] = as.numeric(NA)
 

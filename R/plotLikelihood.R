@@ -6,19 +6,17 @@ plotVsnLogLik = function(object, p, whichp=1:2, expand=1, ngrid=31, fun=logLik, 
     expand=rep(expand,2)
 
   d = ncol(object)
-  stopifnot(2*d*nlevels(object@strata)==length(p))
+  stopifnot(2L*d*nlevels(object@strata)==length(p))
 
   psteps = sapply(1:2, function(k) {
     z = ((whichp[k]-1) %/% nlevels(object@strata))
-    i = (z %% d) + 1
+    i = (z %% d) + 1L
     aorb = z %/% d
-    stopifnot(aorb %in% c(0,1))
+    stopifnot(aorb %in% c(0L,1L))
     if(aorb==0) {
-      delta = diff(quantile(object@x[,i], probs=c(0.49,0.51)))*expand[1]
-      p[whichp[k]] + seq(-delta, +delta, length=ngrid)
+      p[whichp[k]] + seq(-expand[1L], +expand[1L], length=ngrid)
     } else {
-      delta = log(1.2)*expand[2]
-      p[whichp[k]] * exp(seq(-delta, delta, length=ngrid))
+      p[whichp[k]] + seq(-expand[2L], +expand[2L], length=ngrid)
     }
   })
 
