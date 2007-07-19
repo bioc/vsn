@@ -2,8 +2,10 @@
   C functions for vsn 2.X
   (C) W. Huber 2002-2007
   This code replaces the deprecated code in vsn.c
-  See the vignette 'incremental.Rnw' for the derivation of the maths
+  See the vignette 'likelihoodcomputations.Rnw' for the 
+  derivation of the maths
 ***********************************************************************/
+
 #include <R.h>
 #include <Rdefines.h>
 
@@ -114,6 +116,11 @@ double loglik(int n, double *par, void *ex)
   for(j=0; j < px->nrstrat; j++){
     aj = a[j];
     bj = FUN(b[j]);
+
+    if(bj<=0) {
+      Rprintf("Nonpositive factor bj=%g (b[%d]=%g).\n", bj, j, b[j]);
+
+
     ni = 0;
     for(i = px->strat[j]; i < px->strat[j+1]; i++){
       z = px->y[i];
@@ -500,6 +507,30 @@ SEXP vsn2_trsf(SEXP Sy, SEXP Spar, SEXP Sstrat)
   calctrsf(&x, REAL(Spar), REAL(res));
 
   UNPROTECT(1);
+  return(res);
+}
+
+/*------------------------------------------------------------
+   vsn2_trsf
+------------------------------------------------------------*/
+SEXP vsn2_scalingFactorTransformation(SEXP Sb)
+{
+  int i, n;
+  double *b, *r; 
+  SEXP res;
+  
+  if(!isReal(Sb))
+    error("Invalid argument 'Sb', must be a real vector.");
+
+  n = LENGTH(Sb);
+  b = REAL(Sb);
+
+  res = allocVector(REALSXP, n); /* No PROTECT since we do not call back into R or otherwise allocate memory */
+  r =  REAL(res);
+
+  for(i=0; i<n; i++)
+    r[i] = FUN(b[i]);
+
   return(res);
 }
 

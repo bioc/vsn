@@ -9,7 +9,7 @@ setMethod("meanSdPlot", signature="matrix", definition =
 
       n    <- nrow(x)
       px   <- rowMeans(x, na.rm=TRUE)
-      py   <- sqrt(rowVars(x, mean=px, na.rm=TRUE))
+      py   <- sqrt(rowV(x, mean=px, na.rm=TRUE))
       rpx  <- rank(px, na.last=FALSE)
                 
       ## run median with centers at dm,2*dm,3*dm,... and width 2*dm

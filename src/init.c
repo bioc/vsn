@@ -10,7 +10,8 @@ static const R_CallMethodDef callEntries[] = {
     { "vsn2_point", (DL_FUNC) &vsn2_point, 5},
     { "vsn2_optim", (DL_FUNC) &vsn2_optim, 6},
     { "vsn2_trsf",  (DL_FUNC) &vsn2_trsf, 3},
-{ NULL, NULL, 0 }
+    { "vsn2_scalingFactorTransformation", (DL_FUNC) &vsn2_scalingFactorTransformation, 1},
+    { NULL, NULL, 0 }
 };
 
 /* Fow now, I here only describe the entry points for .Call, 

@@ -11,7 +11,10 @@ nrpar = 2L*d*nrstr
 
 dat = sagmbSimulateData(n=n, d=d, de=0, nrstrata=nrstr, miss=0, log2scale=TRUE)
 fit = vsn2(dat$y, lts.quantile=1)
-v = new("vsnInput", x=dat$y, pstart=array(as.numeric(NA), dim=c(nrstr, d, 2)))
+
+stopifnot(all(diff(dat$strata)>=0)) ## >1 strata not yet implemented here
+v = new("vsnInput", x=dat$y, pstart=array(as.numeric(NA), dim=c(nrstr, d, 2)),
+  strata=factor(dat$strata), ordered=TRUE)
 
 nplot = 31
 par(mfcol=c(2, nrpar))

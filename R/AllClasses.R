@@ -32,6 +32,8 @@ validLogical = function(ob, nm) {
 
 equalOrZero = function(i, j) ((i==j)||(i==0))
 
+compulsoryElements = c("factr", "pgtol", "maxit", "trace", "cvg.niter", "cvg.eps")
+
 validityVsnInput = function(object){
   r = validScalarNumericSlot(object, "subsample", min=0, max=nrow(object))
   if(!identical(r, TRUE)) return(r)

@@ -1,8 +1,3 @@
-
-
-BUMMER PLEASE DONT USE ME YET
-
-
 ##----------------------------------------------------------------------
 ## Robust calibration and variance stabilization
 ##   revised version vsn2
@@ -128,7 +123,7 @@ vsnLTS = function(v) {
     }
     
     ## row variances
-    rvar  = rowVars(hy, mean=hmean, na.rm=TRUE)
+    rvar  = rowV(hy, mean=hmean, na.rm=TRUE)
 
     ## select those data points whose rvar is within the quantile; do this separately
     ## within each stratum, and also within strata defined by hmean
@@ -359,11 +354,20 @@ vsn2trsf = function(x, p, strata) {
   return(hx)
 }
 
+##-----------------------------------------------------------------------------
+## The scaling factor transformation (function "f" in the vignette
+## 'likelihoodcomputations.Rnw')
+##------------------------------------------------------------------------------
+scalingFactorTransformation = function(b) {
+  .Call("vsn2_scalingFactorTransformation", b, PACKAGE="vsn")
+}
+
+
 ##----------------------------------------------------------
 ## helper function: row-wise variances of a matrix
 ##-----------------------------------------------------------
 
-rowVars = function(x, mean, ...) {
+rowV = function(x, mean, ...) {
   sqr     = function(x)  x*x
   n       = rowSums(!is.na(x))
   n[n<1] = NA
