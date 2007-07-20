@@ -42,9 +42,9 @@ number of arrays \Robject{d}, the fraction of differentially expressed genes
 <<setup, results=hide, echo=FALSE>>=
 require("vsn")
 set.seed(0xabcd)
-options(error=recover) ##  warn=2
+options(error=recover, warn=2)
 
-sim = function(..., lts.quantile=0.9, nrrep=30L, verbose=FALSE) {
+sim = function(..., lts.quantile=0.9, nrrep=30L) {
   callpar = list(...)
   ll      = listLen(callpar)
   stopifnot(ll[1]>=1, all(ll[-1]==1))
@@ -54,18 +54,16 @@ sim = function(..., lts.quantile=0.9, nrrep=30L, verbose=FALSE) {
   simpar = append(callpar, list(n=4096L, d=2L, de=0, up=0.5, nrstrata=1L, miss=0, log2scale=TRUE)) 
   simpar = simpar[!duplicated(names(simpar))]
   for (i in 1:ll[1]) {
-    if(verbose) cat("i=", i, ": ", sep="")
+    cat("i=", i, ": ", sep="")
     simpar[[1]] = callpar[[1]][i]
     for (r in 1:nrrep) {
       sim = do.call("sagmbSimulateData", simpar)
-      ny  = vsn2(sim$y, strata=factor(sim$strata), lts.quantile=lts.quantile, verbose=!TRUE,
-        optimpar = list(factr=4e4, pgtol=2e-4, lower=1e-6))
-
+      ny  = vsn2(sim$y, strata=factor(sim$strata), lts.quantile=lts.quantile, verbose=!TRUE)
       res[r, i] = sagmbAssess(ny@hx, sim)  
-      if(verbose) cat(signif(res[r,i], 3), "") 
+      cat(signif(res[r,i], 3), "") 
       if(res[r, i]>0.02) browser()
    } ## for r
-   if(verbose) cat("\n")
+   cat("\n")
   } ## for i
   return(res)
 } ## sim

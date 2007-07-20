@@ -16,17 +16,9 @@ sagmbSimulateData <- function(n=8064, d=2, de=0, up=0.5, nrstrata=1, miss=0, log
 
   ##------------------------------------------------------------
   ## the calibration parameters: 
-  ## a is drawn from a uniform distribution over the interval
-  ##     [-.2, +.2] * 90%-quantile of mu
-  ## b from Normal(0,1)
-  ## overall scale from exp(runif(1)*10-5)
-  ## w.l.o.g. first offset is 0 and first factor is 1
   ##------------------------------------------------------------
-  Delta.a   <- 0.2 * quantile(sinh(mu), 0.9)
-  coefficients      <- array(NA, dim=c(nrstrata, d, 2))
-  coefficients[,,1] <- runif(d*nrstrata, min=-Delta.a, max=Delta.a)
-  coefficients[,,2] <- rnorm(d*nrstrata)
-  coefficients      <- coefficients * exp(runif(1)*10-5)
+  coefficients = array(runif(nrstrata*d*2L, min=-2, max=+2),
+                       dim=c(nrstrata, d, 2L))
 
   ##------------------------------------------------------------
   ## generate simulated data:
