@@ -389,6 +389,10 @@ accordingly.
 \section{Running VSN on \Robject{RGList} objects} \label{limma}
 %---------------------------------------------------------
 There is a \Rfunction{justvsn} method for \Rclass{RGList} objects.
+Usually, you will produce from your own data them using the
+\Rfunction{read.maimages} from the \Rpackage{limma} package. Here,
+for the sake of demonstration, we construct an \Rclass{RGList} from
+\Robject{lymphoma}.
 %
 <<limma, results=hide>>= 
 require("limma")
@@ -653,8 +657,8 @@ for(j in 1:2){
   d  = max(abs(p1-p2))
   stopifnot(d<(2/j))
   plot(p1, p2, pch = 16, asp = 1,
-    main = paste(c("offset","factor")[j], 
-      "  d=", signif(d,2), sep = ""),
+    main = paste(letters[j], 
+      ": max.diff.=", signif(d,2), sep = ""),
     xlab = "no missing data",
     ylab = "10% of data missing")
   abline(a = 0, b = 1, col = "blue")
@@ -740,9 +744,9 @@ that come with this package.
 %---------------------------------------------------------------------
 If $y_{ki}$ is the matrix of uncalibrated data, with $k$ indexing the
 rows and $i$ the columns, then the calibrated data $y_{ki}'$ is
-obtained through scaling by $\lambda_{si}$ and shifting by $o_{si}$:
+obtained through scaling by $\lambda_{si}$ and shifting by $\alpha_{si}$:
 \begin{equation}\label{eq.cal}
-y_{ki}' = \frac {y_{ki}+o_{si}}{\lambda_{si}},
+y_{ki}' = \lambda_{si}y_{ki}+\alpha_{si}
 \end{equation}
 where $s\equiv s(k)$ is the so-called \textit{stratum} for feature $k$. In the
 simplest case, there is only one stratum, i.\,e.\ the index $s$ is always
@@ -758,24 +762,27 @@ physico-chemical properties, e.\,g.\, to assume that features of
 different sequence composition attract systematically different levels
 of unspecific background signal.
 
-The transformation to a scale where the variance of the data is approximately
-independent of the mean is 
+The transformation to a scale where the variance of the data is 
+approximately independent of the mean is 
 \begin{eqnarray}
-h_{ki} &=& \arsinh(\frac{y_{ki}'+a_0}{b_0}) \label{eq.vs} \\
-&=& \log\left(\frac{y_{ki}'+a_0}{b_0}+
-\sqrt{\left(\frac{y_{ki}'+a_0}{b_0}\right)^2+1}\right),\nonumber
+h_{ki} &=& \arsinh(\lambda_0y_{ki}'+\alpha_0) \label{eq.vs} \\
+&=& \log\left(
+\lambda_0y_{ki}'+\alpha_0+
+\sqrt{\left(\lambda_0y_{ki}'+\alpha_0\right)^2+1}\right),\nonumber
 \end{eqnarray}
-with two parameters $a_0$ and $b_0$.
-Equations~(\ref{eq.cal}) and (\ref{eq.vs}) can be combined, so that the whole 
-transformation is given by 
+with two parameters $\lambda_0$ and $\alpha_0$.
+Equations~(\ref{eq.cal}) and (\ref{eq.vs}) can be combined, 
+so that the whole transformation is given by 
 \begin{equation}\label{eq.transf}
-h_{ki} = \arsinh\left(\frac{y_{ki}+a_{si}}{b_{si}}\right). 
+h_{ki} = \arsinh\left(e^{b_{si}}\cdot y_{ki}+a_{si}\right). 
 \end{equation}
 Here, 
-$a_{si}=o_{si}+a_0\lambda_{si}$ and 
-$b_{si}=b_0\lambda_{si}$ 
+$a_{si}=\alpha_{si}+\lambda_0\alpha_{si}$ and 
+$b_{si}=\log(\lambda_0\lambda_{si})$ 
 are the combined calibation and transformation parameters for features from
-stratum $s$ and sample $i$.
+stratum $s$ and sample $i$. Using the parameter $b_{si}$ as defined 
+here rather than $e^{b_{si}}$ appears to make the numerical
+optimisation more reliable (less ill-conditioned).
 
 We can access the calibration and transformation parameters through
 <<nkid-calib1>>=
@@ -834,8 +841,10 @@ options(oldwarn)
 rm(oldwarn)
 @
 %
-The numerator for the red channel is now about a fourth of the value
-before.  The result is shown in Figure~\ref{vsn-nkid-calib4}.
+Notice the change in the parameter $b$ of the red 
+channel: it is now larger by about $\log(4)\approx 1.4$,
+and the shift parameter $a$ has also been adjusted.  
+The result is shown in Figure~\ref{vsn-nkid-calib4}.
 
 %-------------------------------------------------------------------
 \section{Assessing the performance of VSN}
@@ -1083,18 +1092,18 @@ signal $y_{ik}$ increases, to sufficient approximation, proportionally
 to the mRNA abundance $c_{ik}$ of gene $k$ on the $i$-th array, or 
 on the $i$-th colour channel:
 \begin{equation}\label{assumption.1} 
-y_{ik}\approx a_i + b_i b_k c_{ik}.  
+y_{ik}\approx \alpha_i + \lambda_i \lambda_k c_{ik}.  
 \end{equation} 
 For a series of $d$ single-colour arrays, $i=1,\ldots,d$, 
 and the different factors 
-$b_i$ reflect the different initial amounts of sample mRNA or different
+$\lambda_i$ reflect the different initial amounts of sample mRNA or different
 overall reverse transcription, hybridisation and detection efficiencies. 
-The feature affinity $b_k$ contains factors that affect
+The feature affinity $\lambda_k$ contains factors that affect
 all measurements with feature $k$ in the same manner, such as
 sequence-specific labelling 
-efficiency. The $b_k$ are assumed to be the same across all arrays.
-There can be a non-zero overall offset $a_i$.
-For a two-colour cDNA array, $i=1,2$, and the $b_i$ take into account
+efficiency. The $\lambda_k$ are assumed to be the same across all arrays.
+There can be a non-zero overall offset $\alpha_i$.
+For a two-colour cDNA array, $i=1,2$, and the $\lambda_i$ take into account
 the different overall efficiencies of the two dyes\footnote{% 
 It has been reported that for some genes the dye bias is different from 
 gene to gene, such that the proportionality factor does not simply factorise 
@@ -1106,15 +1115,15 @@ gene-specific dye biases on subsequent analyses can be reduced.}.
 
 Equation~\ref{assumption.1} can be generalised to
 \begin{equation}\label{assumption.2} 
-y_{ik}\approx a_{is} + b_{is} b_k c_{ik}.  
+y_{ik}\approx \alpha_{is} + \lambda_{is} \lambda_k c_{ik}.  
 \end{equation} 
-that is, the background term $a_{is}$ and the gain factor $b_{is}$ can
+that is, the background term $\alpha_{is}$ and the gain factor $\lambda_{is}$ can
 be different for different groups $s$ of features on an array.  The
 VSN methods allows for this option by using the \Robject{strata}
 argument of the function \Rfunction{vsn2}.  We have seen an example above
 where this could be useful.  For Affymetrix genechips, one can find
-systematic dependences of the affinities $b_{is}$ and the background
-terms $a_{is}$ on the reporter sequence, however, the optimal stratification
+systematic dependences of the affinities $\lambda_{is}$ and the background
+terms $\alpha_{is}$ on the reporter sequence, however, the optimal stratification
 of reporters based on their sequence is an active area of research.
 
 Nevertheless, there are situations in which either 
@@ -1128,7 +1137,7 @@ It may be possible to rescue such data by using non-linear transformations.
 Alternatively, it is recommended that the experimental parameters are 
 chosen to avoid saturation.
 
-\item[Batch effects.] The feature affinities $b_k$ may differ between
+\item[Batch effects.] The feature affinities $\lambda_k$ may differ between
 different manufacturing batches of arrays due, e.g., to different
 qualities of DNA amplification or printing. VSN cannot be
 used to simultaneously calibrate and transform data from different
