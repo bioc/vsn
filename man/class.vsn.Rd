@@ -30,16 +30,16 @@
   \item{\code{coefficients}:}{A 3D array of size (number of strata) x (number of
     columns of the data matrix) x 2 containing fitted normalization parameters
     (see vignette).}
-  \item{\code{n}:}{An integer scalar containing n,
-    the number of rows of the data matrix.}
   \item{\code{strata}:}{A factor of length 0 or n. If its length is
     n, then its levels correspond to different normalization strata
     (see vignette).}
-  \item{\code{refh}:}{A numeric vector of length 0 or n. If its length
-    is n, then these are the fitted parameters $\hat{\mu}_k$, $k=1,...,n$.}
-  \item{\code{refsigma}:}{A numeric scalar, $\hat{\sigma}$.}
+  \item{\code{mu}:}{A numeric vector of length n with the fitted
+    parameters $\hat{\mu}_k$, $k=1,...,n$.}
+  \item{\code{sigsq}:}{A numeric scalar, $\hat{\sigma}$.}
   \item{\code{hx}:}{A numeric matrix with 0 or n rows. If the number of
     rows is n, then \code{hx} contains the transformed data matrix.}
+  \item{\code{lbfgsb}:}{An integer scalar containing the return code
+    from the L-BFGS-B optimizer.}
   }
 }
 

@@ -1,12 +1,10 @@
 Package: vsn
-Version: 3.0.7
+Version: 3.0.8
 Title: Variance stabilization and calibration for microarray data
 Author: Wolfgang Huber <huber@ebi.ac.uk>, contributions from A. von
-        Heydebreck <heydebre@molgen.mpg.de>, Markus Ruschhaupt
-        <m.ruschhaupt@dkfz-heidelberg.de>, D. Kostka
-        <dennis.kostka@molgen.mpg.de>
+        Heydebreck <heydebre@molgen.mpg.de>
 Maintainer: Wolfgang Huber <huber@ebi.ac.uk>
-Depends: R (>= 2.5.0), Biobase (>= 1.4.14), methods, affy, limma
+Depends: R (>= 2.5.0), methods, Biobase (>= 1.4.14), affy
 Suggests: affydata, hgu95av2cdf, geneplotter
 Description: The package implements a robust variant of the
         maximum-likelihood estimator for the stochastic model of

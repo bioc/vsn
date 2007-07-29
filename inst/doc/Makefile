@@ -1,18 +1,18 @@
-all: vsn incremental convergence2 clean
+all: vsn likelihoodcomputations convergence2 clean
 
 vsn: vsn.tex
 	pdflatex vsn
 	pdflatex vsn
 
-incremental: incremental.tex
-	pdflatex incremental	
-	pdflatex incremental
+likelihoodcomputations: likelihoodcomputations.tex
+	pdflatex likelihoodcomputations
+	pdflatex likelihoodcomputations
 
 convergence2: convergence2.tex
 	cp -p ../scripts/convergence2.pdf .
 
 clean:
 	rm -f *.out *.bbl *.log *.aux *.blg *.brf *.toc *.tex
-	rm -f *.dvi *.ps vsn-* incremental-* 
+	rm -f *.dvi *.ps vsn-* likelihoodcomputations-* 
 
 

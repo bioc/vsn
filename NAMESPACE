@@ -4,10 +4,11 @@ importFrom("stats", "predict")
 importFrom("methods", "show")
 importFrom("Biobase", "exprs")
 importFrom("stats", "logLik", "coef", "coefficients")
+importFrom("lattice", "levelplot")
+importClassesFrom("limma", "RGList")
 
-## These two packages do not bother to have name spaces, have to put them in 'Depends' field.
+## affy does not bother to have a namespace, have to put it in 'Depends' field...:
 ## importFrom("affy", "AffyBatch")
-## importFrom("limma", "RGList")
 
 exportClasses("vsn", "vsnInput")
 export(

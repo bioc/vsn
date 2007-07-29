@@ -1,4 +1,4 @@
-plotVsnLogLik = function(object, p, whichp=1:2, expand=1, ngrid=31, fun=logLik, ...) {
+plotVsnLogLik = function(object, p, whichp=1:2, expand=1, ngrid=31L, fun=logLik, ...) {
 
   stopifnot(length(whichp)==2L, ngrid>=2L)
 
@@ -28,12 +28,8 @@ plotVsnLogLik = function(object, p, whichp=1:2, expand=1, ngrid=31, fun=logLik, 
   ll = fun(object, psamp, ...)
   pgrid$logLik = ll[1, ]
 
-  pkgs = c("lattice", "RColorBrewer")
-  if(all(sapply(pkgs, function(p) do.call("require", args=list(p, character.only=TRUE)))))
-    print(levelplot(logLik ~ Var1*Var2, data=pgrid,
-                    col.regions=colorRampPalette(brewer.pal(9,"YlOrRd"))(128)))
-  else
-    warning("packages ", paste(pkgs, collapse=", "), " are not available, cannot call 'levelplot'.")
+  print(levelplot(logLik ~ Var1*Var2, data=pgrid,
+       col.regions=colorRampPalette(c("#FFFFCC","#FFEDA0","#FED976","#FEB24C","#FD8D3C","#FC4E2A","#E31A1C","#BD0026","#800026"))(128)))  ## colors are from RColorBrewer: brewer.pal(9,"YlOrRd")
   
   return(invisible(pgrid))
 }    

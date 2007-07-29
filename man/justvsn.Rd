@@ -84,6 +84,7 @@ eabe = justvsn(affybatch.example)
 ##--------------------------------------------------
 ## justvsn on RGList
 ##--------------------------------------------------
+require("limma")
 rg = new("RGList", list(R=exprs(kidney)[,1,drop=FALSE], G=exprs(kidney)[,2,drop=FALSE]))
 erge = justvsn(rg)
 }

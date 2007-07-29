@@ -32,10 +32,12 @@ vsnML = function(v) {
   
   if (o$fail!=0L) {
     nrp = if(length(p)<=6L) length(p) else 6L
-    msg = paste(sprintf("fail=%d\npstart[1:%d]=", o$fail, nrp),
+    msg = paste("** This is a diagnostic message on the performance of the optimizer,\n",
+                "** it need not indicate a relevant problem:\n",
+                sprintf("fail=%d\npstart[1:%d]=", o$fail, nrp),
                 paste(signif(p[1:nrp], 4L), collapse=", "),
                 sprintf("\n  coef[1:%d]=", nrp),
-                paste(signif(coefficients(rv)[1:nrp], 4L), collapse=", "), sep="")
+                paste(signif(coefficients(rv)[1:nrp], 4L), collapse=", "), "\n", sep="")
     warning(msg)
   }
   
