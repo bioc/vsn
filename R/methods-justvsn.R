@@ -10,33 +10,37 @@ setMethod("justvsn", "ExpressionSet",
     })
 
 setMethod("justvsn", "NChannelSet",
-   function(x,  reference, strata, foreground=c("R","G"), background=c("Rb", "Gb"), backgroundsubtract=FALSE, ...) {
+   function(x,  reference, strata, backgroundsubtract=FALSE, 
+            foreground=c("R","G"), background=c("Rb", "Gb"), ...) {
      
      ad = assayData(x)
 
-     if(!all(foreground%in%channelNames(CCl4)))
-       stop("'foreground' channels are not contained in channelNames of the object.")
+     if(!all(foreground%in%channelNames(x)))
+       stop("One or more elements of 'foreground' are not contained in 'channelNames(x)'.")
      ## list of matrices with the foreground values
      lmat = lapply(foreground, function(k) ad[[k]])
+     ## one wide matrix with all of them next to each other
      y = do.call("cbind", lmat)
 
-
      if(backgroundsubtract){
-       if(!all(background%in%channelNames(CCl4)))
-         stop("'background' channels are not contained in channelNames of the object.")
-       ## list of matrices with the foreground values
+       if(!all(background%in%channelNames(x)))
+         stop("One or more elements of 'background' are not contained in 'channelNames(x)'.")
+       stopifnot(length(background)==length(foreground))
        lmat = lapply(background, function(k) ad[[k]])
        y = y - do.call("cbind", lmat)
-       rm(list=background, envir=ad)
      }
 
-     d = ncol(lmat[[1]])
      fit = vsnMatrix(y, reference, strata, ...)
 
-     for(i in seq(along=foreground))
-       assign(foreground[i], exprs(fit)[, seq_len(ncol(r))]
-     ad$G = exprs(fit)[, ncol(r)+seq_len(ncol(g))]
-     assayData(x) = ad
+     d = ncol(x)
+     nrch = length(foreground)
+     args = vector(mode="list", length=nrch+1L)
+     args[[1L]] = "lockedEnvironment"
+     for(i in seq_len(nrch))
+       args[[i+1L]] = exprs(fit)[, seq_len(d)+(i-1L)*d]
+     names(args) = c("storage.mode", foreground)
+     
+     assayData(x) = do.call("assayDataNew", args)
      return(x)
     })
 

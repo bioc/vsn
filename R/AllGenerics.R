@@ -4,7 +4,7 @@ setGeneric("vsn2",
 
 setGeneric("justvsn",
   def = function(x, reference, strata, ...) standardGeneric("justvsn"),
-  valueClass = "ExpressionSet")
+  valueClass = c("ExpressionSet", "NChannelSet"))
 
 setGeneric("predict") ## S3 function imported from package stats
 setGeneric("nrow")    ## S3 from base

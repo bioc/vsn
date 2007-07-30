@@ -4,10 +4,14 @@
 \alias{justvsn,ExpressionSet-method}
 \alias{justvsn,AffyBatch-method}
 \alias{justvsn,RGList-method}
+\alias{justvsn,NChannelSet-method}
 
 \title{Normalization with vsn}
 \description{\code{justvsn} fits the vsn model to data
-  and returns an \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}}.
+  and returns an
+  \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}}
+  or an
+  \code{\link[Biobase:class.NChannelSet]{NChannelSet}}.
   It is a simple wrapper for
   \code{\link{vsn2}} and \code{\link[vsn:vsn2trsf]{predict}}.
 }
@@ -15,32 +19,36 @@
 \usage{
 justvsn(x, reference, strata, ...)
 
+\S4method{justvsn}{ExpressionSet}(x, reference, strata, ...)
+\S4method{justvsn}{AffyBatch}(x, reference, strata, ...)
 \S4method{justvsn}{RGList}(x, reference, strata, backgroundsubtract=FALSE, ...)
+\S4method{justvsn}{NChannelSet}(x, reference, strata, backgroundsubtract=FALSE,
+       foreground=c("R","G"), background=c("Rb", "Gb"), ...)
+
 }
 
 \arguments{
   \item{x}{An object containing the data to which the model is to be
-    fitted. Methods exist for \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}},
+    fitted. Methods exist for
+    \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}},
+    \code{\link[Biobase:class.NChannelSet]{NChannelSet}},
     \code{\link[affy:AffyBatch-class]{AffyBatch}} (from the \code{affy} package) and
     \code{\link[limma:rglist]{RGList}} (from the \code{limma} package).}
   \item{reference, strata, ...}{As in \code{\link{vsn2}}.}
-  \item{backgroundsubtract}{Logical of length 1, it applies only to the
-    method for \code{\link[limma:rglist]{RGList}} objects and indicates whether
-    local background estimates in the \code{Rb} and \code{Gb} slots of
-    \code{x} should be subtracted before fitting vsn.}
+  \item{backgroundsubtract}{Logical of length 1: should
+    local background estimates be subtracted before fitting vsn?
+    For \code{\link[limma:rglist]{RGList}}, the local background
+    estimates are expected in the \code{Rb} and \code{Gb} slots of
+    \code{x} and the foreground values in the \code{R} and \code{G}
+    slots.}
+  \item{foreground, background}{Character vectors of the same length,
+    naming the channels of \code{x} that should be used
+    as foreground and background values.
+  }
 }
 
 \details{
   See \code{\link{vsn2}}.
-}
-
-\value{
-  An \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}}.
-  
-  If \code{x} is an \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}}, then the
-  dimensions and the metadata of the returned object will be the
-  same, and its matrix of expression values are the normalized and
-  transformed version of the input.
 
   If \code{x} is an \code{\link[affy:AffyBatch-class]{AffyBatch}}, probe-wise
   background correction and between-array normalization are done by
@@ -48,10 +56,24 @@ justvsn(x, reference, strata, ...)
   summaries are calculated with the medianpolish algorithm of
   \code{\link[affy:rma]{rma}}.
   
-  If \code{x} is an \code{\link[limma:rglist]{RGList}}, then
-  \code{\link{vsn2}} is applied to the matrix \code{cbind(x$R, x$G)}.
-  If \code{backgroundsubtract=TRUE}, then \code{cbind(x$Rb, x$Gb)} is
-  subtracted before. 
+  If \code{x} is an \code{\link[limma:rglist]{RGList}}
+  or an \code{\link[Biobase:class.NChannelSet]{NChannelSet}}, then
+  \code{\link{vsn2}} is applied to the matrix that is obtained
+  by horizontally concatenating the color channels.
+  Optionally, available background estimates can be subtracted before. 
+}
+
+\value{
+  If \code{x} is an
+  \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}},
+  \code{\link[affy:AffyBatch-class]{AffyBatch}} or
+  \code{\link[limma:rglist]{RGList}}, the value of this function is an
+  \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}}.
+
+  If \code{x} is an
+  \code{\link[Biobase:class.NChannelSet]{NChannelSet}}, the value is
+  also an
+  \code{\link[Biobase:class.NChannelSet]{NChannelSet}}.
 }
 
 \seealso{
