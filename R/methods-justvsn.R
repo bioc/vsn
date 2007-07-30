@@ -9,6 +9,38 @@ setMethod("justvsn", "ExpressionSet",
       return(x)
     })
 
+setMethod("justvsn", "NChannelSet",
+   function(x,  reference, strata, foreground=c("R","G"), background=c("Rb", "Gb"), backgroundsubtract=FALSE, ...) {
+     
+     ad = assayData(x)
+
+     if(!all(foreground%in%channelNames(CCl4)))
+       stop("'foreground' channels are not contained in channelNames of the object.")
+     ## list of matrices with the foreground values
+     lmat = lapply(foreground, function(k) ad[[k]])
+     y = do.call("cbind", lmat)
+
+
+     if(backgroundsubtract){
+       if(!all(background%in%channelNames(CCl4)))
+         stop("'background' channels are not contained in channelNames of the object.")
+       ## list of matrices with the foreground values
+       lmat = lapply(background, function(k) ad[[k]])
+       y = y - do.call("cbind", lmat)
+       rm(list=background, envir=ad)
+     }
+
+     d = ncol(lmat[[1]])
+     fit = vsnMatrix(y, reference, strata, ...)
+
+     for(i in seq(along=foreground))
+       assign(foreground[i], exprs(fit)[, seq_len(ncol(r))]
+     ad$G = exprs(fit)[, ncol(r)+seq_len(ncol(g))]
+     assayData(x) = ad
+     return(x)
+    })
+
+
 setMethod("justvsn", "AffyBatch",
    function(x, reference, strata, ...) {
      m = exprs(x)
