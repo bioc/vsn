@@ -381,7 +381,7 @@ SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Smu,
   int i, lmm, fail, fncount, grcount, maxit, trace, nREPORT;
   int *nbd;
   double *cpar, *lower, *upper, *scale, *z;
-  double factr, pgtol, fmin, low;
+  double factr, pgtol, fmin;
   char msg[60];
 
   SEXP res, namesres, vfail, coef, dimcoef, mu, sigsq;
@@ -486,7 +486,7 @@ SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Smu,
 SEXP vsn2_trsf(SEXP Sy, SEXP Spar, SEXP Sstrat)
 {
   int maxs, i; 
-  SEXP res, dimres, dimy;
+  SEXP res, dimres;
   vsn_data x;
 
   setupEverybody(Sy, Spar, Sstrat, &x);
