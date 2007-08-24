@@ -54,7 +54,9 @@ justvsn(x, reference, strata, ...)
   background correction and between-array normalization are done by
   \code{\link{vsn2}} on the perfect match (PM) values only. Probeset
   summaries are calculated with the medianpolish algorithm of
-  \code{\link[affy:rma]{rma}}.
+  \code{\link[affy:rma]{rma}}. If you do not want to compute probeset
+  summaries, please extract the intensities from the \code{AffyBatch} into a
+  matrix and call \code{\link{vsn2}} on that.
   
   If \code{x} is an \code{\link[limma:rglist]{RGList}}
   or an \code{\link[Biobase:class.NChannelSet]{NChannelSet}}, then
