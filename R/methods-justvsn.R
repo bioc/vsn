@@ -37,7 +37,7 @@ setMethod("justvsn", "NChannelSet",
      args = vector(mode="list", length=nrch+1L)
      args[[1L]] = "lockedEnvironment"
      for(i in seq_len(nrch))
-       args[[i+1L]] = exprs(fit)[, seq_len(d)+(i-1L)*d]
+       args[[i+1L]] = exprs(fit)[, seq_len(d)+(i-1L)*d, drop=FALSE]
      names(args) = c("storage.mode", foreground)
      
      assayData(x) = do.call("assayDataNew", args)
