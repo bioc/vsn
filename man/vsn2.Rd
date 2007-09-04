@@ -4,25 +4,26 @@
 \alias{vsn2,matrix-method}
 \alias{vsn2,numeric-method}
 \alias{vsn2,ExpressionSet-method}
+\alias{vsn2,AffyBatch-method}
+\alias{vsn2,RGList-method}
+\alias{vsn2,NChannelSet-method}
 \alias{vsnMatrix}
 
 \title{Fit the vsn model}
-\description{\code{vsn2} fits the vsn model to the data matrix
-  in an \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}} and
-  returns a \code{\linkS4class{vsn}} object with the fit parameters and
-  the transformed data matrix.
-  The data matrix contains, typically, feature intensity readings from a
-  microarray. There are also \code{vsn2} methods for numeric matrices and vectors.
-  \code{\link[vsn:vsn2trsf]{predict}} applies a fitted model
-  to data and returns an \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}} object.
-  \code{\link{justvsn}} is a simple wrapper that 
-  takes and returns an \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}}.
-  These are the main functions of this package. An overview is given in the vignette
+\description{\code{vsn2} fits the vsn model to the data 
+  in \code{x} and returns a \code{\linkS4class{vsn}} object with
+  the fit parameters and the transformed data matrix.
+  The data are, typically, feature intensity readings from a
+  microarray.
+  Please see also \code{\link[vsn:vsn2trsf]{predict}} for
+  applying a fitted model to data and \code{\link{justvsn}},
+  which provides wrappers around \code{vsn2} that return appropriate
+  \code{\link[Biobase:class.eSet]{eSet}}-derived objects.
+  This the main function of this package. An overview is given in the vignette
   \emph{Introduction to vsn}.
 }
-\usage{
-\S4method{vsn2}{ExpressionSet}(x, reference, strata, ...)
 
+\usage{
 vsnMatrix(x,
   reference,
   strata,
@@ -34,13 +35,22 @@ vsnMatrix(x,
   optimpar     = list(),
   defaultpar   = list(factr=5e7, pgtol=2e-4, maxit=60000L, trace=0L, cvg.niter=7L, cvg.eps=0))
 
+\S4method{vsn2}{ExpressionSet}(x, reference, strata, ...)
+
+\S4method{vsn2}{AffyBatch}(x, reference, strata, ...)
+
+\S4method{vsn2}{RGList}(x, reference, strata, backgroundsubtract=FALSE, ...)
+
+\S4method{vsn2}{NChannelSet}(x, reference, strata, backgroundsubtract=FALSE,
+       foreground=c("R","G"), background=c("Rb", "Gb"), ...)
+
 \S4method{vsn2}{matrix}(x, reference, strata, ...)
+
 \S4method{vsn2}{numeric}(x, reference, strata, ...)
 }
 \arguments{
   \item{x}{An object containing the data to which the model is to be
-    fitted. Methods exists for \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}},
-    \code{matrix} and \code{numeric}.}
+    fitted. Methods exists for various types of objects, see Section \emph{Usage}.}
   \item{reference}{Optional, a \code{\linkS4class{vsn}} object from
     a previous fit. If this argument is specified, the data in \code{x}
     are normalized "towards" an existing set of reference arrays whose
@@ -54,15 +64,24 @@ vsnMatrix(x,
     rows of \code{x} are assumed to come from one stratum.
     If \code{strata} is an integer, its values must cover the range
     1...\emph{n}, where \emph{n} is the number of strata.}
-  \item{lts.quantile}{Numeric of length 1. The quantile that is used for the resistant
-    least trimmed sum of squares regression. Allowed values are between
-    0.5 and 1. A value of 1 corresponds to ordinary least sum of squares
-    regression.}
+  \item{lts.quantile}{Numeric of length 1. The quantile that is used for
+    the resistant least trimmed sum of squares regression. Allowed
+    values are between 0.5 and 1. A value of 1 corresponds to ordinary
+    least sum of squares regression.}
   \item{subsample}{Integer of length 1. If specified, the model parameters are
     estimated from a subsample of the data of size \code{subsample}
     only, yet the fitted transformation is
     then applied to all data. For large datasets, this can substantially
     reduce the CPU time and memory consumption at a negligible loss of precision.}
+  \item{backgroundsubtract}{Logical of length 1: should
+    local background estimates be subtracted before fitting vsn?
+    For \code{\link[limma:rglist]{RGList}}, the local background
+    estimates are expected in the \code{Rb} and \code{Gb} slots of
+    \code{x} and the foreground values in the \code{R} and \code{G}
+    slots.}
+  \item{foreground, background}{Character vectors of the same length,
+    naming the channels of \code{x} that should be used
+    as foreground and background values.}
   \item{verbose}{Logical. If TRUE, some messages are printed.}
   \item{returnData}{Logical. If TRUE, the transformed data are returned
     in a slot of the resulting \code{\linkS4class{vsn}} object.
@@ -103,10 +122,11 @@ vsnMatrix(x,
 \details{
   If the \code{reference} argument is \emph{not} specified, then the model
   parameters $\mu_k$ and $\sigma$ are fit from the data in \code{x}.
-  This is the mode of operation described in the 2002 Bioinformatics
-  paper and that was the only option in versions 1.X of this package.
-  If \code{reference} is specified, the model parameters  $\mu_k$ and $\sigma$ are taken from
-  it. This allows for 'incremental' normalization [4].
+  This is the mode of operation described in [1]
+  and that was the only option in versions 1.X of this package.
+  If \code{reference} is specified, the model parameters
+  $\mu_k$ and $\sigma$ are taken from it.
+  This allows for 'incremental' normalization [4].
 
   \code{L-BFGS-B} uses three termination criteria:
   \enumerate{

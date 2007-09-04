@@ -81,15 +81,3 @@ setMethod("coefficients", signature(object="vsn"),
 setMethod("exprs", signature(object="vsn"),
           function(object) object@hx)
 
-##------------------------------------------------------------
-## methods for the generic function 'vsn2'
-##------------------------------------------------------------
-setMethod("vsn2", "matrix", vsnMatrix)
-
-setMethod("vsn2", "numeric",
-   function(x,  reference, strata, ...)
-      vsnMatrix(as.matrix(x, ncol=1), reference, strata, ...))
-
-setMethod("vsn2", "ExpressionSet",
-   function(x,  reference, strata, ...)
-      vsnMatrix(exprs(x),  reference, strata, ...))

@@ -403,77 +403,84 @@ lymRG = new("RGList", list(
   R=exprs(lymphoma)[, wr],
   G=exprs(lymphoma)[, wg]))
 
-lymES = justvsn(lymRG)
+lymNCS = justvsn(lymRG)
 @ 
 %
-The method combines the \Robject{R} and \Robject{G} slots of the
-\Rclass{RGList} object into one matrix and calls the function
-\Rfunction{vsnMatrix} on it. The return value is an
-\Rclass{ExpressionSet}, shown in Table~\ref{tab:lymES}. 
+Here is what happens here: the \Rfunction{justvsn} method 
+uses the package \Rpackage{convert} to coerce its argument,
+which is of class \Rclass{RGList}, 
+into an \Rclass{NChannelSet}, and then passes this on to 
+the \Rfunction{justvsn} method for \Rclass{NChannelSet}. 
+The return value is an \Rclass{NChannelSet}, shown in 
+Table~\ref{tab:lymNCS}. 
 %
 \begin{table*}[tbp]
 \begin{minipage}{\textwidth}
 <<width1,echo=FALSE>>=
 oo=options(width=75L)
 @ 
-<<lymES>>=
-lymES
+<<lymNCS>>=
+lymNCS
 @ 
 <<width2,echo=FALSE>>=
 options(oo)
 @ 
 \end{minipage}
-\caption{\label{tab:lymES}%
-The \Rclass{ExpressionSet} object \Robject{lymES}.}
+\caption{\label{tab:lymNCS}%
+The \Rclass{NChannelSet} object \Robject{lymNCS}.}
 \end{table*}
 %
-Note that the metadata of the resulting 
-\Rclass{ExpressionSet} is minimal (due to the flexibility in the amount and 
-quality of metadata that is in an \Rclass{RGList}), and that you will typically 
-need to add the metadata to the \Rclass{ExpressionSet} afterwards. For this, we 
-construct the \Rclass{AnnotatedDataFrame} object \Robject{adf} and assign it into 
-the \Robject{phenoData} slot of \Robject{lymES}.
+Note that, due to the flexibility in the amount and 
+quality of metadata that is in an \Rclass{RGList}, and due to the 
+many differences in the implementation of these classes,
+the transfer of the metadata into the \Rclass{NChannelSet} 
+may not always produce the expected results, and that some
+checking and often further dataset-specific postprocessing
+of the sample metadata and the array feature annotation
+is needed. For the current example, we 
+construct the \Rclass{AnnotatedDataFrame} object \Robject{adf} 
+and assign it into the \Robject{phenoData} slot of \Robject{lymNCS}.
 %
 <<addmeta>>=
+vmd = data.frame(
+  labelDescription=I(c("array ID", "sample in G", "sample in R")),
+  channel=c("_ALL", "G", "R"),
+  row.names=c("arrayID", "sampG", "sampR"))
+
+arrayID = lymphoma$name[wr]
+stopifnot(identical(arrayID, lymphoma$name[wg])) ## just to make sure :)
+
+sampleType = sub("-.*", "", lymphoma$sample) ## sample number suffix
+
+v = data.frame(
+  arrayID = arrayID,
+  sampG   = sampleType[wg],
+  sampR   = sampleType[wr])
+v
+              
 adf = new("AnnotatedDataFrame", 
- data=pData(lymphoma[,c(wr, wg)]),
- varMetadata=
-   varMetadata(lymphoma[,c(wr,wg)]))
-phenoData(lymES) = adf 
+  data=v,
+  varMetadata=vmd)
+
+phenoData(lymNCS) = adf 
 @ 
 %
-One further manipulation is necessary to ensure the internal consistency of 
-the \Rclass{ExpressionSet} object:
-%
-<<sampleNames>>=
-colnames(exprs(lymES))=sampleNames(lymES)
-@ 
-%
-Now we can use linear modeling tools from \Rpackage{limma} to find
-differentially expressed genes.
-Please take care with the ordering of the columns in the \Rclass{ExpressionSet}: 
-first come all the red ones, then all the green ones.
+Now let's combine the red and green values from each array
+into the glog-ratio \Robject{M} 
+and use the linear modeling tools from \Rpackage{limma} to find
+differentially expressed genes (note that it is often suboptimal
+to only consider \Robject{M}, and that taking into account absolute
+intensities as well can improve analyses).
 %
 <<lymM>>=
-lymM = new("ExpressionSet",
- exprs = exprs(lymES)[,1:8]
-        -exprs(lymES)[,9:16],
- phenoData=phenoData(lymES[,1:8]))
+lymM = assayData(lymNCS)$R-assayData(lymNCS)$G
 @
-<<doublecheck, echo=FALSE>>=
-stopifnot(ncol(lymES)==16L)
-@ 
-<<samp, print=TRUE>>=
-sampleClass = factor(sub("-.*$", "", 
-                       lymM$sample))
-@ 
 % 
 \label{lmFit}
 %
 <<design>>=
-design = model.matrix( ~ sampleClass)
-lf = lmFit(lymM, 
-   design[,"sampleClassDLCL", drop=FALSE])
+design = model.matrix( ~ lymNCS$sampR)
+lf = lmFit(lymM, design[, 2, drop=FALSE])
 lf = eBayes(lf)
 @ 
 %
