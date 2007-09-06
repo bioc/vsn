@@ -20,7 +20,11 @@ setMethod("vsn2", "NChannelSet",
      if(!all(foreground%in%channelNames(x)))
        stop("One or more elements of 'foreground' are not contained in 'channelNames(x)'.")
      ## list of matrices with the foreground values
-     lmat = lapply(foreground, function(k) ad[[k]])
+     lmat = lapply(foreground, function(k) {
+       rv = ad[[k]]
+       colnames(rv) = paste(colnames(rv), k, sep=" - ")
+       return(rv)
+       })
      ## one wide matrix with all of them next to each other
      y = do.call("cbind", lmat)
 

@@ -389,7 +389,7 @@ accordingly.
 \section{Running VSN on \Robject{RGList} objects} \label{limma}
 %---------------------------------------------------------
 There is a \Rfunction{justvsn} method for \Rclass{RGList} objects.
-Usually, you will produce from your own data them using the
+Usually, you will produce an \Rclass{RGList} from your own data using the
 \Rfunction{read.maimages} from the \Rpackage{limma} package. Here,
 for the sake of demonstration, we construct an \Rclass{RGList} from
 \Robject{lymphoma}.
@@ -406,7 +406,7 @@ lymRG = new("RGList", list(
 lymNCS = justvsn(lymRG)
 @ 
 %
-Here is what happens here: the \Rfunction{justvsn} method 
+The \Rfunction{justvsn} method 
 uses the package \Rpackage{convert} to coerce its argument,
 which is of class \Rclass{RGList}, 
 into an \Rclass{NChannelSet}, and then passes this on to 
@@ -431,8 +431,8 @@ The \Rclass{NChannelSet} object \Robject{lymNCS}.}
 \end{table*}
 %
 Note that, due to the flexibility in the amount and 
-quality of metadata that is in an \Rclass{RGList}, and due to the 
-many differences in the implementation of these classes,
+quality of metadata that is in an \Rclass{RGList}, and due to 
+differences in the implementation of these classes,
 the transfer of the metadata into the \Rclass{NChannelSet} 
 may not always produce the expected results, and that some
 checking and often further dataset-specific postprocessing
@@ -443,14 +443,17 @@ and assign it into the \Robject{phenoData} slot of \Robject{lymNCS}.
 %
 <<addmeta>>=
 vmd = data.frame(
-  labelDescription=I(c("array ID", "sample in G", "sample in R")),
+  labelDescription=I(c("array ID", 
+      "sample in G", "sample in R")),
   channel=c("_ALL", "G", "R"),
   row.names=c("arrayID", "sampG", "sampR"))
 
 arrayID = lymphoma$name[wr]
-stopifnot(identical(arrayID, lymphoma$name[wg])) ## just to make sure :)
+stopifnot(identical(arrayID, lymphoma$name[wg])) 
 
-sampleType = sub("-.*", "", lymphoma$sample) ## sample number suffix
+## remove sample number suffix 
+sampleType = factor(sub("-.*", "", 
+                   lymphoma$sample)) 
 
 v = data.frame(
   arrayID = arrayID,
@@ -473,7 +476,8 @@ to only consider \Robject{M}, and that taking into account absolute
 intensities as well can improve analyses).
 %
 <<lymM>>=
-lymM = assayData(lymNCS)$R-assayData(lymNCS)$G
+lymM = (assayData(lymNCS)$R - 
+        assayData(lymNCS)$G)
 @
 % 
 \label{lmFit}
@@ -492,15 +496,15 @@ top 5 features.
 \includegraphics[width=0.9\textwidth]{vsn-figlimma}  
 \caption{\label{vsn-figlimma}%
 Left: histogramme of $p$-values from the moderated $t$-test between the 
-\Sexpr{levels(sampleClass)[1]} and
-\Sexpr{levels(sampleClass)[2]} groups on the \Robject{lymM} values.
+\Sexpr{levels(lymNCS$sampR)[1]} and
+\Sexpr{levels(lymNCS$sampR)[2]} groups on the \Robject{lymM} values.
 Right: $M$-values for the 5 genes with the smallest $p$-values.}
 \end{center}\end{figure*}
 %
 <<figlimma,fig=TRUE,width=8>>=
 par(mfrow=c(1,2))
 hist(lf$p.value, 100, col="orange") 
-pdat=t(exprs(lymM)[order(lf$p.value)[1:5],])
+pdat=t(lymM[order(lf$p.value)[1:5],])
 matplot(pdat, 
   lty=1, type="b", lwd=2, 
   col=hsv(seq(0,1,length=5), 0.7, 0.8), 
@@ -614,14 +618,14 @@ using the two models, is shown in Figure~\ref{vsn-figstrata}.
 %
 <<figstrata,fig=TRUE>>=
 j = 1L
-plot(exprs(EsenzaStr)[,j], 
-  exprs(EconStr)[,j], 
-  pch = ".", asp = 1, 
-  col = hsv(seq(0, 1, length=ngr*ngc), 
+plot(assayData(EsenzaStr)$R[,j],
+     assayData(EconStr)$R[,j],
+     pch = ".", asp = 1, 
+     col = hsv(seq(0, 1, length=ngr*ngc), 
        0.8, 0.6)[arrayGeometry$pin], 
-  xlab = "without strata", 
-  ylab = "print-tip strata",
-  main = sampleNames(lymES)[j])
+     xlab = "without strata", 
+     ylab = "print-tip strata",
+     main = sampleNames(lymNCS)$R[j])
 @
 %
 %---------------------------------------------------------------------
