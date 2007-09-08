@@ -7,6 +7,7 @@
 \alias{vsn2,AffyBatch-method}
 \alias{vsn2,RGList-method}
 \alias{vsn2,NChannelSet-method}
+\alias{coerce,RGList,NChannelSet-method}
 \alias{vsnMatrix}
 
 \title{Fit the vsn model}
@@ -50,7 +51,8 @@ vsnMatrix(x,
 }
 \arguments{
   \item{x}{An object containing the data to which the model is to be
-    fitted. Methods exists for various types of objects, see Section \emph{Usage}.}
+    fitted. Methods exists for various types of objects, see the above
+    \emph{Usage} section.}
   \item{reference}{Optional, a \code{\linkS4class{vsn}} object from
     a previous fit. If this argument is specified, the data in \code{x}
     are normalized "towards" an existing set of reference arrays whose
@@ -114,9 +116,9 @@ vsnMatrix(x,
   (see references), f is a parameter transformation [4],
   and the overall constant offset c is computed from b such that for
   large x the transformation approximately corresponds to the
-  log2 function. The offset c is inconsequential for all differential expression
-  calculations, but many users like to see the data in a range that they
-  are familiar with.
+  log2 function. The offset c is inconsequential for all differential
+  expression calculations, but many users like to see the data in a
+  range that they are familiar with.
 }
 
 \details{

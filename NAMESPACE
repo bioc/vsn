@@ -24,5 +24,5 @@ export(
 
 exportMethods("vsn2", "justvsn", 
               "meanSdPlot",
-              "predict", "logLik", "coef", "coefficients", "show", "exprs", "nrow", "ncol", "dim")
+              "predict", "logLik", "coef", "coefficients", "show", "exprs", "nrow", "ncol", "dim", "coerce")
 

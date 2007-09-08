@@ -44,19 +44,4 @@ setMethod("justvsn", "NChannelSet",
 
 setMethod("justvsn", "RGList",
           function(x, reference, strata, ...) 
-            justvsn(safeCoerceRGListToNChannelSet(x), reference, strata, ...))
-
-
-
-###-----------Helper Function------------------##
-safeCoerceRGListToNChannelSet = function(x) {
-  if(canCoerce(x, "NChannelSet"))
-    return(as(x, "NChannelSet"))
-  if(!do.call("require", args=list("convert")))
-    stop("Please install the package 'convert', which is needed for coercion from 'RGList' to 'NChannelSet'.")
-  ver = packageDescription("convert")$Version
-  if(compareVersion(ver, "1.11.2")<0)
-    stop(sprintf("Need package 'convert' >= 1.11.2, found %s.",
-                 as.character(packageDescription("convert")$Version)))
-  return(as(x, "NChannelSet"))
-}
+            justvsn(as(x, "NChannelSet"), reference, strata, ...))

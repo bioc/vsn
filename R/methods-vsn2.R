@@ -55,4 +55,4 @@ setMethod("vsn2", "AffyBatch",
 
 setMethod("vsn2", "RGList",
    function(x, reference, strata, ...)
-      vsn2(safeCoerceRGListToNChannelSet(x), reference, strata, ...))
+      vsn2(as(x, "NChannelSet"), reference, strata, ...))
