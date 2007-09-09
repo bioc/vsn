@@ -1,5 +1,10 @@
-## Martin Morgan
-## 27 August, 2007
+## Wolfgang Huber, 9.9.2007:
+## I have copied this file from "convert/R", and the code ought to be kept
+##  in sync with the one there. It seems this needs to be done manually,
+##  the package test / check system does not make it easy.
+
+
+## Martin Morgan, 27 August, 2007:
 
 setAs("RGList", "NChannelSet", function(from) {
 
