@@ -22,7 +22,6 @@ setMethod("vsn2", "NChannelSet",
      ## list of matrices with the foreground values
      lmat = lapply(foreground, function(k) {
        rv = ad[[k]]
-       colnames(rv) = paste(colnames(rv), k, sep=" - ")
        return(rv)
        })
      ## one wide matrix with all of them next to each other
