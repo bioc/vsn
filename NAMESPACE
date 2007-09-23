@@ -7,7 +7,7 @@ importFrom("stats", "logLik", "coef", "coefficients")
 importFrom("lattice", "levelplot")
 importClassesFrom("limma", "RGList")
 
-## affy does not bother to have a namespace, have to put it in 'Depends' field...:
+## affy does not bother to have a namespace (as of Sep 2007), have to put it in 'Depends' field...:
 ## importFrom("affy", "AffyBatch")
 
 exportClasses("vsn", "vsnInput")
@@ -19,10 +19,9 @@ export(
   "normalize.AffyBatch.vsn",
 
   ## New     
-  "vsnMatrix", 
+  "vsnMatrix", "justvsn", "vsnrma",
   "sagmbAssess", "sagmbSimulateData", "plotVsnLogLik", "scalingFactorTransformation")
 
-exportMethods("vsn2", "justvsn", 
-              "meanSdPlot",
-              "predict", "logLik", "coef", "coefficients", "show", "exprs", "nrow", "ncol", "dim", "coerce")
+exportMethods("vsn2", "meanSdPlot", "predict", "logLik", "coef", "coefficients",
+              "show", "exprs", "nrow", "ncol", "dim", "coerce")
 

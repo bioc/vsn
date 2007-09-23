@@ -317,7 +317,7 @@ for more information about data structures and methodology.
 \begin{figure*}[tb]\begin{center}
 \includegraphics[width=0.8\textwidth]{vsn-figaffy}  
 \caption{\label{vsn-figaffy}%
-Results of \Rfunction{justvsn} and \Rfunction{rma} on the Dilution 
+Results of \Rfunction{vsnrma} and \Rfunction{rma} on the Dilution 
 example data. Chip 1 was hybridised with 20 $\mu$g RNA from liver,
 Chip 3 with 10 $\mu$g of the same RNA.}
 \end{center}\end{figure*}
@@ -330,12 +330,12 @@ the following steps:
 The VSN method addresses steps (i)--(iii).
 For the summarisation, I recommend to use the RMA method~\cite{RMA},
 and a simple wrapper that provides all of these is provided through 
-the method \Rfunction{justvsn}.
+the method \Rfunction{vsnrma}.
 %
 <<affy1,results=hide>>=
 require("affydata")
 data("Dilution")
-d.vsn = justvsn(Dilution)
+d.vsn = vsnrma(Dilution)
 @ 
 For comparison, we also run \Rfunction{rma}.
 <<affy2,results=hide>>=
@@ -373,18 +373,6 @@ is stronger with VSN (cf.\ the bottom right plot),
 which also leads to a lower dynamic range, cf.\ the 
 bottom left plot.
 
-The implementation of the \Rfunction{justvsn} method for
-\Rclass{AffyBatch} is straightforward and can be seen either by checking 
-the package source files, or by typing
-%
-<<showcode, results=hide>>=
-getMethod("justvsn", "AffyBatch")
-@ 
-%
-Users who are interested in trying out other probeset summarization
-methods than RMA are encouraged to take this function and modify it
-accordingly.
-
 %---------------------------------------------------------
 \section{Running VSN on \Robject{RGList} objects} \label{limma}
 %---------------------------------------------------------
@@ -406,10 +394,10 @@ lymRG = new("RGList", list(
 lymNCS = justvsn(lymRG)
 @ 
 %
-The \Rfunction{justvsn} method 
-uses the package \Rpackage{convert} to coerce its argument,
-which is of class \Rclass{RGList}, 
-into an \Rclass{NChannelSet}, and then passes this on to 
+The \Rfunction{justvsn} method for \Rclass{RGList} 
+converts its argument into an \Rclass{NChannelSet}, using a copy 
+of the coercion method from Martin Morgan in the package \Rpackage{convert}.
+It then passes this on to 
 the \Rfunction{justvsn} method for \Rclass{NChannelSet}. 
 The return value is an \Rclass{NChannelSet}, shown in 
 Table~\ref{tab:lymNCS}. 

@@ -4,21 +4,20 @@
 \title{Apply the vsn transformation to data}
 \description{Apply the vsn transformation to data.}
 \usage{
-\S4method{predict}{vsn}(object, newdata, strata=object@strata, log2scale=TRUE)
+\S4method{predict}{vsn}(object, newdata, strata=object@strata, log2scale=TRUE, useDataInFit=FALSE)
 }
 
 \arguments{
   \item{object}{An object of class \code{\linkS4class{vsn}} that
     contains transformation parameters and strata information, typically
     this is the result of a previous call to \code{vsn2}.}
-  \item{newdata}{Numeric \code{matrix}, \code{vector} or
-    \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}} with the data to which an
-    existing fit is to be applied to.
-    A typical use case is when the fit is made to a set of
-    control features and then the transformation is to be applied to the
-    full set of data.
-    If \code{newdata} is a vector, it is considered a matrix with one
-    column and \code{nrow(newdata)} rows.}
+  \item{newdata}{Object of class
+    \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}},
+    \code{\link[Biobase:class.NChannelSet]{NChannelSet}},
+    \code{\link[affy:AffyBatch-class]{AffyBatch}} (from the \code{affy} package),
+    \code{\link[limma:rglist]{RGList}} (from the \code{limma} package),
+    \code{matrix} or \code{numeric}, with the data to which the
+    fit is to be applied to.}
   \item{strata}{Optional, a \code{factor} or \code{integer}
     that aligns with the rows of \code{newdata}; see
     the \code{strata} argument of \code{\link{vsn2}}.}
@@ -27,10 +26,26 @@
     section of the \code{\link{vsn2}} manual page). If \code{FALSE}, the
     data are returned on the glog scale to base e, and no offset is
     added.}
+  \item{useDataInFit}{If \code{TRUE}, then no transformation is
+    attempted and the data stored in \code{object} is transferred
+    appropriately into resulting object, which otherwise preserves the
+    class and metadata of \code{newdata}. This option exists to increase
+    performance in constructs like
+\preformatted{
+       fit = vsn2(x, ...)
+       nx = predict(fit, newdata=x)
+  }
+    and is used, for example, in the \code{\link{justvsn}} function.
+  }
 }
+
 \value{
-  An \code{ExpressionSet} if \code{newdata} was an \code{ExpressionSet},
-  a \code{matrix} otherwise. Dimnames and metadata are preserved.
+  An object typically of the same class as \code{newdata}. There are two
+  exceptions: if \code{newdata} is an
+  \code{\link[limma:rglist]{RGList}}, the return value is an
+  \code{\link[Biobase:class.NChannelSet]{NChannelSet}}, and
+  if \code{newdata} is numeric, the return value is a \code{matrix} with 1
+  column.
 }
 
 \author{Wolfgang Huber \url{http://www.ebi.ac.uk/huber}}

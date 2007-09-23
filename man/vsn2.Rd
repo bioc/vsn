@@ -16,12 +16,15 @@
   the fit parameters and the transformed data matrix.
   The data are, typically, feature intensity readings from a
   microarray.
-  Please see also \code{\link[vsn:vsn2trsf]{predict}} for
-  applying a fitted model to data and \code{\link{justvsn}},
-  which provides wrappers around \code{vsn2} that return appropriate
-  \code{\link[Biobase:class.eSet]{eSet}}-derived objects.
-  This the main function of this package. An overview is given in the vignette
-  \emph{Introduction to vsn}.
+  To obtain an object of the same class as \code{x}, containing
+  the normalised data and the same metdata as \code{x}, use
+  \preformatted{
+    fit = vsn2(x, ...)
+    nx = predict(fit, newdata=x)
+  }
+  or the wrapper \code{\link{justvsn}}.
+  Please see the vignette \emph{Introduction to vsn} for a description
+  on how to use \code{vsn2} for different use cases.
 }
 
 \usage{
@@ -40,19 +43,16 @@ vsnMatrix(x,
 
 \S4method{vsn2}{AffyBatch}(x, reference, strata, ...)
 
-\S4method{vsn2}{RGList}(x, reference, strata, backgroundsubtract=FALSE, ...)
+\S4method{vsn2}{matrix}(x, reference, strata, ...)
 
 \S4method{vsn2}{NChannelSet}(x, reference, strata, backgroundsubtract=FALSE,
        foreground=c("R","G"), background=c("Rb", "Gb"), ...)
 
-\S4method{vsn2}{matrix}(x, reference, strata, ...)
-
-\S4method{vsn2}{numeric}(x, reference, strata, ...)
+\S4method{vsn2}{RGList}(x, reference, strata, backgroundsubtract=FALSE, ...)
 }
 \arguments{
   \item{x}{An object containing the data to which the model is to be
-    fitted. Methods exists for various types of objects, see the above
-    \emph{Usage} section.}
+    fitted.}
   \item{reference}{Optional, a \code{\linkS4class{vsn}} object from
     a previous fit. If this argument is specified, the data in \code{x}
     are normalized "towards" an existing set of reference arrays whose
@@ -76,21 +76,17 @@ vsnMatrix(x,
     then applied to all data. For large datasets, this can substantially
     reduce the CPU time and memory consumption at a negligible loss of precision.}
   \item{backgroundsubtract}{Logical of length 1: should
-    local background estimates be subtracted before fitting vsn?
-    For \code{\link[limma:rglist]{RGList}}, the local background
-    estimates are expected in the \code{Rb} and \code{Gb} slots of
-    \code{x} and the foreground values in the \code{R} and \code{G}
-    slots.}
-  \item{foreground, background}{Character vectors of the same length,
+    local background estimates be subtracted before fitting vsn?}
+  \item{foreground, background}{Aligned character vectors of the same length,
     naming the channels of \code{x} that should be used
     as foreground and background values.}
   \item{verbose}{Logical. If TRUE, some messages are printed.}
   \item{returnData}{Logical. If TRUE, the transformed data are returned
     in a slot of the resulting \code{\linkS4class{vsn}} object.
-    The option to set this option to \code{FALSE} allows saving of memory
+    Setting this option to \code{FALSE} allows saving memory
     if the data are not needed.}
-  \item{pstart}{Optional, a three-dimensional numeric array.
-    Can be used to specify start values for the iterative parameter
+  \item{pstart}{Optional, a three-dimensional numeric array that
+    specifies start values for the iterative parameter
     estimation algorithm.
     If not specified, the function tries to guess useful start values.
     The first dimension corresponds to the levels of \code{strata},
@@ -102,13 +98,16 @@ vsnMatrix(x,
   \item{defaultpar}{The default parameters  for the likelihood
     optimisation algorithm. Values in \code{optimpar} take precedence
     over those in \code{defaultpar}. The purpose of this argument is to
-    expose the default values in the function manual page - it is not
+    expose the default values in this manual page - it is not
     intended to be changed, please use \code{optimpar} for that.}
   \item{...}{Arguments that get passed on to \code{vsnMatrix}.}
 }
-\value{
-  An object of class \code{\linkS4class{vsn}}.
-  The transformed data are on a glog scale to base 2. More precisely,
+
+\value{An object of class \code{\linkS4class{vsn}}.}
+
+\section{Note on overall scale and location of the glog
+  transformation}{
+  The data are returned on a glog scale to base 2. More precisely,
   the transformed data are subject to the transformation
   glog2(f(b)*x+a) + c, where
   glog2(u) = log2(u+sqrt(u*u+1)) = asinh(u)/log(2) is called the
@@ -121,15 +120,33 @@ vsnMatrix(x,
   range that they are familiar with.
 }
 
-\details{
+\section{Specific behaviour of the different methods}{
+  \code{vsn2} methods exist for
+  \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}},
+  \code{\link[Biobase:class.NChannelSet]{NChannelSet}},
+  \code{\link[affy:AffyBatch-class]{AffyBatch}} (from the \code{affy} package),
+  \code{\link[limma:rglist]{RGList}} (from the \code{limma} package),
+  \code{matrix} and \code{numeric}.
+  If \code{x} is an \code{\link[Biobase:class.NChannelSet]{NChannelSet}}, then
+  \code{vsn2} is applied to the matrix that is obtained
+  by horizontally concatenating the color channels.
+  Optionally, available background estimates can be subtracted before.
+  If \code{x} is an \code{\link[limma:rglist]{RGList}}, it is
+  converted into an \code{NChannelSet}
+  using a copy of Martin Morgan's code for \code{RGList} to
+  \code{NChannelSet} coercion, then the \code{NChannelSet} method is called.
+}
+
+\section{Standalone versus reference normalisation}{
   If the \code{reference} argument is \emph{not} specified, then the model
   parameters $\mu_k$ and $\sigma$ are fit from the data in \code{x}.
   This is the mode of operation described in [1]
   and that was the only option in versions 1.X of this package.
   If \code{reference} is specified, the model parameters
   $\mu_k$ and $\sigma$ are taken from it.
-  This allows for 'incremental' normalization [4].
+  This allows for 'incremental' normalization [4].}
 
+\section{Convergence of the iterative likelihood optimisation}{
   \code{L-BFGS-B} uses three termination criteria:
   \enumerate{
     \item \code{(f_k - f_{k+1}) / max(|f_k|, |f_{k+1}|, 1) <= factr * epsmch}

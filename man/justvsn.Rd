@@ -1,68 +1,38 @@
 \name{justvsn}
 \alias{justvsn}
-\alias{justvsn-methods}
-\alias{justvsn,ExpressionSet-method}
-\alias{justvsn,AffyBatch-method}
-\alias{justvsn,RGList-method}
-\alias{justvsn,NChannelSet-method}
+\alias{vsnrma}
 
-\title{Normalization with vsn}
-\description{\code{justvsn} accepts the same kind of arguments as 
-  \code{\link{vsn2}}, but returns an appropriate 
-  \code{\link[Biobase:class.eSet]{eSet}}-derived object
-  (see Section \emph{Value} for details). This is in contrast
-  to \code{\link{vsn2}}, which always returns
-  an object of class \code{\linkS4class{vsn}}.
+\title{Wrapper functions for vsn}
+\description{\code{justvsn} returns the vsn-normalised intensities in
+  an object generally of the same class as its first
+  argument (see the man page of \code{\link[vsn:vsn2trsf]{predict}} for
+  details). It preserves the metadata. It is equivalent to calling
+\preformatted{
+  fit = vsn2(x, ...)
+  nx = predict(fit, newdata=x, useDataInFit = TRUE)
+}
+ \code{vsnrma} is a wrapper around \code{\link{vsn2}} and \code{\link[affy:rma]{rma}}    
 }
 
 \usage{
-justvsn(x, reference, strata, ...)
+justvsn(x, ...)
+vsnrma(x, ...)
 }
 
 \arguments{
-  \item{x}{An object containing the data to which the model is to be
-    fitted. Methods exist for
-    \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}},
-    \code{\link[Biobase:class.NChannelSet]{NChannelSet}},
-    \code{\link[affy:AffyBatch-class]{AffyBatch}} (from the \code{affy} package) and
-    \code{\link[limma:rglist]{RGList}} (from the \code{limma} package).}
-  \item{reference, strata, ...}{Arguments that get passed on to \code{\link{vsn2}}.}
+  \item{x}{For \code{justvsn}, any kind of object for which
+    \code{\link{vsn2}} methods exist.
+    For \code{vsnrma}, an
+    \code{\link[affy:AffyBatch-class]{AffyBatch}}.}
+  \item{\dots}{Further arguments that get passed on to \code{\link{vsn2}}.}
 }
 
 \details{
-  The \code{justvsn} methods are implemented such that they call
-  the corresponding \code{\link{vsn2}} method and then assemble the
-  object that they are going to return from the normalized data and the original
-  metadata in \code{x}. However, \code{justvsn} looses the information on the
-  model fitting, i.e. what is stored in the \code{\linkS4class{vsn}}
-  object produced by \code{link{vsn2}}.
-
-  If \code{x} is an \code{\link[affy:AffyBatch-class]{AffyBatch}}, probe-wise
-  background correction and between-array normalization are done by
+  \code{vsnrma} does probe-wise
+  background correction and between-array normalization by calling
   \code{\link{vsn2}} on the perfect match (PM) values only. Probeset
   summaries are calculated with the medianpolish algorithm of
-  \code{\link[affy:rma]{rma}}. If you do not want to compute probeset
-  summaries, please extract the intensities from the \code{AffyBatch} into a
-  matrix and call \code{\link{vsn2}} on that.
-  
-  If \code{x} is an \code{\link[limma:rglist]{RGList}}
-  or an \code{\link[Biobase:class.NChannelSet]{NChannelSet}}, then
-  \code{\link{vsn2}} is applied to the matrix that is obtained
-  by horizontally concatenating the color channels.
-  Optionally, available background estimates can be subtracted before.
-}
-
-\value{
-  If \code{x} is an
-  \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}} or an
-  \code{\link[affy:AffyBatch-class]{AffyBatch}},
-  the return value of this function is an
-  \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}}.
-
-  If \code{x} is an
-  \code{\link[Biobase:class.NChannelSet]{NChannelSet}} or an
-  \code{\link[limma:rglist]{RGList}}, the return value is an
-  \code{\link[Biobase:class.NChannelSet]{NChannelSet}}.
+  \code{\link[affy:rma]{rma}}. 
 }
 
 \seealso{
@@ -90,12 +60,12 @@ stopifnot(identical(exprs(nkid), exprs(nkid2)))
 ##--------------------------------------------------
 data("affybatch.example")
 data("cdfenv.example")
-eabe = justvsn(affybatch.example)
+abe1 = justvsn(affybatch.example)
+abe2 = vsnrma(affybatch.example)
 
 ##--------------------------------------------------
 ## justvsn on RGList
 ##--------------------------------------------------
-require("limma")
 rg = new("RGList", list(R=exprs(kidney)[,1,drop=FALSE], G=exprs(kidney)[,2,drop=FALSE]))
 erge = justvsn(rg)
 }

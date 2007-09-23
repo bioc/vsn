@@ -1,49 +1,6 @@
 #------------------------------------------------------------
 # methods related to the class 'vsn'
-#  (see below for methods for the generic function 'vsn2')
 #------------------------------------------------------------
-setMethod("predict", signature("vsn"),
-  function(object, newdata, strata=object@strata, log2scale=TRUE) {
-
-    stopifnot(validObject(object))
-
-    ## Treat the different types of newdata. We do this manually here,
-    ## unfortunately the generic function stats::predict does not allow
-    ## to dispatch on 'newdata' via S4
-    if(is(newdata, "ExpressionSet")){
-      res = newdata
-      exprs(res) = predict(object, exprs(newdata), strata=strata, log2scale=log2scale)
-      return(res)
-    }
-    
-    ## Once we get here, 'newdata' must be either a matrix or a vector
-    if(is.vector(newdata))
-      dim(newdata)=c(length(newdata), 1)
-
-    returnClass = "matrix"
-    stopifnot(is.matrix(newdata))
-    if(storage.mode(newdata) != "double")
-      storage.mode(newdata) = "double"
-    
-    if(length(strata)==0L) {
-      strata = rep(1L, nrow(newdata))
-    } else {
-      if(length(strata)!=nrow(newdata))
-        stop("'nrow(newdata)' must match 'strata'.")
-      strata = as.integer(int2factor(strata))
-    }
-    
-    hy = .Call("vsn2_trsf", newdata, as.vector(object@coefficients), strata, PACKAGE="vsn")
-
-    if(log2scale)
-      hy = trsf2log2scale(hy, object@coefficients)
-    
-    dim(hy) = dim(newdata)
-    dimnames(hy) = dimnames(newdata)
-    return(hy)
-  })
-       
-
 setMethod("nrow", signature("vsn"), function(x) length(x@mu))
 setMethod("ncol", signature("vsn"), function(x) dim(x@coefficients)[2])
 setMethod("dim",  signature("vsn"), function(x) c(nrow(x), ncol(x)))
