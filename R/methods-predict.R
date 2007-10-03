@@ -47,7 +47,8 @@ predict_vsn_matrix = function(object, newdata, strata, log2scale, useDataInFit) 
 
     hy = .Call("vsn2_trsf", newdata, as.vector(object@coefficients), strata, PACKAGE="vsn")
     if(log2scale)
-      hy = trsf2log2scale(hy, object@coefficients)
+      hy = trsf2log2scale(hy, object@hoffset)
+    
     attributes(hy) = attributes(newdata)
   }
   
