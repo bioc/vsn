@@ -80,26 +80,30 @@ validityVsnInput = function(object){
 }
 
 
-## strata may be of length 0 (in which case there are no strata).
-## hx may have 0 rows (in which case the transformed data has not (yet) been computed).
-## If length(strata) or nrow(hx) are >0, then they must be the same
-##   as length(mu) (which is always >0).
 validityVsn = function(object){
   if(any(is.na(object@coefficients))||(length(dim(object@coefficients))!=3))
     return("'coefficients' must be a 3D array and not contain NA values.")
 
-  if(dim(object@coefficients)[3]!=2)
+  if(dim(object@coefficients)[3L]!=2L)
     return("'dim(coefficients)[3]' must be equal to 2.")
   
-  if(length(object@sigsq)!=1)
+  if(length(object@sigsq)!=1L)
     return("'sigsq' must be of length 1.")
 
-  if(!equalOrZero(ncol(object@hx), dim(object@coefficients)[2]))
+  if(length(object@hoffset)!=1L)
+    return("'hoffset' must be of length 1.")
+
+  ## hx may have 0 rows (in which case the transformed data has not yet
+  ##     been computed)
+  if(!equalOrZero(ncol(object@hx), dim(object@coefficients)[2L]))
     return("'ncol(hx)' and 'dim(object@coefficients)[2]' must match.")
 
+  ## strata may be of length 0 (in which case there are no strata).
   if(!equalOrZero(length(object@strata), length(object@mu)))
     return("'length(strata)' must be 0 or equal to 'length(mu)'.")
 
+  ## If length(strata) or nrow(hx) are >0, then they must be the same
+  ##   as length(mu) (which is always >0).
   if(!equalOrZero(nrow(object@hx), length(object@mu)))
     return("'nrow(hx)' must be 0 or equal to 'length(mu)'.")
 
@@ -107,7 +111,7 @@ validityVsn = function(object){
     if(nlevels(object@strata)!=dim(object@coefficients)[1])
       return("'nlevels(strata)' and 'dim(coefficients)[1]' must match.")
 
-  if(!((length(object@lbfgsb)==1)&&(is.integer(object@lbfgsb))))
+  if(!((length(object@lbfgsb)==1L)&&(is.integer(object@lbfgsb))))
     return("'lbfgsb' must be an integer of length 1.")
   
   return(TRUE)
@@ -115,25 +119,25 @@ validityVsn = function(object){
 
 ##------------------------------------------------------------------------------------
 ## Class vsn
-## Slot 'coefficients' is a 3D array: nrstrata * d * 2, with 2 parameters for each stratum and
-##   array. The first of these 2 is the background offset off, the second the scaling
-##   factor fac. The transformation is hence y -> asinh((y+off)/fac)
 ##------------------------------------------------------------------------------------
 setClass("vsn",
   representation(
-    coefficients = "array",
-    strata = "factor", 
-    mu     = "numeric",
-    sigsq  = "numeric",
-    hx     = "matrix",
-    lbfgsb = "integer"),
+    coefficients = "array", ## 3D array: nrstrata * d * 2, with 2 parameters
+                            ## for each stratum and array. 
+    strata  = "factor", 
+    mu      = "numeric",
+    sigsq   = "numeric",
+    hx      = "matrix",
+    lbfgsb  = "integer",
+    hoffset = "numeric"),
   prototype = list(
     coefficients = array(0, dim=c(0,0,2)),
     strata       = factor(integer(0), levels="all"),
     mu           = numeric(0),
     sigsq        = as.numeric(NA),
     hx           = matrix(0, nrow=0, ncol=0),
-    lbfgsb       = as.integer(NA)),
+    lbfgsb       = as.integer(NA),
+    hoffset      = as.numeric(NA)),
   validity = validityVsn)
 
 ##------------------------------------------------------------

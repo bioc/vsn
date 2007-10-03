@@ -301,26 +301,25 @@ vsnMatrix = function(x,
   res = vsnSample(v)
 
   ## If necessary, calculate the data matrix transformed according to 'coefficients'
-  ## Apply an irrelevant affine transformation to make users happy (with coefficients
-  ## from reference, if applicable).
   if(returnData) {
     res@strata=strata
     trsfx = vsn2trsf(x, coefficients(res), strata=
       if(length(strata)==0L) rep(1L, nrow(x)) else as.integer(strata))
-    res@hx = trsf2log2scale(trsfx,  coefficients=
-      if(nrow(reference)==0L) coefficients(res) else coefficients(reference))
+
+    ## apply an irrelevant affine transformation to make users happy
+    ## (with coefficients from reference, if applicable).
+    cof = coefficients( if(nrow(reference)==0L) res else reference )
+    res@hoffset = log2(2*scalingFactorTransformation(mean(cof[,,2])))
+    res@hx = trsf2log2scale(trsfx, res@hoffset)
   }
   
   return(res)
 }
 
 ##---------------------------------------------------------------------
-## trsf2log2scale
-## See the 'value' section of the man page of 'vsn2'
+## trsf2log2scale: see the 'value' section of the man page of 'vsn2'
 ##--------------------------------------------------------------------
-trsf2log2scale = function(x, coefficients) {
-  (x/log(2))-log2(2*scalingFactorTransformation(mean(coefficients[,,2])))
-}
+trsf2log2scale = function(x, hoff) (x/log(2)-hoff)
 
 ##---------------------------------------------------------------------
 ## The glog transformation
