@@ -1,9 +1,9 @@
 Package: vsn
-Version: 3.3.3
+Version: 3.3.4
 Title: Variance stabilization and calibration for microarray data
 Author: Wolfgang Huber <huber@ebi.ac.uk>, with contributions from A. von
         Heydebreck. Many comments and suggestions by users are 
-        acklownedged, among them Dennis Kostka, David Kreil, Hans-Ulrich
+        acknowledged, among them Dennis Kostka, David Kreil, Hans-Ulrich
         Klein, Gordon Smyth
 Maintainer: Wolfgang Huber <huber@ebi.ac.uk>
 Depends: R (>= 2.6.0), methods, Biobase (>= 1.15.33), affy (>= 1.15.7), limma (>= 2.11.12)

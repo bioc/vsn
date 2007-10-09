@@ -235,18 +235,20 @@ vsnSample = function(v) {
 ##----------------------------------------------------------------------
 ## vsnMatrix
 ##----------------------------------------------------------------------
-vsnMatrix = function(x,
-  reference,
-  strata,
-  minDataPointsPerStratum = 42L,
-  lts.quantile = 0.9,
-  subsample    = 0L,
-  verbose      = interactive(),
-  returnData   = TRUE,
-  pstart,
-  optimpar   = list(),
-  defaultpar = list(factr=5e7, pgtol=2e-4, maxit=60000L, trace=0L, cvg.niter=7L, cvg.eps=0)) {
-
+vsnMatrix <-
+    function(x,
+             reference,
+             strata,
+             lts.quantile = 0.9,
+             subsample    = 0L,
+             verbose      = interactive(),
+             returnData   = TRUE,
+             pstart,
+             minDataPointsPerStratum = 42L,
+             optimpar   = list(),
+             defaultpar = list(factr=5e7, pgtol=2e-4, maxit=60000L,
+                               trace=0L, cvg.niter=7L, cvg.eps=0))
+{
   storage.mode(x) = "double"
   storage.mode(subsample) = "integer"
   

@@ -29,16 +29,17 @@
 
 \usage{
 vsnMatrix(x,
-  reference,
-  strata,
-  minDataPointsPerStratum = 42L,
-  lts.quantile = 0.9,
-  subsample    = 0L,
-  verbose      = interactive(),
-  returnData   = TRUE,
-  pstart,
-  optimpar     = list(),
-  defaultpar   = list(factr=5e7, pgtol=2e-4, maxit=60000L, trace=0L, cvg.niter=7L, cvg.eps=0))
+          reference,
+          strata,
+          lts.quantile = 0.9,
+          subsample    = 0L,
+          verbose      = interactive(),
+          returnData   = TRUE,
+          pstart,
+          minDataPointsPerStratum = 42L,
+          optimpar     = list(),
+          defaultpar   = list(factr=5e7, pgtol=2e-4, maxit=60000L,
+                              trace=0L, cvg.niter=7L, cvg.eps=0))
 
 \S4method{vsn2}{ExpressionSet}(x, reference, strata, ...)
 
@@ -93,6 +94,8 @@ vsnMatrix(x,
     The first dimension corresponds to the levels of \code{strata},
     the second dimension to the columns of \code{x} and the third dimension
     must be 2, corresponding to offsets and factors.}
+  \item{minDataPointsPerStratum}{ The minimum number of data points per
+    stratum. }
   \item{optimpar}{Optional, a list with parameters for the likelihood
     optimisation algorithm. Default parameters are taken from
     \code{defaultpar}. See details.}
