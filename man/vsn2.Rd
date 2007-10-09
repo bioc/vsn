@@ -31,6 +31,7 @@
 vsnMatrix(x,
   reference,
   strata,
+  minDataPointsPerStratum = 42L,
   lts.quantile = 0.9,
   subsample    = 0L,
   verbose      = interactive(),

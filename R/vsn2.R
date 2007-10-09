@@ -238,6 +238,7 @@ vsnSample = function(v) {
 vsnMatrix = function(x,
   reference,
   strata,
+  minDataPointsPerStratum = 42L,
   lts.quantile = 0.9,
   subsample    = 0L,
   verbose      = interactive(),
@@ -255,7 +256,6 @@ vsnMatrix = function(x,
     int2factor(strata)
   }
   
-  minDataPointsPerStratum = 42L
   stratasplit = if(length(strata)>0L) split(seq_len(nrow(x)), strata) else list(all=seq_len(nrow(x)))
   if(!(identical(names(stratasplit), levels(strata)) &&
        all(listLen(stratasplit)>minDataPointsPerStratum)))
