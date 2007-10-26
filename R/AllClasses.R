@@ -35,6 +35,9 @@ equalOrZero = function(i, j) ((i==j)||(i==0))
 compulsoryElements = c("factr", "pgtol", "maxit", "trace", "cvg.niter", "cvg.eps")
 
 validityVsnInput = function(object){
+  if(any(is.nan(object@x)))
+    return("The values in 'x' must be finite numeric or NA; please no NaN.")
+  
   r = validScalarNumericSlot(object, "subsample", min=0, max=nrow(object))
   if(!identical(r, TRUE)) return(r)
 
@@ -48,7 +51,7 @@ validityVsnInput = function(object){
   if(!identical(r, TRUE)) return(r)
 
   if(!equalOrZero(length(object@strata), nrow(object@x)))
-    return("'length(strata)' must must match 'nrow(x)'.")
+    return("'length(strata)' must match 'nrow(x)'.")
 
   if(any(is.na(object@strata)))
     return("'strata' must not contain NA values.")
