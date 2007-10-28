@@ -667,13 +667,13 @@ for(j in 1:2){
 %---------------------------------------------------------------------
 \section{Normalisation against an existing reference dataset} \label{sec:ref}
 %---------------------------------------------------------------------
-Up to here, we have considered the joint normalisation of a set of arrays to each
-other. What happens if, after analysing a set of arrays in this
-fashion, we obtain some additonal arrays? Do we re-run the
-whole normalisation again for the complete, new and bigger set of
-arrays? This may sometimes be impractical. 
+So far, we have considered the joint normalisation of a set of arrays
+to each other. What happens if, after analysing a set of arrays in
+this fashion, we obtain some additonal arrays? Do we re-run the whole
+normalisation again for the complete, new and bigger set of arrays?
+This may sometimes be impractical.
 
-Imagine we have used a set of training arrays for setting up a
+Suppose we have used a set of training arrays for setting up a
 classifier that is able to discriminate different biological states of
 the samples based on their mRNA profile. Now we get new test
 arrays to which we want to apply the classifier. Clearly, we do not
@@ -688,7 +688,7 @@ reference dataset without changing the latter.
 \myincfig{vsn-figref}{0.45\textwidth}{Scatterplot of normalised 
 intensities after normalisation by reference ($x$-axis, \Robject{f8})
 and joint normalisation ($y$-axis, \Robject{fall}).
-They are almost identical.}
+There is good agreement.}
 %
 To simulate this situation with the available example data, 
 pretend that the Cy5 channels of the 
@@ -706,7 +706,7 @@ f8 = vsn2(lymphoma[, ismp[8]],
           reference = ref)
 @
 %
-We can compare to what we would have got if we had fitted the model 
+We can compare this to what we get if we fit the model 
 to all 8 arrays,
 %
 <<ref3, results=hide>>=
