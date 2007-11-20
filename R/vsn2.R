@@ -38,7 +38,7 @@ vsnML = function(v) {
                 paste(signif(p[1:nrp], 4L), collapse=", "),
                 sprintf("\n  coef[1:%d]=", nrp),
                 paste(signif(coefficients(rv)[1:nrp], 4L), collapse=", "), "\n", sep="")
-    warning(msg)
+    ## warning(msg)
   }
   
   return(rv)

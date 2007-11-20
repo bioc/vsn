@@ -3,31 +3,36 @@
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 setMethod("meanSdPlot", signature="matrix", definition =
     function(x, ranks=TRUE, xlab = ifelse(ranks, "rank(mean)", "mean"),
-             ylab = "sd", pch  = ".", ...) {
+             ylab = "sd", pch  = ".", plot = TRUE, ...) {
       
       stopifnot(is.logical(ranks), length(ranks)==1, !is.na(ranks))
 
-      n    <- nrow(x)
-      px   <- rowMeans(x, na.rm=TRUE)
-      py   <- sqrt(rowV(x, mean=px, na.rm=TRUE))
-      rpx  <- rank(px, na.last=FALSE, ties.method = "random")
+      n    = nrow(x)
+      px   = rowMeans(x, na.rm=TRUE)
+      py   = sqrt(rowV(x, mean=px, na.rm=TRUE))
+      rpx  = rank(px, na.last=FALSE, ties.method = "random")
                 
       ## run median with centers at dm,2*dm,3*dm,... and width 2*dm
-      dm        <- 0.05
-      midpoints <- seq(dm, 1-dm, by=dm)
-      within    <- function(x, x1, x2) { x>=x1 & x<=x2 }
-      mediwind  <- function(mp) median(py[within(rpx/n, mp-dm,
+      dm        = 0.05
+      midpoints = seq(dm, 1-dm, by=dm)
+      within    = function(x, x1, x2) { x>=x1 & x<=x2 }
+      mediwind  = function(mp) median(py[within(rpx/n, mp-dm,
                                                            mp+dm)], na.rm=TRUE)
-      rq.sds    <- sapply(midpoints, mediwind)
+      rq.sds    = sapply(midpoints, mediwind)
                 
       if(ranks) {
-        px  <- rpx
-        pxl <- midpoints*n
+        px  = rpx
+        res = list(rank=midpoints*n, sd=rq.sds)
       } else {
-        pxl <- quantile(px, probs=midpoints, na.rm=TRUE)
+        res = list(quantile=quantile(px, probs=midpoints, na.rm=TRUE), sd=rq.sds)
       }
-      plot(px, py, pch=pch, xlab=xlab, ylab=ylab, ...)
-      lines(pxl, rq.sds, col="red", type="b", pch=19)
+      
+      if(plot) {
+        plot(px, py, pch=pch, xlab=xlab, ylab=ylab, ...)
+        lines(res[[1]], res[[2]], col="red", type="b", pch=19)
+      }
+      
+      return(invisible(res))
 })
 
 ## ==========================================================================
@@ -35,17 +40,17 @@ setMethod("meanSdPlot", signature="matrix", definition =
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 setMethod("meanSdPlot", signature="ExpressionSet", definition =
    function(x, ranks=TRUE, xlab = ifelse(ranks, "rank(mean)", "mean"),
-            ylab = "sd", pch  = ".", ...)
-         meanSdPlot(exprs(x), ranks=ranks, xlab=xlab, ylab=ylab, pch=pch, ...))
+            ylab = "sd", pch  = ".", plot = TRUE, ...)
+         meanSdPlot(exprs(x), ranks=ranks, xlab=xlab, ylab=ylab, pch=pch, plot=plot, ...))
 
 setMethod("meanSdPlot", signature="exprSet", definition =
    function(x, ranks=TRUE, xlab = ifelse(ranks, "rank(mean)", "mean"),
-            ylab = "sd", pch  = ".", ...) {
+            ylab = "sd", pch  = ".", plot = TRUE, ...) {
      .Deprecated(msg=VSN_DEPR_MSG)
-     meanSdPlot(exprs(x), ...)
+     meanSdPlot(exprs(x), ranks=ranks, xlab=xlab, ylab=ylab, pch=pch, plot=plot, ...)
    })
 
 setMethod("meanSdPlot", signature="vsn", definition =
    function(x, ranks=TRUE, xlab = ifelse(ranks, "rank(mean)", "mean"),
-            ylab = "sd", pch  = ".", ...)
-         meanSdPlot(exprs(x), ranks=ranks, xlab=xlab, ylab=ylab, pch=pch, ...))
+            ylab = "sd", pch  = ".", plot = TRUE, ...)
+         meanSdPlot(exprs(x), ranks=ranks, xlab=xlab, ylab=ylab, pch=pch, plot=plot, ...))

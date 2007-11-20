@@ -1,6 +1,7 @@
 vsnPlotPar = function(x, what, xlab="iter", ylab=what, ...) {
+
   stopifnot(is.character(what), length(what)==1)
-  stopifnot(is(x, "exprSet"))
+
   whatopts <- c("offsets", "factors")
   j <- match(what, whatopts)
   if(is.na(j))

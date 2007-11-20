@@ -4,7 +4,9 @@
 ## With contributions from Markus Ruschhaupt, Dennis Kostka, David Kreil
 ##----------------------------------------------------------------------
 
-VSN_DEPR_MSG = "The function 'vsn' is deprecated, could you please use 'vsn2' instead."
+VSN_DEPR_MSG = paste("The function 'vsn' is deprecated.",
+  "It will stay around for some time, for backward compatibility.",
+  "For new projects, please use 'vsn2'.", sep="\n")
 
 ##----------------------------------------------------------------------
 ## vsn: the main function of this library
@@ -118,21 +120,20 @@ vsn = function(intensities,
   
   ##---------------------------
 
-  ## Prepare the return result: an exprSet
-  ## The transformed data goes into slot exprs.
+  ## Prepare the return result
   ## If input was allready an exprSet, keep the values of all the other slots.
   ## To the slot description@preprocessing, append the parameters and the
   ##    trimming selection.
 
   res = descr = NULL
-  if (is(intensities, "exprSet")) {
+  if (is(intensities, "exprSet")||is(intensities, "ExpressionSet")) {
     res = intensities
     if (is(description(intensities), "MIAME")) {
       descr = description(intensities)
     }
   }
   if(is.null(descr))   descr = new("MIAME")
-  if(is.null(res))     res   = new("exprSet", description=descr)
+  if(is.null(res))     res   = new("ExpressionSet", experimentData=descr)
 
   if(isReordered) {
     v$hy  = v$hy[reord, ]
@@ -145,7 +146,7 @@ vsn = function(intensities,
                            vsnParamsIter    = v$params,
                            vsnTrimSelection = v$sel)
     class(vsnPreprocessing) = c("vsnPreprocessing", class(vsnPreprocessing))
-    res@description@preprocessing = append(res@description@preprocessing, vsnPreprocessing)
+    preproc(description(res)) = append(preproc(description(res)), vsnPreprocessing)
   }
   return(res)
 }

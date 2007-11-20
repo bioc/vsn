@@ -60,4 +60,3 @@ tn = predict(fit, newdata=exprs(kidney))
 
 }
 
-\keyword{}

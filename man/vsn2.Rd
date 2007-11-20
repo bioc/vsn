@@ -206,4 +206,3 @@ plot(exprs(nkid), pch=".")
 abline(a=0, b=1, col="red")
 }
 
-\keyword{}

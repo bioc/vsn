@@ -18,7 +18,9 @@ meanSdPlot(x,
            ranks = TRUE,
            xlab  = ifelse(ranks, "rank(mean)", "mean"),
            ylab  = "sd",
-           pch   = ".", ...)} 
+           pch   = ".",
+           plot  = TRUE,
+           ...)} 
 \arguments{
   \item{x}{An object of class
     \code{\link{matrix}}, 
@@ -33,6 +35,9 @@ meanSdPlot(x,
 \item{xlab}{Character, label for the x-axis.}
 \item{ylab}{Character, label for the y-axis.}
 \item{pch}{Plot symbol.}
+\item{plot}{Logical.  If \code{TRUE} (default), a plot is produced.
+  Calling the function with \code{plot=FALSE} can be useful if only
+  its return value is of interest.}
 \item{...}{Further arguments that get passed to plot.default.}
 }
 
@@ -46,7 +51,9 @@ meanSdPlot(x,
 }
 
 \value{
-  The methods are called for their side effect, creating a plot on the
+  A named list with two components, containing x-positions and values of
+  the running median estimator (the red dots in the plot).
+  The methods can also have a side effect, which is to create a plot on the
   active graphics device.
 }
 
