@@ -61,7 +61,4 @@
   \code{\link{vsn2}}
 }
 
-\examples{
-}
-
 \keyword{classes}

@@ -24,7 +24,7 @@ scalingFactorTransformation(b)
 b  = seq(-3, 2, length=20)
 fb = scalingFactorTransformation(b)
 if(interactive())
- plot(b, fb, type="b", pch=16)
+  plot(b, fb, type="b", pch=16)
 }
 
-\keyword{}
+

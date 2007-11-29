@@ -75,4 +75,3 @@ abline(v=coef(fit)[3], col="red")
 plotVsnLogLik(v, coef(fit), whichp=c(1,3), expand=0.2)
 }
 
-\keyword{}

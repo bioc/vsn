@@ -65,7 +65,5 @@ res1   = vsnh(exprs(kidney), p, strata)
 res2   = asinh(p[strata,,1] + p[strata,,2] * y) - log(2*p[strata,1,2])
 
 stopifnot(max(abs(res1 - res2)) < 1e-10)
-
-
 }
-\keyword{}
+
