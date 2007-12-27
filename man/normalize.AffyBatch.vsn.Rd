@@ -18,14 +18,11 @@
     object 'reference'. If this argument is not specified, then the data
     in 'x' are normalized "among themselves". See  \code{\link{vsn2}}
     for details.}
-  \item{strata}{The 'strata' parameter is not supported.}
-  \item{subsample}{Integer of length 1. The model parameters are
-    estimated from a random subsample of the data of size \code{subsample}
-    only, yet the fitted transformation is then applied to all data. For
-    large datasets, this can substantially reduce the CPU time and
-    memory consumption at a negligible loss of precision.}
+  \item{strata}{The 'strata' functionality is not supported, the
+    parameter is ignored.}
+  \item{subsample}{Is passed on to \code{\link{vsn2}}.}
   \item{subset}{This allows the specification of a subset of expression
-    measurements to be used for the vsn fit. The transform with the
+    measurements to be used for the vsn fit. The transformation with the
     parameters of this fit is then, however, applied to the whole
     dataset. This is useful for excluding expression measurements that
     are known to be differentially expressed or control probes that may
@@ -47,15 +44,16 @@
   \item{...}{Further parameters for \code{\link{vsn2}}.}
 }
  
-\details{Please refer to the "details" and "references" sections of the
+\details{Please refer to the \emph{Details} and \emph{References}
+  sections of the
   man page for \code{\link{vsn2}} for more details about this method.
 
   \bold{Important note}: after calling \code{\link{vsn2}}, the function
-  \code{normalize.AffyBatch.vsn} \bold{exponentiates} the data. This is
-  done in order to make the behavior of this function similar to the
-  other normalization methods in affy. There, it is assumed that in
-  subsequent analysis steps (e.g. in \code{\link[stats]{medpolish}}),
-  the logarithm to base 2 needs to be taken.
+  \code{normalize.AffyBatch.vsn} \bold{exponentiates} the data (base 2).
+  This is done in order to make the behavior of this function similar to the
+  other normalization methods in affy. That packages uses the convention
+  of taking the logarithm to base in
+  subsequent analysis steps (e.g. in \code{\link[stats]{medpolish}}).
 }
 
 \value{An object of class \code{\link[affy:AffyBatch-class]{AffyBatch}}.
@@ -63,11 +61,11 @@
   subsequent fits, is provided by
   \code{description(abatch)@preprocessing$vsnReference}.
 }
-\author{Wolfgang Huber \url{http://www.ebi.ac.uk/huber}, D. P. Kreil \url{http://bioinf.boku.ac.at/}}
+\author{D. P. Kreil \url{http://bioinf.boku.ac.at/},
+        Wolfgang Huber \url{http://www.ebi.ac.uk/huber}}
 
 \seealso{\code{\link{vsn2}}}
 \examples{
 ## Please see vignette.
 }
 
-\keyword{robust}
