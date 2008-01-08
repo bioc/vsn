@@ -302,6 +302,9 @@ vsnMatrix <-
 
   res = vsnSample(v)
 
+  cof = coefficients( if(nrow(reference)==0L) res else reference )
+  res@hoffset = log2(2*scalingFactorTransformation(mean(cof[,,2])))
+  
   ## If necessary, calculate the data matrix transformed according to 'coefficients'
   if(returnData) {
     res@strata=strata
@@ -310,8 +313,6 @@ vsnMatrix <-
 
     ## apply an irrelevant affine transformation to make users happy
     ## (with coefficients from reference, if applicable).
-    cof = coefficients( if(nrow(reference)==0L) res else reference )
-    res@hoffset = log2(2*scalingFactorTransformation(mean(cof[,,2])))
     res@hx = trsf2log2scale(trsfx, res@hoffset)
   }
   
