@@ -213,6 +213,11 @@ vsnStrata = function(v) {
 vsnSample = function(v) {
 
   if(v@subsample>0) {
+
+    if(length(v@reference@mu)>0L)
+      stop("The 'subsample' option currently does not work with 'reference' normalization. ",
+           "Please update the package, or check with Wolfgang Huber.")
+      
     if((length(v@strata)>0) && (nlevels(v@strata)>1)) { 
       sp = split(seq(along=v@strata), v@strata)
       wh = unlist(lapply(sp, sample, size=v@subsample))
