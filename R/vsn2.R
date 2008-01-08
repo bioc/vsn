@@ -106,8 +106,8 @@ vsnLTS = function(v) {
     v@pstart = coefficients(rsv)
 
     ## Calculate residuals
-    if(length(v@reference@mu)>0) {
-      ## without reference:
+    if(length(v@reference@mu)>0L) {
+      ## with reference:
       hmean = v@reference@mu
     } else {
       ## without reference:
@@ -118,7 +118,7 @@ vsnLTS = function(v) {
       } else {
         if(rsv@lbfgsb==0L) stopifnot(isSmall(rsv@mu-hmean[whsel]))
         ## and create rsv@mu with mu of the right length (NA for the 'outliers' not in whsel)
-        tmp = rep(as.numeric(NA), nrow(v))
+        tmp = rep(NA_real_, nrow(v))
         tmp[whsel] = rsv@mu
         rsv@mu = tmp
       }
@@ -195,7 +195,7 @@ vsnStrata = function(v) {
   }
   v@ordered = TRUE
 
-  res = if(length(v@reference@mu)>0) {
+  res = if(length(v@reference@mu)>0L) {
     vsnColumnByColumn(v)
   } else {
     vsnLTS(v)
@@ -222,7 +222,7 @@ vsnSample = function(v) {
     res = vsnStrata(v[wh, ])
 
     ## put back the results from subsampling 
-    newmu = numeric(nrow(v))
+    newmu = rep(NA_real_, nrow(v))
     newmu[wh] = res@mu
     res@mu = newmu
     
@@ -235,8 +235,7 @@ vsnSample = function(v) {
 ##----------------------------------------------------------------------
 ## vsnMatrix
 ##----------------------------------------------------------------------
-vsnMatrix <-
-    function(x,
+vsnMatrix = function(x,
              reference,
              strata,
              lts.quantile = 0.9,
@@ -315,6 +314,9 @@ vsnMatrix <-
     ## (with coefficients from reference, if applicable).
     res@hx = trsf2log2scale(trsfx, res@hoffset)
   }
+
+  if(verbose)
+    cat("Please use 'meanSdPlot' to verify the fit.")
   
   return(res)
 }

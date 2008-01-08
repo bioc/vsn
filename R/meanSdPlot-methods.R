@@ -7,7 +7,12 @@ setMethod("meanSdPlot", signature="matrix", definition =
       
       stopifnot(is.logical(ranks), length(ranks)==1, !is.na(ranks))
 
-      n    = nrow(x)
+      n = nrow(x)
+      if(n==0L) {
+        warning("In 'meanSdPlot': matrix has 0 rows, there is nothing to be done.")
+        return()
+      }
+      
       px   = rowMeans(x, na.rm=TRUE)
       py   = sqrt(rowV(x, mean=px, na.rm=TRUE))
       rpx  = rank(px, na.last=FALSE, ties.method = "random")
