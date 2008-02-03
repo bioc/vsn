@@ -35,7 +35,7 @@
     (see vignette).}
   \item{\code{mu}:}{A numeric vector of length n with the fitted
     parameters $\hat{\mu}_k$, $k=1,...,n$.}
-  \item{\code{sigsq}:}{A numeric scalar, $\hat{\sigma}$.}
+  \item{\code{sigsq}:}{A numeric scalar, $\hat{\sigma}^2$.}
   \item{\code{hx}:}{A numeric matrix with 0 or n rows. If the number of
     rows is n, then \code{hx} contains the transformed data matrix.}
   \item{\code{lbfgsb}:}{An integer scalar containing the return code
