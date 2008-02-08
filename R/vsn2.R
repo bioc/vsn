@@ -321,7 +321,7 @@ vsnMatrix = function(x,
   }
 
   if(verbose)
-    cat("Please use 'meanSdPlot' to verify the fit.")
+    cat("Please use 'meanSdPlot' to verify the fit.\n")
   
   return(res)
 }
