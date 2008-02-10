@@ -3,14 +3,15 @@
 ##------------------------------------------------------------
 setMethod("vsn2", "matrix", vsnMatrix)
 
+
 setMethod("vsn2", "numeric",
    function(x,  reference, strata, ...)
       vsnMatrix(as.matrix(x, ncol=1), reference, strata, ...))
 
+
 setMethod("vsn2", "ExpressionSet",
    function(x,  reference, strata, ...)
       vsnMatrix(exprs(x),  reference, strata, ...))
-
 
 
 setMethod("vsn2", "NChannelSet",
@@ -26,10 +27,12 @@ setMethod("vsn2", "NChannelSet",
 
 
 setMethod("vsn2", "AffyBatch",
-   function(x, reference, strata, ...) {
+   function(x, reference, strata, subsample, ...) {
      dat = exprs(x)
+     if(missing(subsample))
+       subsample = if((nrow(dat)>30000L) && missing(reference)) 30000L else 0L
      vsnMatrix(dat, reference, strata, optimpar=list(cvg.niter=4L),
-       subsample = if((nrow(dat)>30000L) && missing(reference)) 30000L else 0L, ...)
+       subsample = subsample, ...)
     })
 
 
