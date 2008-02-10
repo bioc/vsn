@@ -28,8 +28,8 @@ setMethod("vsn2", "NChannelSet",
 setMethod("vsn2", "AffyBatch",
    function(x, reference, strata, ...) {
      dat = exprs(x)
-     vsnMatrix(dat,  reference, strata, optimpar=list(cvg.niter=4L),
-       subsample = if(nrow(dat)>30000L) 30000L else 0L, ...)
+     vsnMatrix(dat, reference, strata, optimpar=list(cvg.niter=4L),
+       subsample = if((nrow(dat)>30000L) && missing(reference)) 30000L else 0L, ...)
     })
 
 

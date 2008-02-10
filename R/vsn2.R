@@ -212,18 +212,30 @@ vsnStrata = function(v) {
 ##----------------------------------------------------------------------------------
 vsnSample = function(v) {
 
-  if(v@subsample>0) {
+  if( (v@subsample>0L) && (length(v@reference@mu)>0L) )
+    stop("\n\nThe 'subsample' and 'normalization to reference' options cannot be mixed. ",
+         "'normalization to reference' needs to use the same subsampling as the one ",
+         "used for creating the reference. If you want to use 'normalization to reference', ",
+         "please call this function without the 'subsample' argument.\n\n")
 
-    if(length(v@reference@mu)>0L)
-      stop("The 'subsample' option currently does not work with 'reference' normalization. ",
-           "Please update the package, or check with Wolfgang Huber.")
-      
-    if((length(v@strata)>0) && (nlevels(v@strata)>1)) { 
+  wh = NULL
+  
+  if(v@subsample>0L) {
+    if((length(v@strata)>0L) && (nlevels(v@strata)>1L)) { 
       sp = split(seq(along=v@strata), v@strata)
       wh = unlist(lapply(sp, sample, size=v@subsample))
     } else {
       wh = sample(nrow(v), size=v@subsample)
     }
+  }
+
+  if(length(v@reference@mu)>0L) {
+    wh = which(!is.na(v@reference@mu))
+  }
+  
+
+  if(!is.null(wh)){
+    
     res = vsnStrata(v[wh, ])
 
     ## put back the results from subsampling 
@@ -232,8 +244,10 @@ vsnSample = function(v) {
     res@mu = newmu
     
   } else {
+
     res = vsnStrata(v)
-  }  
+  }
+  
   return(res)
 }
 
@@ -320,9 +334,11 @@ vsnMatrix = function(x,
     res@hx = trsf2log2scale(trsfx, res@hoffset)
   }
 
-  if(verbose)
+  stopifnot(validObject(res))
+
+  if(verbose) {
     cat("Please use 'meanSdPlot' to verify the fit.\n")
-  
+  }
   return(res)
 }
 
@@ -411,3 +427,4 @@ int2factor = function(strata) {
 ## check if all elements of a vector are close to 0
 ##--------------------------------------------------------
 isSmall = function(x, tol=sqrt(.Machine$double.eps)) (max(abs(x))<tol)
+

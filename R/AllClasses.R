@@ -96,23 +96,23 @@ validityVsn = function(object){
   if(length(object@hoffset)!=1L)
     return("'hoffset' must be of length 1.")
 
-  ## hx may have 0 rows (in which case the transformed data has not yet
-  ##     been computed)
-  if(!equalOrZero(ncol(object@hx), dim(object@coefficients)[2L]))
-    return("'ncol(hx)' and 'dim(object@coefficients)[2]' must match.")
+  n = length(object@mu)
 
-  ## strata may be of length 0 (in which case there are no strata).
-  if(!equalOrZero(length(object@strata), length(object@mu)))
-    return("'length(strata)' must be 0 or equal to 'length(mu)'.")
-
-  ## If length(strata) or nrow(hx) are >0, then they must be the same
-  ##   as length(mu) (which is always >0).
-  if(!equalOrZero(nrow(object@hx), length(object@mu)))
-    return("'nrow(hx)' must be 0 or equal to 'length(mu)'.")
+  ## strata must be of length n, or 0 (in which case there are no strata).
+  if(!equalOrZero(length(object@strata), n))
+    return(sprintf("'length(strata)' must be 0 or %d.", n))
 
   if(length(object@strata)>0)
     if(nlevels(object@strata)!=dim(object@coefficients)[1])
       return("'nlevels(strata)' and 'dim(coefficients)[1]' must match.")
+
+  ## does hx have the correct number of columns?
+  if(!equalOrZero(ncol(object@hx), dim(object@coefficients)[2L]))
+    return("'ncol(hx)' and 'dim(object@coefficients)[2]' must match.")
+
+  ## does hx have the correct number of rows?
+  if(!equalOrZero(nrow(object@hx), n))
+    return(sprintf("'nrow(hx)' must be 0 or %d.", n))
 
   if(!((length(object@lbfgsb)==1L)&&(is.integer(object@lbfgsb))))
     return("'lbfgsb' must be an integer of length 1.")
@@ -126,19 +126,19 @@ validityVsn = function(object){
 setClass("vsn",
   representation(
     coefficients = "array", ## 3D array: nrstrata * d * 2, with 2 parameters
-                            ## for each stratum and array. 
-    strata  = "factor", 
-    mu      = "numeric",
-    sigsq   = "numeric",
-    hx      = "matrix",
-    lbfgsb  = "integer",
-    hoffset = "numeric"),
+                            ## for each stratum and array.
+    strata     = "factor", 
+    mu         = "numeric",
+    sigsq      = "numeric",
+    hx         = "matrix",
+    lbfgsb     = "integer",
+    hoffset    = "numeric"),
   prototype = list(
-    coefficients = array(0, dim=c(0,0,2)),
-    strata       = factor(integer(0), levels="all"),
-    mu           = numeric(0),
+    coefficients = array(0, dim=c(0L, 0L, 2L)),
+    strata       = factor(integer(0L), levels="all"),
+    mu           = numeric(0L),
     sigsq        = as.numeric(NA),
-    hx           = matrix(0, nrow=0, ncol=0),
+    hx           = matrix(0, nrow=0L, ncol=0L),
     lbfgsb       = as.integer(NA),
     hoffset      = as.numeric(NA)),
   validity = validityVsn)
