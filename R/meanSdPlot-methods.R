@@ -51,7 +51,6 @@ setMethod("meanSdPlot", signature="ExpressionSet", definition =
 setMethod("meanSdPlot", signature="exprSet", definition =
    function(x, ranks=TRUE, xlab = ifelse(ranks, "rank(mean)", "mean"),
             ylab = "sd", pch  = ".", plot = TRUE, ...) {
-     .Deprecated(msg=VSN_DEPR_MSG)
      meanSdPlot(exprs(x), ranks=ranks, xlab=xlab, ylab=ylab, pch=pch, plot=plot, ...)
    })
 
