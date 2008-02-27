@@ -112,8 +112,8 @@ vsn(intensities,
   \bold{Estimated transformation parameters:} 
   If \code{describe.preprocessing} is \code{TRUE}, the transformation
   parameters are returned in the \code{preprocessing} slot of the
-  \code{description} slot of the resulting 
-  \code{\link[Biobase:exprSet-class]{exprSet}} object, in the form 
+  \code{experimentData} slot of the resulting 
+  \code{\link[Biobase:ExpressionSet-class]{ExpressionSet}} object, in the form 
   of a \code{\link{list}} with three elements
   \itemize{
   \item \code{vsnParams}: the parameter array (see \code{\link{vsnh}} 
@@ -126,14 +126,14 @@ vsn(intensities,
     each row of the intensities matrix reports whether it was below
     (TRUE) or above (FALSE) the trimming threshold.
   }
-  If \code{intensities} has class \code{\link[Biobase:exprSet-class]{exprSet}},
-  and its \code{description} slot has class
+  If \code{intensities} has class \code{\link[Biobase:ExpressionSet-class]{ExpressionSet}},
+  and its \code{experimentData} slot has class
   \code{\link[Biobase:MIAME-class]{MIAME}}, then this list is appended to any
   existing entries in the \code{preprocessing} slot. Otherwise, the
-  \code{description} object and its \code{preprocessing} slot are created.  
+  \code{experimentData} object and its \code{preprocessing} slot are created.  
 }
 
-\value{An object of class \code{\link[Biobase:exprSet-class]{exprSet}}.
+\value{An object of class \code{\link[Biobase:ExpressionSet-class]{ExpressionSet}}.
  Differences between the columns of the transformed intensities are 
  "generalized log-ratios", which are shrinkage estimators of the natural
  logarithm of the fold change. For the transformation parameters,
@@ -156,7 +156,7 @@ http://www.bepress.com/sagmb/vol2/iss1/art3.}
 \author{Wolfgang Huber \url{http://www.ebi.ac.uk/huber}}
 
 \seealso{\code{\link{vsnh}}, \code{\link{vsnPlotPar}}, 
-  \code{\link[Biobase:exprSet-class]{exprSet-class}}, 
+  \code{\link[Biobase:ExpressionSet-class]{ExpressionSet-class}}, 
   \code{\link[Biobase:MIAME-class]{MIAME-class}},
   \code{\link{normalize.AffyBatch.vsn}}}
 

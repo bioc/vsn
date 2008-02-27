@@ -10,7 +10,7 @@ getIntensityMatrix = function(intensities, verbose) {
     if (!all(sapply(intensities, is.numeric)))
       stop("'intensities' was found to be a data.frame, but contains non-numeric columns.")
     y = as.matrix(intensities)
-  } else if (is(intensities, "exprSet")||is(intensities, "ExpressionSet")) {
+  } else if (is(intensities, "ExpressionSet")) {
     y = exprs(intensities)
   } else if (is(intensities, "marrayRaw")) {
     nrslides = as.integer(ncol(intensities@maRf))

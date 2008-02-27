@@ -121,12 +121,12 @@ vsn = function(intensities,
   ##---------------------------
 
   ## Prepare the return result
-  ## If input was allready an exprSet, keep the values of all the other slots.
+  ## If input was allready an ExpressionSet, keep the values of all the other slots.
   ## To the slot description@preprocessing, append the parameters and the
   ##    trimming selection.
 
   res = descr = NULL
-  if (is(intensities, "exprSet")||is(intensities, "ExpressionSet")) {
+  if (is(intensities, "ExpressionSet")) {
     res = intensities
     if (is(description(intensities), "MIAME")) {
       descr = description(intensities)

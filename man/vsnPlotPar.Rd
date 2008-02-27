@@ -4,14 +4,14 @@
   a vsn fit}
 \description{Plot trajectories of calibration and transformation parameters for
   a vsn fit}
-\usage{vsnPlotPar(x, what, xlab="iter", ylab=what, ...)} 
+\usage{vsnPlotPar(x, what, xlab="iter", ylab=what, \dots)} 
 \arguments{
-  \item{x}{An object of class \code{\link[Biobase]{exprSet-class}} which has been
+  \item{x}{An object of class \code{\link[Biobase]{ExpressionSet-class}} which has been
     created by the function \code{\link{vsn}}.}
   \item{what}{Character, should either be "factors" or "offsets".}
   \item{xlab}{Character, label for the x-axis.}
   \item{ylab}{Character, label for the y-axis.}
-  \item{...}{Further arguments that get passed to plot.default.}
+  \item{\dots}{Further arguments that get passed to plot.default.}
 }
 \details{The plot that is created by this function may help in assessing
   whether the parameter estimation in \code{\link{vsn}} was sufficiently
@@ -26,5 +26,3 @@
   ## see example for vsn
 }
 \keyword{hplot}
-
-

@@ -5,13 +5,12 @@
 \alias{meanSdPlot,matrix-method}
 \alias{meanSdPlot,ExpressionSet-method}
 \alias{meanSdPlot,vsn-method}
-\alias{meanSdPlot,exprSet-method}
 \title{Plot row standard deviations versus row means}
 
 \description{Methods for objects of classes
   \code{\link{matrix}}, 
   \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}} and
-  \code{exprSet-class} (deprecated)
+  \code{\linkS4class{vsn}}
   to plot row standard deviations versus row means.}
 \usage{
 meanSdPlot(x, 
@@ -20,13 +19,12 @@ meanSdPlot(x,
            ylab  = "sd",
            pch   = ".",
            plot  = TRUE,
-           ...)} 
+           \dots)} 
 \arguments{
   \item{x}{An object of class
     \code{\link{matrix}}, 
-    \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}},
-    \code{\linkS4class{vsn}} or
-    \code{exprSet} (deprecated).}
+    \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}}, or
+    \code{\linkS4class{vsn}}.}
 \item{ranks}{Logical, indicating whether the x-axis (means) should be plotted
   on the original scale (\code{FALSE}) or on the rank scale (\code{TRUE}). The latter
   distributes the data more evenly along the x-axis and allows a
@@ -38,25 +36,22 @@ meanSdPlot(x,
 \item{plot}{Logical.  If \code{TRUE} (default), a plot is produced.
   Calling the function with \code{plot=FALSE} can be useful if only
   its return value is of interest.}
-\item{...}{Further arguments that get passed to plot.default.}
+\item{\dots}{Further arguments that get passed to plot.default.}
 }
-
 \details{Standard deviation and mean are calculated row-wise from the
   expression matrix (in) \code{x}. The scatterplot of these versus each other
-  allows to visually verify whether there is
-  a dependence of the standard deviation (or variance) on the mean.
+  allows to visually verify whether there is a dependence of the standard
+  deviation (or variance) on the mean.
   The red dots depict the running median estimator (window-width 10\%).
   If there is no variance-mean dependence, then the line formed by the
   red dots should be approximately horizontal.
 }
-
 \value{
   A named list with two components, containing x-positions and values of
   the running median estimator (the red dots in the plot).
   The methods can also have a side effect, which is to create a plot on the
   active graphics device.
 }
-
 \author{Wolfgang Huber \url{http://www.ebi.ac.uk/huber}}
 \seealso{\code{\link{vsn}}}
 \examples{
@@ -68,6 +63,5 @@ meanSdPlot(x,
 
   ## ...try this out with non-logged data, the lymphoma data, your data...
 }
-
 \keyword{hplot}
 \keyword{methods}

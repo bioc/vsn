@@ -36,7 +36,7 @@ for (i in 1:nrsamples) {
 }
 colnames(qua) = pd$sample
 
-lymphoma = new("exprSet",
+lymphoma = new("ExpressionSet",
     exprs = qua,
     phenoData = new("phenoData",
       pData     = pd,
@@ -56,7 +56,7 @@ dat = (squa[, c("fg.green", "fg.red"), thehyb]
 rownames(dat) = NULL
 colnames(dat) = c("green", "red")
 
-kidney = new("exprSet",
+kidney = new("ExpressionSet",
   exprs = dat,
   phenoData = new("phenoData",
     pData = data.frame(channel = c("green", "red")),
