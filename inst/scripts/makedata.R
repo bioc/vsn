@@ -36,11 +36,13 @@ for (i in 1:nrsamples) {
 }
 colnames(qua) = pd$sample
 
+lymphomaPhenoData <- new("AnnotatedDataFrame")
+pData(lymphomaPhenoData) <- pd
+varLabels(lymphomaPhenoData) <- list(name="Name of the Chip", sample="Sample")
+
 lymphoma = new("ExpressionSet",
     exprs = qua,
-    phenoData = new("phenoData",
-      pData     = pd,
-      varLabels = list(name="Name of the Chip", sample="Sample")))
+    phenoData = lymphomaPhenoData)
     
 save(lymphoma, file=lym, compress=TRUE)
 
@@ -56,11 +58,13 @@ dat = (squa[, c("fg.green", "fg.red"), thehyb]
 rownames(dat) = NULL
 colnames(dat) = c("green", "red")
 
+kidneyPhenoData <- new("AnnotatedDataFrame")
+pData(kidneyPhenoData) <- data.frame(channel = c("green", "red"))
+varLabels(kidneyPhenoData) <- list(channel="green: 532 nm, dye=Cy3; red: 635 nm, dye=Cy5")
+
 kidney = new("ExpressionSet",
   exprs = dat,
-  phenoData = new("phenoData",
-    pData = data.frame(channel = c("green", "red")),
-    varLabels = list(channel="green: 532 nm, dye=Cy3; red: 635 nm, dye=Cy5")))
+  phenoData = kidneyPhenoData)
 
 save(kidney, file=kid, compress=TRUE)
 
