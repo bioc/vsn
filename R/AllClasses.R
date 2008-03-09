@@ -93,8 +93,8 @@ validityVsn = function(object){
   if(length(object@sigsq)!=1L)
     return("'sigsq' must be of length 1.")
 
-  if(length(object@hoffset)!=1L)
-    return("'hoffset' must be of length 1.")
+  if(length(object@hoffset)!=dim(object@coefficients)[1L])
+    return("'hoffset' and 'dim(coefficients)[1]' must be equal.")
 
   n = length(object@mu)
 
@@ -137,16 +137,15 @@ setClass("vsn",
     coefficients = array(0, dim=c(0L, 0L, 2L)),
     strata       = factor(integer(0L), levels="all"),
     mu           = numeric(0L),
-    sigsq        = as.numeric(NA),
+    sigsq        = NA_real_,
     hx           = matrix(0, nrow=0L, ncol=0L),
-    lbfgsb       = as.integer(NA),
-    hoffset      = as.numeric(NA)),
+    lbfgsb       = NA_integer_,
+    hoffset      = numeric(0L)),
   validity = validityVsn)
 
 ##------------------------------------------------------------
 ## Class vsnInput
 ##------------------------------------------------------------
-
 setClass("vsnInput",
   representation(
     x  = "matrix",     ## The n*d data matrix
@@ -161,9 +160,9 @@ setClass("vsnInput",
                              ## in definition of class 'vsn'
     optimpar  = "list"),     ## See below: optimparnames
   prototype = list(
-    x = matrix(as.numeric(NA), nrow=0, ncol=0),
+    x = matrix(as.numeric(NA), nrow=0L, ncol=0L),
     reference = new("vsn"),
-    strata = factor(integer(0), levels="all"),
+    strata = factor(integer(0L), levels="all"),
     ordered = FALSE,
     lts.quantile = 1,
     subsample = 0L,

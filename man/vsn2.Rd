@@ -15,7 +15,8 @@
   in \code{x} and returns a \code{\linkS4class{vsn}} object with
   the fit parameters and the transformed data matrix.
   The data are, typically, feature intensity readings from a
-  microarray.
+  microarray, but this function may also be useful for other kinds of
+  intensity data that obey an additive-multiplicative error model.
   To obtain an object of the same class as \code{x}, containing
   the normalised data and the same metdata as \code{x}, use
   \preformatted{
@@ -111,15 +112,25 @@ vsnMatrix(x,
 
 \section{Note on overall scale and location of the glog
   transformation}{
-  The data are returned on a glog scale to base 2. More precisely,
+  The data are returned on a \emph{glog} scale to base 2. More precisely,
   the transformed data are subject to the transformation
-  glog2(f(b)*x+a) + c, where
-  glog2(u) = log2(u+sqrt(u*u+1)) = asinh(u)/log(2) is called the
-  generalised logarithm, a and b are the fitted model parameters
-  (see references), f is a parameter transformation [4],
-  and the overall constant offset c is computed from b such that for
-  large x the transformation approximately corresponds to the
-  log2 function. The offset c is inconsequential for all differential
+  \emph{glog2(f(b)*x+a) + c}, where the function
+  \emph{glog2(u) = log2(u+sqrt(u*u+1)) = asinh(u)/log(2)} is called the
+  generalised logarithm, the offset \emph{a} and the scaling parameter
+  \emph{b} are the fitted model parameters
+  (see references), and \emph{f(x)=exp(x)} is a parameter transformation that
+  allows ensuring positivity of the factor in front of \emph{x} while
+  using an unconstrained optimisation over \emph{b} [4].
+  Different parameters  \emph{a} and \emph{b} are fit for each array,
+  and, if applicable, for each stratum.
+  The overall offset \emph{c} is computed from the \emph{b}'s such that for
+  large \emph{x} the transformation approximately corresponds to the
+  \emph{log2} function. This is done separately for each stratum, but with the
+  same value across arrays. More precisely, if the element \code{b[s,i]}
+  of the array \emph{b} is the scaling parameter for the \code{s}-th
+  stratum and the \code{i}-th array, then \code{c[s]} is computed as
+  \code{log2(2*f(mean(b[,i])))}.
+  The offset \emph{c} is inconsequential for all differential
   expression calculations, but many users like to see the data in a
   range that they are familiar with.
 }

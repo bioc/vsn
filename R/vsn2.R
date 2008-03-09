@@ -28,7 +28,8 @@ vsnML = function(v) {
     v@reference@sigsq, v@optimpar, PACKAGE="vsn")
 
   rv = new("vsn", coefficients=o$coefficients, 
-           mu=o$mu, sigsq=o$sigsq, strata=v@strata, lbfgsb=o$fail)
+           mu=o$mu, sigsq=o$sigsq, strata=v@strata, lbfgsb=o$fail,
+           hoffset=rep(NA_real_,nlevels(v@strata)))
   
   if (o$fail!=0L) {
     nrp = if(length(p)<=6L) length(p) else 6L
@@ -165,20 +166,19 @@ vsnLTS = function(v) {
 ## vsnColumnByColumn
 ##----------------------------------------------------------------------------------
 vsnColumnByColumn = function(v) {
-  rlv = vsnLTS(v[,1])
+  rlv = vsnLTS(v[,1L])
   d = dim(coefficients(rlv))
   n = ncol(v)
-  stopifnot(d[2]==1L)
-  cf = array(as.numeric(NA), dim=c(d[1], n, d[3]))
-  cf[,1,] = coefficients(rlv)
-  if(n>1) {
-    for(j in 2:n) {
-      cf[,j,] = coefficients(vsnLTS(v[,j]))
-    }
-  } 
+  stopifnot(d[2L]==1L)
+  cf = array(NA_real_, dim=c(d[1L], n, d[3L]))
+  cf[,1L,] = coefficients(rlv)
+  for(j in seq_len(n)[-1L]) 
+    cf[,j,] = coefficients(vsnLTS(v[,j]))
+
   return(new("vsn", coefficients=cf, 
              mu = v@reference@mu, sigsq = v@reference@sigsq,
-             strata=v@strata))
+             strata=v@strata,
+             hoffset=rep(NA_real_,nlevels(v@strata))))
 }
 
 ##----------------------------------------------------------------------------------
@@ -318,20 +318,21 @@ vsnMatrix = function(x,
     cat("vsn: ", nrow(x), " x ", ncol(x), " matrix (", nlevels(strata), " strat",
         ifelse(nlevels(strata)==1L, "um", "a"), "). ", sep="")
 
+  ## Here, the actual work is done.
   res = vsnSample(v)
 
+  ## hoffset: compute from average scale factors between arrays, but separately for the different strata.
+  ## coefficients 'cof' from are taken from the reference, if available.
   cof = coefficients( if(nrow(reference)==0L) res else reference )
-  res@hoffset = log2(2*scalingFactorTransformation(mean(cof[,,2])))
+  res@hoffset = log2(2*scalingFactorTransformation(rowMeans(cof[,,2L,drop=FALSE])))
   
   ## If necessary, calculate the data matrix transformed according to 'coefficients'
   if(returnData) {
     res@strata=strata
-    trsfx = vsn2trsf(x, coefficients(res), strata=
-      if(length(strata)==0L) rep(1L, nrow(x)) else as.integer(strata))
-
-    ## apply an irrelevant affine transformation to make users happy
-    ## (with coefficients from reference, if applicable).
-    res@hx = trsf2log2scale(trsfx, res@hoffset)
+    res@hx = vsn2trsf(x,
+      p = coefficients(res),
+      strata = as.integer(res@strata),
+      hoffset = res@hoffset)
   }
 
   stopifnot(validObject(res))
@@ -343,21 +344,16 @@ vsnMatrix = function(x,
 }
 
 ##---------------------------------------------------------------------
-## trsf2log2scale: see the 'value' section of the man page of 'vsn2'
-##--------------------------------------------------------------------
-trsf2log2scale = function(x, hoff) (x/log(2)-hoff)
-
-##---------------------------------------------------------------------
 ## The glog transformation
 ##--------------------------------------------------------------------
-vsn2trsf = function(x, p, strata) {
+vsn2trsf = function(x, p, strata=numeric(0L), hoffset=NULL) {
   if (!is.matrix(x) || !is.numeric(x))
     stop("'x' must be a numeric matrix.\n")
   
-  if (!is.array(p) || !is.numeric(p) || any(is.na(p)))
-    stop("'p' must be an array with no NAs.\n")
+  if (!is.array(p) || !is.numeric(p)) stop("'p' must be a numeric array.\n")
+  if (any(is.na(p))) stop("'p' must not contain NAs.\n")
 
-  if(missing(strata)) {
+  if(length(strata)==0L) {
     strata = rep(1L, nrow(x))
   } else {
     if(!is.integer(strata) || !is.vector(strata) || 
@@ -373,8 +369,13 @@ vsn2trsf = function(x, p, strata) {
     stop("'p' has wrong dimensions.")
 
   hx = .Call("vsn2_trsf", x, as.vector(p), strata, PACKAGE="vsn")
-
   dimnames(hx) = dimnames(x)
+  
+  ## see the 'value' section of the man page of 'vsn2'
+  if(!is.null(hoffset)) {
+    stopifnot(length(hoffset)==nrstrata)
+    hx = hx/log(2) - hoffset[strata]
+  }
   return(hx)
 }
 
