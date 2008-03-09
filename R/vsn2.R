@@ -74,8 +74,8 @@ calcistrat = function(vp) {
 }
 
 progress = function(i, imax) {
-  if(i>0) cat("\b\b\b\b\b\b\b\b\b\b")
-  cat(sprintf("%3d", as.integer(i/imax*100)), "% done.", sep="") ## 10 characters
+  if(i>0) cat("\r")
+  cat(sprintf("%3d", as.integer(i/imax*100)), "% done.", sep="")
 }
  
 ##-------------------------------------------------------------------------
