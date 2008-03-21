@@ -124,7 +124,7 @@ separately for each $i=1,\ldots,d$.
 From the likelihood (\ref{eq:likelihood}) we get the 
 $i$-th negative log-likelihood
 \begin{eqnarray}\label{eq:nll}
--\log(L) &=&\sum_{i=1}^d -LL\\
+-\log(L) &=&\sum_{i=1}^d -LL_i\\
 -LL_i&=&\frac{n}{2}\log\left(2\pi\sigma^2\right)+
 \sum_{k=1}^n \left(\frac{(h(y_{ki})-\mu_k)^2}{2\sigma^2}
 +\log\frac{\sqrt{1+Y_{ki}^2}}{f(b_i)}\right)\\
@@ -166,7 +166,8 @@ Here, I have introduced the following shorthand notation for the
 r_{ki}&=& h(y_{ki})-\mu_k\\
 A_{ki}&=&\frac{1}{\sqrt{1+Y_{ki}^2}}.
 \end{eqnarray}
-These variables are also used in the C code to simplify 
+Variables for these intermediate values are also used 
+in the C code to organise
 the computations of the gradient.
  
 %--------------------------------------------------
@@ -191,7 +192,7 @@ The result is called the negative profile log-likelihood
 \end{equation}
 Note that this no longer decomposes into a sum of terms for each $j$
 that are independent of each other -- the terms for different $j$
-are coupled through Equation~(\ref{eq:sigmahat}).
+are coupled through Equations~(\ref{eq:muhat}) and (\ref{eq:sigmahat}).
 We need the following derivatives.
 \begin{eqnarray}
 \frac{\partial \hat{\sigma}^2}{\partial a_i} &=&
