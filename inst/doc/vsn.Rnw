@@ -796,6 +796,73 @@ For the example data that was used in Section~\ref{sec:overv} to generate
 is what was called $a_{si}$ in Eqn.~(\ref{eq.transf}), and
 \Robject{coef(fit)[s, i, 2]}, the second line, is $b_{si}$. 
 
+%----------------------------------------------------------------------------------
+\subsection{The calibration parameters and the additive-multiplicative error model} 
+%----------------------------------------------------------------------------------
+VSN is based on the additive-multiplicative error 
+model~\cite{RockeDurbin2001,HuberWiley2004}, which predicts a quadratic variance-mean
+relationship of the form~\cite{HuberISMB2002}
+\begin{equation}
+v(u)=(c_1u+c_2)^2+c_3.
+\end{equation}
+
+This is a general parameterization of a parabola with three parameters
+$c_1$, $c_2$ and $c_3$. Here, $u$ is the expectation value (mean) of
+the signal, and $v$ the variance. $c_1$ is also called the coefficient
+of variation, since for large $u$, $\sqrt{v}/u\approx c_1$. The
+minimum of $v$ is $c_3$, this is the variance of the additive noise
+component. It is attained at $u=-c_2/c_3$, and this is the expectation
+value of the additive noise component, which ideally were zero ($c_2=0$), 
+but in many applications is different from zero.
+Only the behaviour of $v(u)$ for $u\ge -c_2/c_3$ is typically relevant.
+
+The parameters $a$ and $b$ from Equation~(\ref{eq.transf})\footnote{I
+  drop the indices $s$, $k$ and $i$, since for the purpose of this section,
+  they are passive} and the parameters of the additive-multiplicative
+error model are related by~\cite{HuberISMB2002}
+\begin{eqnarray}
+a&=&\frac{c_2}{\sqrt{c_3}}\nonumber\\ 
+e^b&=&\frac{c_1}{\sqrt{c_3}}\label{eq:errmod2trsf}
+\end{eqnarray}
+This relationship is not 1:1, and it has a divergence at $c_3\to0$; both of these
+observations have practical consequences, as explained in the following.
+
+\begin{enumerate}
+\item
+The fact that Equations~(\ref{eq:errmod2trsf}) do not constitute a 1:1
+relationship means that multiple parameter sets
+of the additive-multiplicative error model can lead to the same
+transformation. This can be resolved, for example, if the coefficient of variation $c_1$ is
+obtained by some other means than the \Rfunction{vsn2} function. For example, it can be
+estimated from the standard deviation of the VSN-transformed data, 
+which is, in the approximation of the delta method, 
+the same as the coefficient of variation~\cite{HuberISMB2002,HuberSAGMB2003}.
+Then, 
+\begin{eqnarray}
+c_3&=& c_1^2\, e^{-2b}\nonumber\\ 
+c_2&=& c_1  \, a e^{-b}.\label{eq:trsf2errmod}
+\end{eqnarray}
+
+\item
+The divergence for $c_3\to0$ can be a more serious problem. In some
+datasets, $c_3$ is in fact very small. This is the case if the size of
+the additive noise is negligible compared to the multiplicative noise
+throughout the dynamic range of the data, even for the smallest
+intensities. In other words, the additive-multiplicative error model
+is overparameterized, and a simpler multiplicative-only model would be
+good enough. VSN is designed to still produce reasonable results 
+in these cases, in the sense that the transformation stabilizes the 
+variance (it turns essentially into the usual logarithm transformation),
+but the resulting fit coefficients can be unstable. 
+
+The assessment of the precision of the estimated values of $a$ and $b$
+(e.\,g.\ by resampling, or by using replicate data) is therefore usually
+not very relevant; what \emph{is} relevant is an assessment of the
+precision of the estimated transformation, i.\,e.\ how much do the
+transformed values vary~\cite{HuberSAGMB2003}.
+
+\end{enumerate}
+
 %---------------------------------------------------------------------
 \subsection{More on calibration} 
 %---------------------------------------------------------------------
