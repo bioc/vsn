@@ -54,8 +54,16 @@ pagecolor=darkblue,raiselinks,plainpages,pdftex]{hyperref}
 
 <<setup,echo=FALSE,results=hide>>=
 options(width=41, signif=3, digits=3)
-##options(error=recover, warn=2)
 set.seed(0xdada)
+
+## To create bitmap versions of plots with many dots, circumventing
+##   Sweave's fig=TRUE mechanism...
+##   (pdfs are too large)
+openBitmap = function(nm, rows=1, cols=1) {
+  png(paste("vsn-", nm, ".png", sep=""), 
+       width=600*cols, height=640*rows)
+  par(mfrow=c(rows, cols), cex=2)
+}
 @ 
 
 %------------------------------------------------------------
@@ -90,7 +98,9 @@ fit = vsn2(kidney)
 ynorm = predict(fit, kidney)
 @
 <<overv4, echo=FALSE, results=hide>>=
-stopifnot(identical(exprs(xnorm), exprs(ynorm)), identical(exprs(xnorm), exprs(fit)))
+stopifnot(
+  identical(exprs(xnorm), exprs(ynorm)), 
+  identical(exprs(xnorm), exprs(fit)))
 @ 
 %
 where \Robject{fit} is an object of class \Rclass{vsn} that contains
@@ -183,8 +193,10 @@ Figure~\ref{vsn-nkid-scp} you can see the scatterplot of the
 calibrated and transformed data. For comparison, the scatterplot of
 the log-transformed raw intensities is also shown.
 %
-<<nkid-scp,fig=TRUE,width=8>>=
-par(mfrow=c(1,2))
+<<nkid-scp1,echo=FALSE>>=
+openBitmap("nkid-scp", cols=2)
+@ 
+<<nkid-scp2,results=hide>>=
 select = (0==rowSums(exprs(kidney)<=0))
 plot(log2(exprs(kidney)[select, ]), 
   main = "a) raw", pch = ".", asp=1)
@@ -192,6 +204,9 @@ plot(exprs(xnorm), main = "b) vsn",
   pch = ".", asp=1,
   col=ifelse(select, "black", "orange"))
 @
+<<nkid-scp3,echo=FALSE,results=hide>>=
+dev.off()
+@ 
 %
 
 To verify the variance
@@ -203,12 +218,18 @@ $\hat{\mu}_k$ on the $x$-axis.
 \hat{\mu}_k     =\frac{1}{d}  \sum_{i=1}^d h_{ki}\quad\quad
 \hat{\sigma}_k^2=\frac{1}{d-1}\sum_{i=1}^d (h_{ki}-\hat{\mu}_k)^2
 \end{equation}
-<<nkid-sdmean,fig=TRUE,width=8,results=hide>>=
-par(mfrow=c(1,2))
+
+<<nkid-sdmean1,echo=FALSE>>=
+openBitmap("nkid-sdmean", cols=2)
+@ 
+<<nkid-sdmean2,results=hide>>=
 meanSdPlot(xnorm, ranks=TRUE)
 meanSdPlot(xnorm, ranks=FALSE)
 @
-%
+<<nkid-sdmean3,echo=FALSE,results=hide>>=
+dev.off()
+@ 
+
 The two plots are shown in Figure~\ref{vsn-nkid-sdmean}.  The red
 dots, connected by lines, show the running median of the standard
 deviation\footnote{The parameters used were: window width 10\%, window
@@ -272,12 +293,21 @@ the CH2 intensities in columns $2, 4, \ldots, 16$.  We can call
 %
 <<lymjustvsn,results=hide>>=
 lym = justvsn(lymphoma)
-<<lym-sdmean2,fig=TRUE>>=
+@ 
+<<lym-sdmean1,echo=FALSE>>=
+openBitmap("lym-sdmean")
+@ 
+<<lym-sdmean2,results=hide>>=
 meanSdPlot(lym)
 @
-\myincfig{vsn-lym-sdmean2}{0.45\textwidth}{Standard deviation 
+<<lym-sdmean3,echo=FALSE,results=hide>>=
+dev.off()
+@ 
+
+\myincfig{vsn-lym-sdmean}{0.45\textwidth}{Standard deviation 
 versus rank of the mean for the lymphoma example data}
-Again, Figure~\ref{vsn-lym-sdmean2} helps to visually verify that the
+
+Again, Figure~\ref{vsn-lym-sdmean} helps to visually verify that the
 variance stabilisation worked.  As above, we can obtain the
 generalised log-ratios for each slide by subtracting the common
 reference intensities from those for the 8 samples:
@@ -344,8 +374,11 @@ d.rma = rma(Dilution)
 %
 The resulting scatterplots are shown and compared in Figure~\ref{vsn-figaffy}.
 %
-<<figaffy,fig=TRUE,width=8,height=8.5>>=
-par(mfrow=c(2,2), pch=".")
+<<figaffy1,echo=FALSE>>=
+openBitmap("figaffy", cols=2, rows=2)
+@ 
+<<figaffy2,results=hide>>=
+par(pch=".")
 w = c(1,3)
 titvsn = "vsn: chip 1 vs 3"
 titrma = "rma: chip 1 vs 3"
@@ -366,6 +399,9 @@ plot(diff(t(exprs(d.rma)[,w])),
      xlim=c(-1,1), ylim=c(-1,1))
 abline(a=0, b=1, col="red")
 @
+<<figaffy3,echo=FALSE,results=hide>>=
+dev.off()
+@ 
 %
 Both methods control the variance at low intensities, but we see that
 VSN does so more strongly. The shrinkage (see also Section~\ref{sec:shrink})
@@ -437,7 +473,8 @@ vmd = data.frame(
   row.names=c("arrayID", "sampG", "sampR"))
 
 arrayID = lymphoma$name[wr]
-stopifnot(identical(arrayID, lymphoma$name[wg])) 
+stopifnot(identical(arrayID, 
+          lymphoma$name[wg])) 
 
 ## remove sample number suffix 
 sampleType = factor(sub("-.*", "", 
@@ -604,7 +641,10 @@ EsenzaStr = justvsn(lymRG[,1])
 A scatterplot comparing the transformed red intensities,
 using the two models, is shown in Figure~\ref{vsn-figstrata}.
 %
-<<figstrata,fig=TRUE>>=
+<<figstrata1,echo=FALSE>>=
+openBitmap("figstrata")
+@ 
+<<figstrata2,results=hide>>=
 j = 1L
 plot(assayData(EsenzaStr)$R[,j],
      assayData(EconStr)$R[,j],
@@ -615,6 +655,10 @@ plot(assayData(EsenzaStr)$R[,j],
      ylab = "print-tip strata",
      main = sampleNames(lymNCS)$R[j])
 @
+<<figstrata3,echo=FALSE,results=hide>>=
+dev.off()
+@ 
+
 %
 %---------------------------------------------------------------------
 \section{Missing values} \label{sec:miss}
@@ -719,10 +763,16 @@ coefficients(fall)[,8,]
 and compare the resulting values in the scatterplot Figure~\ref{vsn-figref}:
 they are very similar. 
 %
-<<figref,fig=TRUE>>=
+<<figref1,echo=FALSE>>=
+openBitmap("figref")
+@
+<<figref2,results=hide>>=
 plot(exprs(f8), exprs(fall)[,8], 
      pch=".", asp=1)
 abline(a=0, b=1, col="red")
+@ 
+<<figref3,echo=FALSE,results=hide>>=
+dev.off()
 @ 
 %
 <<hiddenchecks,echo=FALSE>>=
@@ -867,8 +917,8 @@ transformed values vary~\cite{HuberSAGMB2003}.
 \subsection{More on calibration} 
 %---------------------------------------------------------------------
 \begin{figure*}[tb]\begin{center}
-\includegraphics[width=0.9\textwidth]{vsn-nkid-calib4}  
-\caption{\label{vsn-nkid-calib4}%
+\includegraphics[width=0.9\textwidth]{vsn-nkid-calib}  
+\caption{\label{vsn-nkid-calib}%
 Scatterplots for badly biased data. 
 Left hand side: raw data on log-log scale, 
 right hand side: after calibration and transformation with vsn.}
@@ -879,38 +929,37 @@ the red channel had a baseline that was shifted by 500 and a scale
 that differed by a factor of $0.25$:
 %
 <<nkid-calib2>>=
-bkid=kidney
+bkid = kidney
 exprs(bkid)[,1]=0.25*(500+exprs(bkid)[,1])
 @
 %
 We can again call \Rfunction{vsn2} on these data
 %
 <<nkid-calib3,results=hide>>=
-bfit <- vsn2(bkid)
+bfit = vsn2(bkid)
 @
 % 
-<<nkid-calib-warn1,echo=FALSE,results=hide>>=
-oldwarn <- options(warn=-1)
+<<nkid-calib4,echo=FALSE,results=hide>>=
+oldwarn = options(warn=-1)
+openBitmap("nkid-calib", cols=2)
 @
-%
-<<nkid-calib4,fig=TRUE,width=8>>=
-par(mfrow=c(1,2))
+<<nkid-calib5,results=hide>>=
 plot(exprs(bkid), main="raw", 
      pch=".", log="xy")
 plot(exprs(bfit), main="vsn", 
      pch=".")
 coef(bfit)[1,,]
 @
-% 
-<<nkid-calib-warn2,echo=FALSE,results=hide>>=
+<<nkid-calib6,echo=FALSE,results=hide>>=
+dev.off()
 options(oldwarn)
-rm(oldwarn)
+rm(list="oldwarn")
 @
 %
 Notice the change in the parameter $b$ of the red 
 channel: it is now larger by about $\log(4)\approx 1.4$,
 and the shift parameter $a$ has also been adjusted.  
-The result is shown in Figure~\ref{vsn-nkid-calib4}.
+The result is shown in Figure~\ref{vsn-nkid-calib}.
 
 %-------------------------------------------------------------------
 \section{Assessing the performance of VSN}
@@ -1111,11 +1160,18 @@ In Figure~\ref{fig:lymbox}, we see that the features in rows 22 and
 (Figure~\ref{vsn-lymquscp}), we see that these features not only have
 low $A$-values, but fall systematically away from the $M=0$ line.
 
-<<lymquscp,fig=TRUE>>=
+
+<<lymquscp1,echo=FALSE>>=
+openBitmap("lymquscp")
+@ 
+<<lymquscp2,results=hide>>=
 plot(A[,j], M[,j], pch=16, cex=0.3,
 col=ifelse(arrayGeometry$spotrow%in%(22:23),
            "orange", "black"))
 abline(h=0, col="blue")
+@ 
+<<lymquscp3,echo=FALSE,results=hide>>=
+dev.off()
 @ 
 
 Hence, in a naive analysis

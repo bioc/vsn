@@ -13,6 +13,6 @@ convergence2: convergence2.tex
 
 clean:
 	rm -f *.out *.bbl *.log *.aux *.blg *.brf *.toc *.tex
-	rm -f *.dvi *.ps vsn-* likelihoodcomputations-* 
+	rm -f *.dvi *.ps vsn-* likelihoodcomputations-* Rplots.pdf
 
 
