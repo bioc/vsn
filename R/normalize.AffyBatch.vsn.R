@@ -5,11 +5,11 @@
 ##------------------------------------------------------------
 normalize.AffyBatch.vsn=function(abatch,
                                  reference,
-                                 strata=NULL,
-                                 subsample=30000L,
+                                 strata = NULL,
+                                 subsample = if (nrow(exprs(abatch))>30000L) 30000L else 0L, 
                                  subset,
-                                 log2scale=TRUE,
-                                 log2asymp=FALSE,
+                                 log2scale = TRUE,
+                                 log2asymp = FALSE,
                                  ...) {
 
   if(is.na(log2scale)||is.na(log2asymp)||(log2scale&&log2asymp))

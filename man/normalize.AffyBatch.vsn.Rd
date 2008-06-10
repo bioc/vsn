@@ -7,8 +7,16 @@
   instead. The normalize.AffyBatch.vsn can still be useful on its own,
   as it provides some additional control of the normalization process
   (fitting on subsets, alternate transform parameters). }
-\usage{normalize.AffyBatch.vsn(abatch, reference, strata=NULL,
-  subsample=30000L, subset, log2scale=TRUE, log2asymp=FALSE, ...)}
+\usage{
+  normalize.AffyBatch.vsn(
+     abatch,
+     reference,
+     strata = NULL,
+     subsample = if (nrow(exprs(abatch))>30000L) 30000L else 0L,
+     subset,
+     log2scale = TRUE,
+     log2asymp=FALSE,
+     ...)}
 \arguments{
   \item{abatch}{An object of type
     \code{\link[affy:AffyBatch-class]{AffyBatch}}.}
