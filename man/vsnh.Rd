@@ -1,7 +1,14 @@
 \name{vsnh}
 \alias{vsnh}
-\title{A function that transforms a matrix of microarray intensities}
-\description{A function that transforms a matrix of microarray intensities}
+\title{A function that transforms a matrix of microarray intensities.}
+\description{A function that transforms a matrix of microarray
+  intensities.
+  This function works in conjunction with \code{\link{vsn}}.
+  \code{vsn} and \code{vsnh} have been superseded by \code{\link{vsn2}} and
+  the \code{\link[vsn:vsn2trsf]{predict}} method for \code{vsn} objects.
+  The functions \code{vsn} and \code{vsnh} remain in the package for backward compatibility,
+  but for new projects, please use \code{\link{vsn2}} and  \code{\link[vsn:vsn2trsf]{predict}}.}
+}
 \usage{vsnh(y, p, strata)}
 \arguments{
   \item{y}{A numeric matrix containing intensity values from an array experiment. 

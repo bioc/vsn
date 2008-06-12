@@ -4,9 +4,10 @@
 ## With contributions from Markus Ruschhaupt, Dennis Kostka, David Kreil
 ##----------------------------------------------------------------------
 
-VSN_DEPR_MSG = paste("", "The function 'vsn' has been superseded by 'vsn2'.",
-  "It will stay around for some time, but", 
-  "for new projects, please use 'vsn2'.", "", sep="\n")
+VSN_DEPR_MSG = paste(
+"\nThe function 'vsn' has been superseded by 'vsn2'.",
+  "The function 'vsn' remains in the package for backward compatibility,", 
+  "but for new projects, please use 'vsn2'.\n", sep="\n")
 
 ##----------------------------------------------------------------------
 ## vsn: the main function of this library

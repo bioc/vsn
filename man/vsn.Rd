@@ -2,8 +2,10 @@
 \alias{vsn}
 \title{Variance stabilization and calibration for microarray data. }
 \description{Robust estimation of variance-stabilizing and calibrating 
-  transformations for microarray data. This is the main function of
-  this package; see also the vignette vsn.pdf.}
+  transformations for microarray data.
+  This function has been superseded by \code{\link{vsn2}}.
+  The function \code{\link{vsn}} remains in the package for backward compatibility,
+  but for new projects, please use \code{\link{vsn2}}.}
 \usage{
 vsn(intensities,
     lts.quantile = 0.5,
