@@ -1,36 +1,21 @@
-## Wolfgang Huber, 9.9.2007:
-## I have copied this file from "convert/R", and the code ought to be kept
-##  in sync with the one there. It seems this needs to be done manually,
-##  the package test / check system does not make it easy.
-
-
-## Martin Morgan, 27 August, 2007:
+## Wolfgang Huber 2007-2008
+## 
+## Based on code by Martin Morgan (27 August 2007) from the package "convert"
 
 setAs("RGList", "NChannelSet", function(from) {
 
   ## assayData
   assayData <- with(from, {
-    if (!exists("other", inherits=FALSE)) {
-      elts <- list(R=R, G=G)
-    } else {
-      if (is.null(names(other)) ||
-          !all(sapply(names(other), nzchar)))
-        stop(paste("RGList 'other' elements must be named, found '",
-                   paste(names(other), collapse="', '"),
-                   "'", sep=""))
-      bad <- names(other) %in% c("R", "G", "Rb", "Gb")
-      if (any(bad))
-        stop(paste("RGList 'other' elements contain reserved names '",
-                   paste(names(other)[bad],
-                         collapse="', '"),
-                   "'", sep=""))
-      
-      elts <- c(R=R, G=G, other)
-    }
+    if (exists("other", inherits=FALSE))
+      note("Ignoring slot 'other'.")
+
+    elts <- list(R=R, G=G)
+
     if (exists("Rb", inherits=FALSE))
       elts[["Rb"]] <- Rb
     if (exists("Gb", inherits=FALSE))
       elts[["Gb"]] <- Gb
+    
     do.call("assayDataNew",
             c(storage.mode="lockedEnvironment", elts))
   })
@@ -43,6 +28,7 @@ setAs("RGList", "NChannelSet", function(from) {
       new("AnnotatedDataFrame",
           data=data.frame(rep(0, ncol(from)))[,FALSE])
     }
+  
   ## featureData
   fData <-
     if (!is.null(from$genes))
