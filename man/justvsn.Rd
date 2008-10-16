@@ -56,14 +56,6 @@ nkid2 = justvsn(kidney)
 stopifnot(identical(exprs(nkid), exprs(nkid2)))
 
 ##--------------------------------------------------
-## justvsn on AffyBatch
-##--------------------------------------------------
-data("affybatch.example")
-data("cdfenv.example")
-abe1 = justvsn(affybatch.example)
-abe2 = vsnrma(affybatch.example)
-
-##--------------------------------------------------
 ## justvsn on RGList
 ##--------------------------------------------------
 rg = new("RGList", list(R=exprs(kidney)[,1,drop=FALSE], G=exprs(kidney)[,2,drop=FALSE]))

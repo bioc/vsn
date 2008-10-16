@@ -8,7 +8,7 @@
   the \code{\link[vsn:vsn2trsf]{predict}} method for \code{vsn} objects.
   The functions \code{vsn} and \code{vsnh} remain in the package for backward compatibility,
   but for new projects, please use \code{\link{vsn2}} and  \code{\link[vsn:vsn2trsf]{predict}}.}
-}
+
 \usage{vsnh(y, p, strata)}
 \arguments{
   \item{y}{A numeric matrix containing intensity values from an array experiment. 
