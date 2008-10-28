@@ -21,20 +21,18 @@ setMethod("meanSdPlot", signature="matrix", definition =
       dm        = 0.05
       midpoints = seq(dm, 1-dm, by=dm)
       within    = function(x, x1, x2) { x>=x1 & x<=x2 }
-      mediwind  = function(mp) median(py[within(rpx/n, mp-dm,
-                                                           mp+dm)], na.rm=TRUE)
+      mediwind  = function(mp) median(py[within(rpx/n, mp-dm, mp+dm)], na.rm=TRUE)
       rq.sds    = sapply(midpoints, mediwind)
                 
       if(ranks) {
-        px  = rpx
-        res = list(rank=midpoints*n, sd=rq.sds)
+        res = list(rank=midpoints*n, sd=rq.sds, px=rpx, py=py)
       } else {
-        res = list(quantile=quantile(px, probs=midpoints, na.rm=TRUE), sd=rq.sds)
+        res = list(quantile=quantile(px, probs=midpoints, na.rm=TRUE), sd=rq.sds, px=px, py=py)
       }
       
       if(plot) {
-        plot(px, py, pch=pch, xlab=xlab, ylab=ylab, ...)
-        lines(res[[1]], res[[2]], col="red", type="b", pch=19)
+        plot(res$px, res$py, pch=pch, xlab=xlab, ylab=ylab, ...)
+        lines(res[[1L]], res$sd, col="red", type="b", pch=19)
       }
       
       return(invisible(res))

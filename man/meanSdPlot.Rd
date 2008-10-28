@@ -47,9 +47,11 @@ meanSdPlot(x,
   red dots should be approximately horizontal.
 }
 \value{
-  A named list with two components, containing x-positions and values of
+  A named list with four components: its elements \code{px} and
+  \code{py} are the x- and y-coordinates of the individual data points
+  in the plot; its first and second element are the x-coordinates and values of
   the running median estimator (the red dots in the plot).
-  The methods can also have a side effect, which is to create a plot on the
+  Depending on the value of \code{plot}, the method can also have a side effect, which is to create a plot on the
   active graphics device.
 }
 \author{Wolfgang Huber \url{http://www.ebi.ac.uk/huber}}
