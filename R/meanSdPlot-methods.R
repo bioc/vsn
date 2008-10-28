@@ -24,10 +24,10 @@ setMethod("meanSdPlot", signature="matrix", definition =
       mediwind  = function(mp) median(py[within(rpx/n, mp-dm, mp+dm)], na.rm=TRUE)
       rq.sds    = sapply(midpoints, mediwind)
                 
-      if(ranks) {
-        res = list(rank=midpoints*n, sd=rq.sds, px=rpx, py=py)
+      res = if(ranks) {
+        list(rank=midpoints*n, sd=rq.sds, px=rpx, py=py)
       } else {
-        res = list(quantile=quantile(px, probs=midpoints, na.rm=TRUE), sd=rq.sds, px=px, py=py)
+        list(quantile=quantile(px, probs=midpoints, na.rm=TRUE), sd=rq.sds, px=px, py=py)
       }
       
       if(plot) {
