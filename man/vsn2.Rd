@@ -73,11 +73,14 @@ vsnMatrix(x,
     the resistant least trimmed sum of squares regression. Allowed
     values are between 0.5 and 1. A value of 1 corresponds to ordinary
     least sum of squares regression.}
-  \item{subsample}{Integer of length 1. If specified, the model parameters are
+  \item{subsample}{Integer of length 1. If its value is \code{>0}, the model parameters are
     estimated from a subsample of the data of size \code{subsample}
     only, yet the fitted transformation is
     then applied to all data. For large datasets, this can substantially
-    reduce the CPU time and memory consumption at a negligible loss of precision.}
+    reduce the CPU time and memory consumption at a negligible loss of
+    precision. Note that the \code{AffyBatch} method of \code{vsn2} sets a value of
+    \code{30000} for this parameter if it is missing from the function
+    call - which is different from the behaviour of the other methods.}
   \item{backgroundsubtract}{Logical of length 1: should
     local background estimates be subtracted before fitting vsn?}
   \item{foreground, background}{Aligned character vectors of the same length,
