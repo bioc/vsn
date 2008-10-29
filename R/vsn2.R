@@ -74,8 +74,8 @@ calcistrat = function(vp) {
 }
 
 progress = function(i, imax) {
-  if(i>0) cat("\r")
-  cat(sprintf("%3d", as.integer(i/imax*100)), "% done.", sep="")
+  cat(if(i==0L) "\n" else "\r",
+      sprintf("%3d", as.integer(i/imax*100)), "% done.", sep="")
 }
  
 ##-------------------------------------------------------------------------
@@ -315,7 +315,7 @@ vsnMatrix = function(x,
   
   ## Print welcome message
   if (verbose)
-    cat("vsn: ", nrow(x), " x ", ncol(x), " matrix (", nlevels(strata), " strat",
+    cat("vsn2: ", nrow(x), " x ", ncol(x), " matrix (", nlevels(strata), " strat",
         ifelse(nlevels(strata)==1L, "um", "a"), "). ", sep="")
 
   ## Here, the actual work is done.
