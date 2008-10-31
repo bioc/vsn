@@ -3,7 +3,9 @@
 }
 
 .onLoad <- function(libname, pkgname) {
-  ## register vsn as a normalization method with the affy package, if that is loaded:
+  ## register vsn as a normalization method with the affy package (if affy is loaded)
   if ("package:affy" %in% search())
-    assign("normalize.AffyBatch.methods", pos="package:affy", value=c("vsnrma", get("normalize.AffyBatch.methods", pos="package:affy")))
+    if(!"vsn" %in% affy::normalize.AffyBatch.methods())
+      upDate.normalize.AffyBatch.methods(
+             c(affy::normalize.AffyBatch.methods(), "vsn"))
 }
