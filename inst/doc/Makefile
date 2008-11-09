@@ -1,18 +1,17 @@
 all: vsn likelihoodcomputations convergence2 clean
 
 vsn: vsn.tex
-	pdflatex vsn
-	pdflatex vsn
+	texi2dvi --pdf vsn.tex
 
 likelihoodcomputations: likelihoodcomputations.tex
-	pdflatex likelihoodcomputations
-	pdflatex likelihoodcomputations
+	texi2dvi --pdf likelihoodcomputations.tex
 
 convergence2: convergence2.tex
 	cp -p ../scripts/convergence2.pdf .
 
 clean:
-	rm -f *.out *.bbl *.log *.aux *.blg *.brf *.toc *.tex
-	rm -f *.dvi *.ps vsn-* likelihoodcomputations-* Rplots.pdf
+	-$(RM) -f *.out *.bbl *.log *.aux *.blg *.brf *.toc *.tex
+	-$(RM) -f vsn-* likelihoodcomputations-* Rplots.pdf
+
 
 
