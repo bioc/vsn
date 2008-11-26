@@ -24,13 +24,26 @@ vsnML = function(v) {
   p = as.vector(v@pstart)
   istrat = calcistrat(v) ## pointers to the starts of strata
 
-  o = .Call("vsn2_optim", v@x, p, istrat, v@reference@mu,
-    v@reference@sigsq, v@optimpar, PACKAGE="vsn")
+  o = .Call("vsn2_optim",
+    v@x,
+    p,
+    istrat,
+    v@reference@mu,
+    v@reference@sigsq,
+    v@optimpar,
+    calibCharToInt(v@calib),
+    PACKAGE="vsn")
 
-  rv = new("vsn", coefficients=o$coefficients, 
-           mu=o$mu, sigsq=o$sigsq, strata=v@strata, lbfgsb=o$fail,
-           hoffset=rep(NA_real_,nlevels(v@strata)))
-  
+  rv = new("vsn",
+    coefficients = o$coefficients, 
+    strata = v@strata,
+    mu = o$mu,
+    sigsq = o$sigsq,
+    hx = matrix(NA_real_, nrow=nrow(v@x), ncol=0),
+    lbfgsb = o$fail,
+    hoffset = rep(NA_real_, nlevels(v@strata)),
+    calib = v@calib)
+
   if (o$fail!=0L) {
     nrp = if(length(p)<=6L) length(p) else 6L
     msg = paste("** This is a diagnostic message on the performance of the optimizer,\n",
@@ -57,19 +70,31 @@ vsnML = function(v) {
 calcistrat = function(vp) {
   nrs = nlevels(vp@strata)
 
-  if(length(vp@strata)>0L) {
-    stopifnot(vp@ordered)
-    istr = which(!duplicated(vp@strata))-1L
-  } else {
-    istr = 0L
-  }
-  stopifnot(length(istr)==nrs)
+  switch(vp@calib,
+    affine = {
+      if(length(vp@strata)>0L) {
+        stopifnot(vp@ordered)
+        istr = which(!duplicated(vp@strata))-1L
+      } else {
+        istr = 0L
+      }
+      stopifnot(length(istr)==nrs)
 
-  istrat = integer(ncol(vp@x)*nrs+1L)
-  for(i in 0:(ncol(vp@x)-1L))
-    istrat[i*nrs + seq_len(nrs)] = i*nrow(vp@x) + istr
+      istrat = integer(ncol(vp@x)*nrs+1L)
+      for(i in 0:(ncol(vp@x)-1L))
+        istrat[i*nrs + seq_len(nrs)] = i*nrow(vp@x) + istr
 
-  istrat[length(istrat)] = nrow(vp@x)*ncol(vp@x)  ## end point
+      istrat[length(istrat)] = nrow(vp@x)*ncol(vp@x)  ## end point
+    },
+         
+    none = {
+      if(nrs>1) stop("There must not be more than 1 stratum if 'calib' is 'none'")
+      istrat = c(0L, nrow(vp@x)*ncol(vp@x))
+    },
+         
+    stop(sprintf("Invalid value for 'vp@calib': %s", vp@calib))
+  ) ## end of switch
+  
   return(istrat)
 }
 
@@ -86,16 +111,19 @@ vsnLTS = function(v) {
   ## for calculating a convergence criterion: earlier result
   oldhy   = Inf
   ## the number of iterations that have already met the convergence criterion
-  cvgcCnt = 0L
+  cvgcCnt = 0
+  
   ## integer version of "v@strata"
-  intStrat = if(length(v@strata)==0L) rep(1L, nrow(v@x)) else as.integer(v@strata)
-
+  intstrata = if(length(v@strata)==0L) rep(1L, nrow(v@x)) else as.integer(v@strata)
+  facstrata = factor(intstrata, levels=paste(1:nlevels(v@strata)))
+  stopifnot(!any(is.na(facstrata)))
+    
   for(iter in seq_len(v@optimpar$cvg.niter)) {
 
     if(v@verbose)
-      progress(iter-1L, v@optimpar$cvg.niter)
+      progress(iter-1, v@optimpar$cvg.niter)
 
-    sv  = if(iter==1L) v else v[whsel, ]
+    sv  = if(iter==1) v else v[whsel, ]
     rsv = vsnML(sv)
 
     ## if LTS.quantile is 1, then the following stuff is not necessary
@@ -103,11 +131,11 @@ vsnLTS = function(v) {
       break
        
     ## apply to all data
-    hy = vsn2trsf(v@x, coefficients(rsv), intStrat)
+    hy = vsn2trsf(x=v@x, p=coefficients(rsv), strata=intstrata, calib=v@calib)
     v@pstart = coefficients(rsv)
 
     ## Calculate residuals
-    if(length(v@reference@mu)>0L) {
+    if(length(v@reference@mu)>0) {
       ## with reference:
       hmean = v@reference@mu
     } else {
@@ -129,19 +157,23 @@ vsnLTS = function(v) {
     rvar  = rowV(hy, mean=hmean, na.rm=TRUE)
 
     ## select those data points whose rvar is within the quantile; do this separately
-    ## within each stratum, and also within strata defined by hmean
+    ## within each stratum, and also within 5 slices defined by hmean
     ## (see the SAGMB 2003 paper for details)
     nrslice = 5
-    slice   = ceiling(rank(hmean, na.last=TRUE)/length(hmean)*nrslice)
-    slice   = factor((intStrat-1)*nrslice + slice)
-    grmed   = tapply(rvar, slice, quantile, probs=v@lts.quantile, na.rm=TRUE)
-    if(any(is.na(grmed)))
+    slice = ceiling(rank(hmean, na.last=TRUE)*(nrslice/length(hmean)))
+    facslice = factor(slice, levels=paste(1:nrslice))
+    stopifnot(!any(is.na(facslice)))
+    
+    grquantile = tapply(rvar, list(facslice, facstrata), quantile, probs=v@lts.quantile, na.rm=TRUE)
+    if(any(is.na(grquantile)))
       stop(sprintf("Too many data points are NA (%d of %d), not enough data for fitting, am giving up.",
                    sum(is.na(sv@x)), length(sv@x)))
-    
-    meds    = grmed[as.character(slice)]
-    whsel   = which(rvar <= meds)
 
+    ## Only use those datapoints with residuals less than grquantile,
+    ##    but use all datapoints for slice 1 (the lowest intensity spots)
+    whsel = which((rvar <= grquantile[ cbind(slice, intstrata) ]) |
+                   slice == 1 )
+    
     ## Convergence check
     ## after a suggestion from David Kreil, kreil@ebi.ac.uk
     if(v@optimpar$cvg.eps>0) {
@@ -169,16 +201,19 @@ vsnColumnByColumn = function(v) {
   rlv = vsnLTS(v[,1L])
   d = dim(coefficients(rlv))
   n = ncol(v)
-  stopifnot(d[2L]==1L)
+  stopifnot(length(d)==3, identical(d[2L], 1L))
   cf = array(NA_real_, dim=c(d[1L], n, d[3L]))
   cf[,1L,] = coefficients(rlv)
   for(j in seq_len(n)[-1L]) 
     cf[,j,] = coefficients(vsnLTS(v[,j]))
 
-  return(new("vsn", coefficients=cf, 
-             mu = v@reference@mu, sigsq = v@reference@sigsq,
-             strata=v@strata,
-             hoffset=rep(NA_real_,nlevels(v@strata))))
+  return(new("vsn",
+             coefficients = cf, 
+             strata = v@strata,
+             mu = v@reference@mu,
+             sigsq = v@reference@sigsq,
+             hoffset = rep(NA_real_,nlevels(v@strata)),
+             calib = v@calib))
 }
 
 ##----------------------------------------------------------------------------------
@@ -261,6 +296,7 @@ vsnMatrix = function(x,
              subsample    = 0L,
              verbose      = interactive(),
              returnData   = TRUE,
+             calib        = "affine",
              pstart,
              minDataPointsPerStratum = 42L,
              optimpar   = list(),
@@ -283,7 +319,7 @@ vsnMatrix = function(x,
          "Please reduce the number of strata so that there is enough in each stratum.\n")
   
   if(missing(pstart))
-    pstart = pstartHeuristic(x, stratasplit)
+    pstart = pstartHeuristic(x, stratasplit, calib)
   
   if(missing(reference)) {
     if(ncol(x)<=1L)
@@ -303,15 +339,16 @@ vsnMatrix = function(x,
   opar[names(optimpar)] = optimpar
   
   v = new("vsnInput",
-    x      = x,
+    x = x,
     strata = strata,
     pstart = pstart,
     reference = reference,
     lts.quantile = lts.quantile,
     optimpar = opar,
     subsample = subsample,
-    verbose   = verbose,
-    ordered   = FALSE)
+    verbose = verbose,
+    calib = calib,
+    ordered = FALSE)
   
   ## Print welcome message
   if (verbose)
@@ -328,13 +365,14 @@ vsnMatrix = function(x,
   
   ## If necessary, calculate the data matrix transformed according to 'coefficients'
   if(returnData) {
-    res@strata=strata
-    res@hx = vsn2trsf(x,
+    res@strata = strata
+    res@hx = vsn2trsf(x = x,
       p = coefficients(res),
       strata = as.integer(res@strata),
-      hoffset = res@hoffset)
+      hoffset = res@hoffset,
+      calib = calib)
   }
-
+  
   stopifnot(validObject(res))
 
   if(verbose) {
@@ -346,7 +384,7 @@ vsnMatrix = function(x,
 ##---------------------------------------------------------------------
 ## The glog transformation
 ##--------------------------------------------------------------------
-vsn2trsf = function(x, p, strata=numeric(0L), hoffset=NULL) {
+vsn2trsf = function(x, p, strata=numeric(0L), hoffset=NULL, calib="affine") {
   if (!is.matrix(x) || !is.numeric(x))
     stop("'x' must be a numeric matrix.\n")
   
@@ -361,14 +399,28 @@ vsn2trsf = function(x, p, strata=numeric(0L), hoffset=NULL) {
       stop("'strata' must be an integer vector of length nrow(x) with no NAs.")
   }
   nrstrata = max(strata)
-  
+
   if(nrstrata==1L && length(dim(p))==2L)
     dim(p) = c(1L, dim(p))
-  
-  if(length(dim(p))!=3L || dim(p)[1L]!=nrstrata || dim(p)[2L]!=ncol(x) || dim(p)[3L]!=2L)
-    stop("'p' has wrong dimensions.")
 
-  hx = .Call("vsn2_trsf", x, as.vector(p), strata, PACKAGE="vsn")
+  d2 = switch(calib,
+    affine= ncol(x),
+    none = 1,
+    stop(sprintf("Invalid value of 'calib': %s", calib)))
+
+  if(length(dim(p))!=3L ||
+     dim(p)[1L] != nrstrata ||
+     dim(p)[2L] != d2 ||
+     dim(p)[3L] != 2L)
+    stop("'p' has wrong dimensions.")
+  
+  hx = .Call("vsn2_trsf",
+    x,
+    as.vector(p),
+    strata,
+    calibCharToInt(calib),
+    PACKAGE="vsn")
+  
   dimnames(hx) = dimnames(x)
   
   ## see the 'value' section of the man page of 'vsn2'
@@ -403,9 +455,15 @@ rowV = function(x, mean, ...) {
 ##--------------------------------------------------------------
 ## A heuristic to set the start parameters for offset and scale.
 ##--------------------------------------------------------------
-pstartHeuristic = function(x, sp) {
-  pstart = array(0, dim=c(length(sp), ncol(x), 2L))
-  pstart[,,2L] = 1
+pstartHeuristic = function(x, sp, calib) {
+  
+  d2 = switch(calib,
+    affine= ncol(x),
+    none = 1,
+    stop(sprintf("Invalid value of 'calib': %s", calib)))
+
+  pstart = array(0, dim=c(length(sp), d2, 2))
+  pstart[,,2] = 1
   return(pstart)
 }
 

@@ -15,7 +15,8 @@ checkArgs = function(object, mu, sigsq) {
   }
 }
 
-vsnLogLik = function(object, p, mu=numeric(0), sigsq=as.numeric(NA)) {
+vsnLogLik = function(object, p, mu=numeric(0), sigsq=as.numeric(NA), calib="affine") {
+  
   checkArgs(object, mu, sigsq)
   if(is.vector(p))
     dim(p)=c(length(p), 1)  
@@ -23,7 +24,14 @@ vsnLogLik = function(object, p, mu=numeric(0), sigsq=as.numeric(NA)) {
   res = matrix(as.numeric(NA), nrow=1+nrow(p), ncol=ncol(p))
   istrat = calcistrat(object) 
   for(j in 1:ncol(p))
-    res[, j] = .Call("vsn2_point", object@x, p[,j], istrat, mu, sigsq, PACKAGE="vsn")
+    res[, j] = .Call("vsn2_point",
+         object@x,
+         p[,j],
+         istrat,
+         mu,
+         sigsq,
+         calibCharToInt(calib),
+         PACKAGE="vsn")
 
   ## invert sign since the above calculates the _negative_ log likelihood
   return(-res)

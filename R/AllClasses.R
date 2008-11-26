@@ -34,6 +34,13 @@ equalOrZero = function(i, j) ((i==j)||(i==0))
 
 compulsoryElements = c("factr", "pgtol", "maxit", "trace", "cvg.niter", "cvg.eps")
 
+calibCharToInt = function(x)
+  switch(EXPR=x, affine=0L, none=1L, stop(sprintf("Invalid value '%s' of 'calib'.", x)))
+
+
+##--------------------------------------------------
+## validity method for 'vsnInput'
+##--------------------------------------------------
 validityVsnInput = function(object){
   if(any(is.nan(object@x)))
     return("The values in 'x' must be finite numeric or NA; please no NaN.")
@@ -47,6 +54,10 @@ validityVsnInput = function(object){
   r = validLogical(object, "verbose")
   if(!identical(r, TRUE)) return(r)
 
+  if( (!is.character(object@calib)) ||
+      (length(object@calib)!=1L) ||
+      (!(object@calib)%in%c("affine","none")) ) return("Invalid slot 'calib'.")
+
   r = validLogical(object, "ordered")
   if(!identical(r, TRUE)) return(r)
 
@@ -59,7 +70,9 @@ validityVsnInput = function(object){
   if(!is.numeric(object@pstart)||length(dim(object@pstart))!=3)
     return("'pstart' must be a 3D array.")
   
-  if(!all(dim(object@pstart)==c(nlevels(object@strata), ncol(object@x), 2)))
+  if(!all(dim(object@pstart)==c(nlevels(object@strata),
+                                switch(EXPR=object@calib, affine=ncol(object@x), none=1),
+                                2)))
     return("Invalid dimensions of 'pstart'.")
 
   if(!is.list(object@optimpar)||!identical(names(object@optimpar), optimparNames))
@@ -68,14 +81,19 @@ validityVsnInput = function(object){
 
   r = validScalarDoubleListElt(object@optimpar, "factr")
   if(!identical(r, TRUE)) return(r)
+  
   r = validScalarDoubleListElt(object@optimpar, "pgtol")
   if(!identical(r, TRUE)) return(r)
+
   r = validScalarIntListElt(object@optimpar, "maxit", min=1L)
   if(!identical(r, TRUE)) return(r)
+
   r = validScalarIntListElt(object@optimpar, "trace", min=0L, max=6L)
   if(!identical(r, TRUE)) return(r)
+
   r = validScalarIntListElt(object@optimpar, "cvg.niter", min=1L)
   if(!identical(r, TRUE)) return(r)
+
   r = validScalarDoubleListElt(object@optimpar, "cvg.eps")
   if(!identical(r, TRUE)) return(r)
 
@@ -83,6 +101,9 @@ validityVsnInput = function(object){
 }
 
 
+##--------------------------------------------------
+## validity method for 'vsn'
+##--------------------------------------------------
 validityVsn = function(object){
   if(any(is.na(object@coefficients))||(length(dim(object@coefficients))!=3))
     return("'coefficients' must be a 3D array and not contain NA values.")
@@ -94,25 +115,21 @@ validityVsn = function(object){
     return("'sigsq' must be of length 1.")
 
   if(length(object@hoffset)!=dim(object@coefficients)[1L])
-    return("'hoffset' and 'dim(coefficients)[1]' must be equal.")
+    return("'length(hoffset)' and 'dim(coefficients)[1]' must match.")
 
-  n = length(object@mu)
-
-  ## strata must be of length n, or 0 (in which case there are no strata).
-  if(!equalOrZero(length(object@strata), n))
-    return(sprintf("'length(strata)' must be 0 or %d.", n))
+  if(!equalOrZero(length(object@strata), length(object@mu)))
+    return("'length(strata)' and 'length(mu)' must match.")
 
   if(length(object@strata)>0)
     if(nlevels(object@strata)!=dim(object@coefficients)[1])
       return("'nlevels(strata)' and 'dim(coefficients)[1]' must match.")
 
-  ## does hx have the correct number of columns?
-  if(!equalOrZero(ncol(object@hx), dim(object@coefficients)[2L]))
-    return("'ncol(hx)' and 'dim(object@coefficients)[2]' must match.")
-
-  ## does hx have the correct number of rows?
-  if(!equalOrZero(nrow(object@hx), n))
-    return(sprintf("'nrow(hx)' must be 0 or %d.", n))
+  switch(object@calib,
+         affine = if(!equalOrZero(ncol(object@hx), dim(object@coefficients)[2]))
+           return("'ncol(hx)' and 'dim(coefficients)[2]' must match."),
+         none = if(!identical(dim(object@coefficients), c(1L, 1L, 2L)))
+           return("'dim(object@coefficients)' must be 'c(1,1,2)'."),
+         return("Invalid 'calib'."))
 
   if(!((length(object@lbfgsb)==1L)&&(is.integer(object@lbfgsb))))
     return("'lbfgsb' must be an integer of length 1.")
@@ -127,21 +144,27 @@ setClass("vsn",
   representation(
     coefficients = "array", ## 3D array: nrstrata * d * 2, with 2 parameters
                             ## for each stratum and array.
-    strata     = "factor", 
-    mu         = "numeric",
-    sigsq      = "numeric",
-    hx         = "matrix",
-    lbfgsb     = "integer",
-    hoffset    = "numeric"),
+    strata = "factor", 
+    mu = "numeric",
+    sigsq = "numeric",
+    hx = "matrix",
+    lbfgsb = "integer",
+    hoffset = "numeric",
+    calib = "character"),
+         
   prototype = list(
     coefficients = array(0, dim=c(0L, 0L, 2L)),
-    strata       = factor(integer(0L), levels="all"),
-    mu           = numeric(0L),
-    sigsq        = NA_real_,
-    hx           = matrix(0, nrow=0L, ncol=0L),
-    lbfgsb       = NA_integer_,
-    hoffset      = numeric(0L)),
-  validity = validityVsn)
+    strata = factor(integer(0L), levels="all"),
+    mu = numeric(0L),
+    sigsq = NA_real_,
+    hx = matrix(0, nrow=0L, ncol=0L),
+    lbfgsb = NA_integer_,
+    hoffset = numeric(0L),
+    datadim = c(0L, 0L),
+    calib = "affine"),
+         
+  validity = validityVsn
+)
 
 ##------------------------------------------------------------
 ## Class vsnInput
@@ -149,16 +172,28 @@ setClass("vsn",
 setClass("vsnInput",
   representation(
     x  = "matrix",     ## The n*d data matrix
-    reference = "vsn", ## A result from a previous fit (for reference normalization)          
-    strata = "factor", ## Factor of length n, aligned with rows of x. Special case:
-                       ##  It can also be length 0, in case there is only one stratum
-    ordered = "logical",  ## Are the levels consecutive in "strata"?               
+                 
+    reference = "vsn", ## A result from a previous fit (for reference normalization)
+                 
+    strata = "factor", ## Factor of length n, aligned with rows of x.
+                       ## The code also recognizes a special case:
+                       ## If 'strata' is of length 0, this
+                       ##   is a compact way of representing the fact that there is
+                       ##   only one stratum, i.e. this is equivalent to 'strata'
+                       ##   of length n with all the same values.
+                 
+    ordered = "logical",  ## Have the rows of x already been sorted so that the
+                          ## levels of 'strata' are consecutive (this is only a
+                          ## non-trivial condition if there is more than one stratum.
+                 
     lts.quantile = "numeric",
     subsample = "integer",
-    verbose   = "logical",
-    pstart    = "array",     ## Start parameters: see comment on slot 'coefficients'
-                             ## in definition of class 'vsn'
+    verbose = "logical",
+    calib = "character",
+    pstart = "array",     ## Start parameters: see comment on slot 'coefficients'
+                          ## in definition of class 'vsn'
     optimpar  = "list"),     ## See below: optimparnames
+         
   prototype = list(
     x = matrix(as.numeric(NA), nrow=0L, ncol=0L),
     reference = new("vsn"),
@@ -167,9 +202,11 @@ setClass("vsnInput",
     lts.quantile = 1,
     subsample = 0L,
     verbose = TRUE,
+    calib = "affine",
     pstart = array(as.numeric(NA), dim=c(1L,0L,2L)),
     optimpar = list(factr=5e7, pgtol=2e-4, 
                  maxit=60000L, trace=0L, cvg.niter=7L, cvg.eps=0)),
+         
   validity = validityVsnInput)
                   
 

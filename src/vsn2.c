@@ -1,6 +1,6 @@
 /*********************************************************************
   C functions for vsn 2.X
-  (C) W. Huber 2002-2007
+  (C) W. Huber 2002-2009
   This code replaces the deprecated code in vsn.c
   See the vignette 'likelihoodcomputations.Rnw' for the 
   derivation of the maths
@@ -28,12 +28,18 @@ typedef struct {
   int ntot;        /* no. of data points that are not NA (if none, this should be nrow*ncol) */
   int npar;        /* no. of parameters */
 
-  int *strat;      /* strat[j] is the index of the first element of j-th stratum */
-  int nrstrat;     /* no. of strata */
+  int *strat;      /* This array is used to store the mapping from rows to strata. Note that
+                      at different times, it is used to store either the rows-to-strata mapping or 
+                      the inverse, the strata-to-rows mapping. Using i for rows and j for strata:
+                      In calctrsf, strat[i] is the stratum j (an integer identifier) of the i-th row.
+                      In loglik and grad_loglik, strat[j] is the row index i of the first element 
+                      of stratum j */
+  int nrstrat;     /* Only used in loglik and grad_loglik: number of strata */
 
   int profiling;   /* 0 for normal likelihood, 0xffff for profiling                  */
   double *mu;      /* mu and sigma^2. For the normal likelihood, these are provided. */
   double sigsq;    /* For profile likelihood, they are computed from the data.       */
+  int calib;       /* 0 for 'affine', all else for 'none'. */ 
 
   /* Workspaces -  used to store intermediate results from the computation of the */
   /* likelihood function. These are reused in the computation of the gradient.    */
@@ -64,25 +70,41 @@ SEXP getListElement(SEXP list, char *str) {
 void calctrsf(vsn_data *px, double* par, double *hy)
 {
     int i, j, ns, s, nr, nc;
-    double z, a, b;
+    double z, a, b, fb;
  
     nc = px->ncol;
     nr = px->nrow;
-    ns = px->npar / (nc*2);
+
+    switch(px->calib) 
+      {
+      case 0:
+	/* affine calibration */
+	ns = px->npar / (nc*2);
     
-    for(i=0; i <nr; i++) {
-      s  = (px->strat[i]) - 1;
-      for(j=0; j<nc; j++) {
-        z = px->y[i+ j*nr];
-        if(ISNA(z)){
-	  hy[i + j*nr] = NA_REAL;
-	} else {
-	  a = par[s + j*ns];
-	  b = par[s + j*ns + ns*nc];
-          hy[i + j*nr] = asinh(FUN(b)*z+a);
+	for(i=0; i <nr; i++) {
+	  s  = (px->strat[i]) - 1; 
+	  for(j=0; j<nc; j++) {
+	    z = px->y[i+ j*nr];
+	    if(ISNA(z)){
+	      hy[i + j*nr] = NA_REAL;
+	    } else {
+	      a = par[s + j*ns];
+	      b = par[s + j*ns + ns*nc];
+	      hy[i + j*nr] = asinh(FUN(b)*z+a);
+	    }
+	  }
 	}
+	break;
+      default:
+	/* no calibration */
+	a = par[0];
+	fb = FUN(par[1]);
+	for(i=0; i <nr*nc; i++) {
+	  z = px->y[i];
+	  hy[i] = ISNA(z) ? NA_REAL : asinh(fb*z+a);
+	}
+	break;
       }
-    }
     return;
 }
 
@@ -118,6 +140,7 @@ double loglik(int n, double *par, void *ex)
     aj = a[j];
     bj = FUN(b[j]);
 
+    /* Double-check - this expression can be removed in future versions */
     if(bj<=0)
       error("Nonpositive factor bj=%g (b[%d]=%g).\n", bj, j, b[j]);
 
@@ -141,8 +164,8 @@ double loglik(int n, double *par, void *ex)
   
   jacobian = jac1*0.5 - jac2;
 
-  if(px->ntot != nt)   /* Just double-check - the code with 'nt' can be removed in future versions */
-    error("Internal error 1 in 'loglik'.");
+  if(px->ntot != nt)   /* Double-check - the code with 'nt' can be removed in future versions */
+    error("Internal error in 'loglik'.");
 
   /*---------------------------------------------------------------*/
   /* 2nd sweep through the data: compute r_ki                      */
@@ -258,7 +281,7 @@ void grad_loglik(int n, double *par, double *gr, void *ex)
    It checks the arguments Sy, Spar Strat and copies relevant bits 
    into (*px) */
 
-void setupEverybody(SEXP Sy, SEXP Spar, SEXP Sstrat, vsn_data* px) 
+void setupEverybody(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Scalib, vsn_data* px) 
 { 
   int i, nr, nc, nt;  
   double* y;
@@ -274,9 +297,12 @@ void setupEverybody(SEXP Sy, SEXP Spar, SEXP Sstrat, vsn_data* px)
     error("Invalid argument 'Spar', must be a real vector.");
   if(!isInteger(Sstrat)) 
     error("Invalid argument 'Sstrat', must be integer.");
+  if(!isInteger(Scalib)| (LENGTH(Scalib)!=1)) 
+    error("Invalid argument 'Scalib', must be integer of length 1.");
 
   px->npar    = LENGTH(Spar);
   px->strat   = INTEGER(Sstrat);
+  px->calib   = INTEGER(Scalib)[0];
 
   px->y    = y  = REAL(Sy);
   px->nrow = nr = INTEGER(dimy)[0];
@@ -355,13 +381,13 @@ double* setupLikelihoodstuff(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Smu, SEXP Ssi
    vsn2_point: R interface for calculation of loglikelihood and gradient
    This is used by vsnLikelihood
 ------------------------------------------------------------*/
-SEXP vsn2_point(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Smu, SEXP Ssigsq)
+SEXP vsn2_point(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Smu, SEXP Ssigsq, SEXP Scalib)
 {
   double* cpar;
   SEXP res;
   vsn_data x;
 
-  setupEverybody(Sy, Spar, Sstrat, &x);
+  setupEverybody(Sy, Spar, Sstrat, Scalib, &x);
   cpar = setupLikelihoodstuff(Sy, Spar, Sstrat, Smu, Ssigsq, &x);
  
   res = allocVector(REALSXP, x.npar+1);
@@ -376,7 +402,7 @@ SEXP vsn2_point(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Smu, SEXP Ssigsq)
    vsn2_optim
 ------------------------------------------------------------*/
 SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Smu, 
-                SEXP Ssigsq, SEXP Soptimpar)
+                SEXP Ssigsq, SEXP Soptimpar, SEXP Scalib)
 {
   int i, lmm, fail, fncount, grcount, maxit, trace, nREPORT;
   int *nbd;
@@ -402,7 +428,7 @@ SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Smu,
   fncount  = 0;
   grcount  = 0;
 
-  setupEverybody(Sy, Spar, Sstrat, &x);
+  setupEverybody(Sy, Spar, Sstrat, Scalib, &x);
   cpar = setupLikelihoodstuff(Sy, Spar, Sstrat, Smu, Ssigsq, &x);
  
   lower   = (double *) R_alloc(x.npar, sizeof(double));
@@ -457,11 +483,20 @@ SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Smu,
     z[i] = cpar[i];
 
   PROTECT(dimcoef = allocVector(INTSXP, 3)); 
-  INTEGER(dimcoef)[0] = x.npar/(x.ncol*2);
-  INTEGER(dimcoef)[1] = x.ncol;
+  switch(x.calib)
+    {
+    case 0:
+      INTEGER(dimcoef)[0] = x.npar/(x.ncol*2);
+      INTEGER(dimcoef)[1] = x.ncol;
+      break;
+    default:
+      INTEGER(dimcoef)[0] = 1;
+      INTEGER(dimcoef)[1] = 1;
+      break;
+    }
   INTEGER(dimcoef)[2] = 2;
   setAttrib(coef, R_DimSymbol, dimcoef);
- 
+
   /* return value: a list with four elements: fail, coefficients, mu, sigsq */
   PROTECT(res = allocVector(VECSXP, 4));
   SET_VECTOR_ELT(res, 0, vfail);
@@ -483,24 +518,17 @@ SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Smu,
 /*------------------------------------------------------------
    vsn2_trsf
 ------------------------------------------------------------*/
-SEXP vsn2_trsf(SEXP Sy, SEXP Spar, SEXP Sstrat)
+SEXP vsn2_trsf(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Scalib)
 {
-  int maxs, i; 
+  int i; 
   SEXP res, dimres;
   vsn_data x;
 
-  setupEverybody(Sy, Spar, Sstrat, &x);
+  setupEverybody(Sy, Spar, Sstrat, Scalib, &x);
  
   if (LENGTH(Sstrat) != x.nrow) 
     error("Length of 'Sstrat' must be the same as the number of rows of 'Sy'.");
 
-  maxs = x.npar / (x.ncol*2);
-  for(i=0; i<LENGTH(Sstrat); i++)
-    if(x.strat[i]<1 || x.strat[i]>maxs) {
-      Rprintf("x.strat[%d]=%d but should be >=1 and <=%d\n", i, x.strat[i], maxs);
-      error("Invalid argument 'Sstrat'.");
-    }
-  
   PROTECT(res = allocVector(REALSXP, x.nrow*x.ncol));
   dimres = allocVector(INTSXP, 2);
   INTEGER(dimres)[0] = x.nrow;
@@ -514,7 +542,7 @@ SEXP vsn2_trsf(SEXP Sy, SEXP Spar, SEXP Sstrat)
 }
 
 /*------------------------------------------------------------
-   vsn2_trsf
+   vsn2_scalingFactorTransformation
 ------------------------------------------------------------*/
 SEXP vsn2_scalingFactorTransformation(SEXP Sb)
 {

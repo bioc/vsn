@@ -36,6 +36,7 @@ vsnMatrix(x,
           subsample    = 0L,
           verbose      = interactive(),
           returnData   = TRUE,
+          calib        = "affine",
           pstart,
           minDataPointsPerStratum = 42L,
           optimpar     = list(),
@@ -91,6 +92,14 @@ vsnMatrix(x,
     in a slot of the resulting \code{\linkS4class{vsn}} object.
     Setting this option to \code{FALSE} allows saving memory
     if the data are not needed.}
+  \item{calib}{Character of length 1. Allowed values are \code{affine}
+    and \code{none}. The default, \code{affine}, corresponds to the
+    behaviour in package versions <= 3.9, and to what is described in
+    references [1] and [2]. The option \code{none} is an experimental
+    new feature, in which no affine calibration is performed and only
+    two global variance stabilisation transformation parameters \code{a}
+    and \code{b} are fitted. This functionality might be useful in
+    conjunction with other calibration methods, such as quantile normalisation.}
   \item{pstart}{Optional, a three-dimensional numeric array that
     specifies start values for the iterative parameter
     estimation algorithm.
