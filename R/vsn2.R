@@ -106,7 +106,7 @@ progress = function(i, imax) {
 ##-------------------------------------------------------------------------
 ## LTS robust modification of the ML estimator
 ##-------------------------------------------------------------------------
-vsnLTS = function(v) {
+vsnLTS = function(v, showprogress=v@verbose) {
 
   ## for calculating a convergence criterion: earlier result
   oldhy   = Inf
@@ -120,7 +120,7 @@ vsnLTS = function(v) {
     
   for(iter in seq_len(v@optimpar$cvg.niter)) {
 
-    if(v@verbose)
+    if(showprogress)
       progress(iter-1, v@optimpar$cvg.niter)
 
     sv  = if(iter==1) v else v[whsel, ]
@@ -186,7 +186,7 @@ vsnLTS = function(v) {
 
   } ## end of for-loop
   
-  if(v@verbose){
+  if(showprogress){
     progress(1L, 1L)
     cat("\n")
   }
@@ -198,21 +198,26 @@ vsnLTS = function(v) {
 ## vsnColumnByColumn
 ##----------------------------------------------------------------------------------
 vsnColumnByColumn = function(v) {
-  rlv = vsnLTS(v[,1L])
+  rlv = vsnLTS(v[,1], showprogress=FALSE)
+  if(v@verbose) { cat("\n"); progress(1, ncol(v)) }
+  
   d = dim(coefficients(rlv))
   n = ncol(v)
-  stopifnot(length(d)==3, identical(d[2L], 1L))
-  cf = array(NA_real_, dim=c(d[1L], n, d[3L]))
-  cf[,1L,] = coefficients(rlv)
-  for(j in seq_len(n)[-1L]) 
-    cf[,j,] = coefficients(vsnLTS(v[,j]))
-
+  stopifnot(length(d)==3, identical(d[2], 1L))
+  cf = array(NA_real_, dim=c(d[1], n, d[3]))
+  cf[,1,] = coefficients(rlv)
+  
+  for(j in seq_len(n)[-1]) {
+    cf[,j,] = coefficients(vsnLTS(v[,j], showprogress=FALSE))
+    if(v@verbose) { progress(j, ncol(v)); if(j==n) cat("\n") }
+  }
+  
   return(new("vsn",
              coefficients = cf, 
              strata = v@strata,
              mu = v@reference@mu,
              sigsq = v@reference@sigsq,
-             hoffset = rep(NA_real_,nlevels(v@strata)),
+             hoffset = rep(NA_real_, nlevels(v@strata)),
              calib = v@calib))
 }
 

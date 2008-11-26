@@ -1,4 +1,11 @@
-plotVsnLogLik = function(object, p, whichp=1:2, expand=1, ngrid=31L, fun=logLik, ...) {
+plotVsnLogLik = function(object,
+              p,
+              whichp = 1:2,
+              expand = 1,
+              ngrid = 31L,
+              fun = logLik,
+              main = "log likelihood",
+              ...) {
 
   stopifnot(length(whichp)==2L, ngrid>=2L)
 
@@ -28,8 +35,8 @@ plotVsnLogLik = function(object, p, whichp=1:2, expand=1, ngrid=31L, fun=logLik,
   ll = fun(object, psamp, ...)
   pgrid$logLik = ll[1, ]
 
-  print(levelplot(logLik ~ Var1*Var2, data=pgrid,
-       col.regions=colorRampPalette(c("#FFFFCC","#FFEDA0","#FED976","#FEB24C","#FD8D3C","#FC4E2A","#E31A1C","#BD0026","#800026"))(128)))  ## colors are from RColorBrewer: brewer.pal(9,"YlOrRd")
+  print(levelplot(logLik ~ Var1*Var2, data=pgrid, main=main,
+       col.regions=colorRampPalette(c("#FFFFCC","#FFEDA0","#FED976","#FEB24C","#FD8D3C","#FC4E2A","#E31A1C","#BD0026","#800026"))(128)))
   
   return(invisible(pgrid))
 }    

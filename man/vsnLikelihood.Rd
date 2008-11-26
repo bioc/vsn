@@ -11,7 +11,14 @@
 \usage{
 \S4method{logLik}{vsnInput}(object, p, mu=numeric(0), sigsq=as.numeric(NA))
 
-plotVsnLogLik(object, p, whichp=1:2, expand=1, ngrid=31L, fun=logLik, ...)
+plotVsnLogLik(object,
+              p,
+              whichp = 1:2,
+              expand = 1,
+              ngrid = 31L,
+              fun = logLik,
+              main = "log likelihood",
+              ...)
 }
 \arguments{
   \item{object}{A \code{\link{vsnInput}} object.}
@@ -31,6 +38,7 @@ plotVsnLogLik(object, p, whichp=1:2, expand=1, ngrid=31L, fun=logLik, ...)
   \item{ngrid}{Integer scalar, the grid size.}
   \item{fun}{Function to use for log-likelihood calculation. This
     parameter is exposed only for testing purposes.}
+  \item{main}{This parameter is passed on \code{levelplot}.}
   \item{...}{Arguments that get passed on to \code{fun}, use this for
     \code{mu} and \code{sigsq}.}
 }
