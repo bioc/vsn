@@ -520,7 +520,6 @@ SEXP vsn2_optim(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Smu,
 ------------------------------------------------------------*/
 SEXP vsn2_trsf(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Scalib)
 {
-  int i; 
   SEXP res, dimres;
   vsn_data x;
 
