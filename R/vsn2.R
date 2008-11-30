@@ -165,14 +165,11 @@ vsnLTS = function(v, showprogress=v@verbose) {
     stopifnot(!any(is.na(facslice)))
     
     grquantile = tapply(rvar, list(facslice, facstrata), quantile, probs=v@lts.quantile, na.rm=TRUE)
-    if(any(is.na(grquantile)))
-      stop(sprintf("Too many data points are NA (%d of %d), not enough data for fitting, am giving up.",
-                   sum(is.na(sv@x)), length(sv@x)))
 
     ## Only use those datapoints with residuals less than grquantile,
     ##    but use all datapoints for slice 1 (the lowest intensity spots)
     whsel = which((rvar <= grquantile[ cbind(slice, intstrata) ]) |
-                   slice == 1 )
+                  (slice == 1))
     
     ## Convergence check
     ## after a suggestion from David Kreil, kreil@ebi.ac.uk
@@ -398,12 +395,14 @@ vsn2trsf = function(x, p, strata=numeric(0L), hoffset=NULL, calib="affine") {
 
   if(length(strata)==0L) {
     strata = rep(1L, nrow(x))
+    nrstrata = 1L
   } else {
-    if(!is.integer(strata) || !is.vector(strata) || 
-       length(strata)!=nrow(x) || any(is.na(strata)))
+    if(! (is.integer(strata) && is.vector(strata) &&
+         identical(length(strata), nrow(x)) &&
+         (!any(is.na(strata)))) )
       stop("'strata' must be an integer vector of length nrow(x) with no NAs.")
+    nrstrata = max(strata)
   }
-  nrstrata = max(strata)
 
   if(nrstrata==1L && length(dim(p))==2L)
     dim(p) = c(1L, dim(p))

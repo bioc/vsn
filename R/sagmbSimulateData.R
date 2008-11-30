@@ -11,20 +11,21 @@ sagmbSimulateData <- function(n=8064, d=2, de=0, up=0.5, nrstrata=1, miss=0, log
   stopifnot(is.numeric(up), length(up)==1, up>=0, up<=1)
   stopifnot(is.numeric(nrstrata), length(nrstrata)==1)
 
-  sigsq = 0.04
-  mu = asinh(1/rgamma(n, shape=1, scale=1))
+  sigsq <- 0.04
+  mu <- asinh(1/rgamma(n, shape=1, scale=1))
 
   ##------------------------------------------------------------
   ## the calibration parameters: 
   ##------------------------------------------------------------
-  coefficients = array(runif(nrstrata*d*2L, min=-2, max=+2),
-                       dim=c(nrstrata, d, 2L))
+  coefficients = array(c(runif(nrstrata*d, min=-2, max=+2),  ## offsets
+                         runif(nrstrata*d, min=-1, max=+1)), ## factors
+                         dim=c(nrstrata, d, 2L))
 
   ##------------------------------------------------------------
   ## generate simulated data:
   ##  hy = asinh(f(b)*y+a)   <=>  y = (sinh(hy)-a)/f(b)
   ##------------------------------------------------------------
-  is.de  <- (runif(n)<de)
+  is.de  <- ((runif(n)<de ) & (mu > quantile(mu, 0.3)))
   hy     <- matrix(as.numeric(NA), nrow=n, ncol=d)
   hy[,1] <- mu + rnorm(n, sd=sqrt(sigsq))    ## array 1 is a reference
   for (j in seq_len(d)[-1]) {
@@ -36,7 +37,7 @@ sagmbSimulateData <- function(n=8064, d=2, de=0, up=0.5, nrstrata=1, miss=0, log
   facs   <- coefficients[strata,,2]
   stopifnot(all(dim(facs)==dim(hy)), all(dim(offs)==dim(hy)))
 
-  y = (sinh(hy)-offs)/scalingFactorTransformation(facs)
+  y <- (sinh(hy)-offs)/scalingFactorTransformation(facs)
   if(miss>0)
     y[sample(length(y), length(y)*miss)] = as.numeric(NA)
 
@@ -57,7 +58,7 @@ sagmbAssess <- function(h1, sim) {
   
   n <- nrow(h1)
   d <- ncol(h1)
-  if(nrow(h2)!=n || ncol(h2)!=d) 
+  if((nrow(h2)!=n) || (ncol(h2)!=d))
     stop(paste("'h1' and 'h2' should be matrices of the same size, but have ",
          n, "x", d, " and ", nrow(h2), "x", ncol(h2), sep=""))
   stopifnot(length(is.de)==n)

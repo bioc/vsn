@@ -120,9 +120,8 @@ validityVsn = function(object){
   if(!equalOrZero(length(object@strata), length(object@mu)))
     return("'length(strata)' and 'length(mu)' must match.")
 
-  if(length(object@strata)>0)
-    if(nlevels(object@strata)!=dim(object@coefficients)[1])
-      return("'nlevels(strata)' and 'dim(coefficients)[1]' must match.")
+  if(nlevels(object@strata)!=dim(object@coefficients)[1])
+    return("'nlevels(strata)' and 'dim(coefficients)[1]' must match.")
 
   switch(object@calib,
          affine = if(!equalOrZero(ncol(object@hx), dim(object@coefficients)[2]))
@@ -152,15 +151,14 @@ setClass("vsn",
     hoffset = "numeric",
     calib = "character"),
          
-  prototype = list(
-    coefficients = array(0, dim=c(0L, 0L, 2L)),
+  prototype(
+    coefficients = array(0, dim=c(1L, 0L, 2L)),
     strata = factor(integer(0L), levels="all"),
     mu = numeric(0L),
     sigsq = NA_real_,
     hx = matrix(0, nrow=0L, ncol=0L),
     lbfgsb = NA_integer_,
-    hoffset = numeric(0L),
-    datadim = c(0L, 0L),
+    hoffset = NA_real_,
     calib = "affine"),
          
   validity = validityVsn
@@ -194,7 +192,7 @@ setClass("vsnInput",
                           ## in definition of class 'vsn'
     optimpar  = "list"),     ## See below: optimparnames
          
-  prototype = list(
+  prototype(
     x = matrix(as.numeric(NA), nrow=0L, ncol=0L),
     reference = new("vsn"),
     strata = factor(integer(0L), levels="all"),

@@ -4,7 +4,7 @@
 %\VignettePackage{vsn}
 
 \documentclass[11pt]{article}
-\usepackage[margin=2.5cm,noheadfoot]{geometry}
+\usepackage[margin=2cm,noheadfoot]{geometry}
 
 %------------------------------------------------------------
 % newcommand
@@ -14,6 +14,7 @@
 \newcommand{\Rpackage}[1]{\textit{#1}}
 \newcommand{\Rclass}[1]{\textit{#1}}
 
+\SweaveOpts{keep.source=TRUE} 
 
 \begin{document}
 %------------------------------------------------------------------------
@@ -39,41 +40,63 @@ suite of assessments with respect to the number of features \Robject{n}, the
 number of arrays \Robject{d}, the fraction of differentially expressed genes
 \Robject{de}, and the fraction of up-regulated genes \Robject{up}.
 %
-<<setup, results=hide, echo=FALSE>>=
-require("vsn")
-set.seed(0xabcd)
-options(error=recover, warn=2)
 
-sim = function(..., lts.quantile=0.9, nrrep=30L) {
+\section{Helper functions used in this document}
+This section is given just for completeness -- for the results, you can skip this and 
+go to Section~\ref{sec:n}.
+
+<<setup, results=hide>>=
+library("vsn")
+set.seed(0xabcd)
+## options(error=recover, warn=2)
+@ 
+
+The function \Rfunction{sim} computes simulated data using the
+function \Rfunction{sagmbSimulateData} from the \Rpackage{vsn}
+package, calls \Rfunction{vsn2} to fit the VSN model, and assesses
+model fit using the function \Rfunction{sagmbSimulateData}.
+
+<<sim, results=hide>>=
+sim = function(..., lts.quantile=1, nrrep=30L) {
   callpar = list(...)
   ll      = listLen(callpar)
   stopifnot(ll[1]>=1, all(ll[-1]==1))
   res  = matrix(1, nrow=nrrep, ncol=ll[1])
  
   ## default parameters
-  simpar = append(callpar, list(n=4096L, d=2L, de=0, up=0.5, nrstrata=1L, miss=0, log2scale=TRUE)) 
+  simpar = append(callpar, 
+           list(n=4096L, d=2L, de=0, up=0.5, nrstrata=1L, miss=0, log2scale=TRUE)) 
   simpar = simpar[!duplicated(names(simpar))]
+
   for (i in 1:ll[1]) {
-    cat("i=", i, ": ", sep="")
     simpar[[1]] = callpar[[1]][i]
     for (r in 1:nrrep) {
       sim = do.call("sagmbSimulateData", simpar)
       ny  = vsn2(sim$y, strata=factor(sim$strata), lts.quantile=lts.quantile, verbose=!TRUE)
-      res[r, i] = sagmbAssess(ny@hx, sim)  
-      cat(signif(res[r,i], 3), "") 
-      if(res[r, i]>0.02) browser()
+      res[r, i] = sagmbAssess(exprs(ny), sim)  
+      if(!TRUE){
+        cat(paste(sprintf("%6g", signif(sim$coefficients, 3), collapse=" ")), "")
+        cat(sprintf("i=%d, r=%d: %g\n", i, r, signif(res[r,i], 3)))
+        plot(sim$y, pch="."); abline(a=0, b=1, col="orange", main=paste(i,r))
+        if(res[r, i]>0.02) browser()
+      }
    } ## for r
-   cat("\n")
   } ## for i
   return(res)
-} ## sim
+} 
+@ 
 
-myPlot = function(n, res, log="xy", ...) {
-  matplot(n, t(res), pch=20, log=log, ylab='r.m.s. error', col="orange", xlab=deparse(substitute(n)), ...)
+Here some functions to automate the formating of the plots that are used in 
+the following.
+
+<<onePlot>>=
+onePlot = function(n, res, log="xy", ...) {
+  matplot(n, t(res), pch=20, log=log, ylab='r.m.s. error', col="orange", 
+          xlab=deparse(substitute(n)), ...)
   lines(n, colMeans(res), col="blue")
 }
 
-myPlot2 = function(n, rl) {
+twoPlot = function(n, rl) {
   par(mfrow=c(1,2))
   ylim=range(unlist(rl))
   for(i in seq(along=rl)) {
@@ -86,17 +109,15 @@ myPlot2 = function(n, rl) {
 
 makeFig = function(name, width, height, expr) {
   pdfname = paste(name, "pdf", sep=".")
-  if(!file.exists(pdfname)) {
-    pdf(file=pdfname, width=4*width, height=4*height)
-    expr
-    dev.off()
-  }
+  pdf(file=pdfname, width=4*width, height=4*height)
+  expr
+  dev.off()
   invisible(pdfname)
 }
 @
 
 %--------------------------------------------------
-\section{Number of features $n$}
+\section{Number of features $n$}\label{sec:n}
 %--------------------------------------------------
 Fig.~\ref{fign} shows the estimation error for the transformation (i.\,e.\
 the root mean squared difference between true and estimated transformed data)
@@ -107,14 +128,14 @@ the estimation error should decrease roughly as $n^{-1/2}$.
 n = 1000*2^seq(-2, 5)
 makeFig("fign1", 1, 1, {
   res = sim(n=n)
-  myPlot(n, res, main="n: one stratum")
+  onePlot(n, res, main="n: one stratum")
 })
 @
 <<fign2, results=hide>>=
 n = 1000*2^seq(0, 5)
 makeFig("fign2", 1, 1, {
   res = sim(n=n, nrstrata=8)
-  myPlot(n, res, main="n: 8 strata")
+  onePlot(n, res, main="n: 8 strata")
 })
 @
 %
@@ -141,7 +162,7 @@ is constant in this plot (in contrast to Fig.~\ref{fign}).
 makeFig("figd", 1, 1, {
   d = 2^seq(1, 5)
   res = sim(d=d)
-  myPlot(d, res, main="a) d")
+  onePlot(d, res, main="a) d")
 })
 @
 %--------------------------------------------------
@@ -156,7 +177,7 @@ means less data per parameter.
 makeFig("fignrstrata", 1, 1, {
 nrstrata = 2^seq(0, 4)
 res = sim(nrstrata=nrstrata)
-myPlot(nrstrata, res, main="b) nrstrata")
+onePlot(nrstrata, res, main="b) nrstrata")
 })
 @
 %
@@ -174,7 +195,7 @@ and (b) the number of strata. See Sections~\ref{sec:d} and \ref{sec:nrstrata}.}
 \section{Differentially expressed genes}\label{sec:de}
 %------------------------------------------------------
 In the following code, \Robject{de} is the fraction of differentially expressed genes.
-We run the simulation both with default settings \Robject{lts.quantile=0.9} and 
+We run the simulation both with \Rfunction{vsn2}'s default setting \Robject{lts.quantile=0.9} and 
 the more robust \Robject{lts.quantile=0.5}.
 The reason why \Robject{lts.quantile=0.5} is not the default is that 
 the estimator with \Robject{lts.quantile=0.9} 
@@ -184,23 +205,21 @@ differentially expressed genes is not that large. See Figure~\ref{figdiff}.
 <<figdiff, results=hide>>=
 makeFig("figdiff", 2, 1, {
 de  = (0:6)/10
-res1 = sim(de=de, nrstrata=2)
+res1 = sim(de=de, nrstrata=2, lts.quantile=0.9)
 res2 = sim(de=de, nrstrata=2, lts.quantile=0.5)
-myPlot2(de, list("de, lts.quantile=0.9"=res1, "de, lts.quantile=0.5"=res2))
+twoPlot(de, list("de, lts.quantile=0.9"=res1, "de, lts.quantile=0.5"=res2))
 })
 @
 %
-In the next code chunk, 
-\Robject{up} is the fraction of up-regulated genes among the differentially
-expressed genes.  The best results are obtained for \Robject{up}$\approx0.5$,
-while the estimation error becomes larger the more unbalanced the situation becomes.
+In the next code chunk, \Robject{up} is the fraction of up-regulated
+genes among the differentially expressed genes.
 %
 <<figup, results=hide>>=
 makeFig("figup", 2, 1, {
 up  = (0:8)/8
 res1 = sim(up=up, nrstrata=2, de=0.2)
 res2 = sim(up=up, nrstrata=2, de=0.2, lts.quantile=0.5)
-myPlot2(up, list("a) up, lts.quantile=0.9"=res1, "b) up, lts.quantile=0.5"=res2))
+twoPlot(up, list("a) up, lts.quantile=0.9"=res1, "b) up, lts.quantile=0.5"=res2))
 })
 @
 %
@@ -210,7 +229,7 @@ myPlot2(up, list("a) up, lts.quantile=0.9"=res1, "b) up, lts.quantile=0.5"=res2)
 \caption{\label{figdiff}%
 Estimation error as a function of the number of differentially expressed genes,
 for two different settings of \Robject{lts.quantile}. Note how a) is better
-for small values auf \Robject{de} (0 and 0.1), but becomes worse for larger
+for small values auf \Robject{de}, but becomes worse for larger
 values of \Robject{de}. See Section~\ref{sec:de}.}
 \end{center}
 \end{figure}
@@ -238,7 +257,7 @@ miss1 = seq(0, 0.5, length=6)
 res1 = sim(miss=miss1, d=8)
 miss2 = seq(0, 0.1, length=6)
 res2 = sim(miss=miss2, d=2)
-myPlot2(list(miss1, miss2), list("fraction NA (d=8)"=res1, "b) fraction NA (d=2)"=res2))
+twoPlot(list(miss1, miss2), list("fraction NA (d=8)"=res1, "b) fraction NA (d=2)"=res2))
 })
 @ 
 %
@@ -271,10 +290,10 @@ in turn for each array individually, the parameters.
 The results are shown in Figure~\ref{figincr}.
 %
 <<incr2>>=
-parRef = array(as.numeric(NA), dim=dim(fit@par))
-for(j in 1:ncol(dat$y)) {
+parRef = array(as.numeric(NA), dim=dim(coef(fit)))
+for(j in seq_len(ncol(dat$y))) {
   vj = vsn2(dat$y[,j], reference=v, lts.quantile=1, verbose=FALSE)
-  parRef[,j,] = vj@par
+  parRef[,j,] = coef(vj)
 }
 @ 
 %
@@ -282,10 +301,10 @@ for(j in 1:ncol(dat$y)) {
 makeFig("figincr", 2, 2, {
 par(mfcol=c(2,2))
 for(k in 1:2) {
-  plot(dat$par[1,,k], parRef[1,,k], pch=16, xlab="True", ylab="Reference fit", 
+  plot(dat$coefficients[1,,k], parRef[1,,k], pch=16, xlab="True", ylab="Reference fit", 
     main=c("offset", "factor")[k])
   abline(a=0, b=1, col="orange")
-  plot(fit@par[1,,k], parRef[1,,k], pch=16, xlab="Profile Likelihood fit", ylab="Reference fit", 
+  plot(coefficients(fit)[1,,k], parRef[1,,k], pch=16, xlab="Profile Likelihood fit", ylab="Reference fit", 
     main=c("offset", "factor")[k])
   abline(a=0, b=1, col="orange")
 }
@@ -304,17 +323,11 @@ see Section~\ref{sec:inc}.}
 \end{figure}
 
 %-----------------------------------------------------
-\section{Negligible additive background}\label{sec:multionly}
+%\section{Negligible additive background}\label{sec:multionly}
 %------------------------------------------------------
-Datasets in which the multiplicative noise component dominated over the additive component, 
-and hence in which the usual logarithmic transformation is appropriate, were problematic 
-for previous versions of \Rpackage{vsn}: a large region  
-
-%-----------------------------------------------------
-% \section{Subsampling}\label{sec:sample}
-% With multiple strata
-% To DO
-%-----------------------------------------------------
+%Datasets in which the multiplicative noise component dominated over the additive component, 
+%and hence in which the usual logarithmic transformation is appropriate, were problematic 
+%for previous versions of \Rpackage{vsn}.
 
 %---------------------------------------------------------
 % SessionInfo
