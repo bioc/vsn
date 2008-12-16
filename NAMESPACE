@@ -5,10 +5,9 @@ importFrom("methods", "show")
 importFrom("Biobase", "exprs")
 importFrom("stats", "logLik", "coef", "coefficients")
 importFrom("lattice", "levelplot")
-importClassesFrom("limma", "RGList")
 
-## affy does not bother to have a namespace (as of Oct 2008), have to put it in 'Depends' field...:
-## importFrom("affy", "AffyBatch")
+importClassesFrom("limma", "RGList")
+importClassesFrom("affy", "AffyBatch")
 
 exportClasses("vsn", "vsnInput")
 export(
