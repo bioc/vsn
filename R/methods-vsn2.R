@@ -52,7 +52,7 @@ MatrixFromNChannelSet = function(x, backgroundsubtract, foreground, background) 
     return(rv)
   })
   ## one wide matrix with all of them next to each other
-  y = do.call("cbind", lmat)
+  y = do.call(cbind, lmat)
   
   if(!(is.logical(backgroundsubtract)&&(length(backgroundsubtract)==1)&&(!is.na(backgroundsubtract))))
     stop("'backgroundsubtract' must be a logical of length 1 and not NA.")
@@ -62,7 +62,7 @@ MatrixFromNChannelSet = function(x, backgroundsubtract, foreground, background) 
       stop("One or more elements of 'background' are not contained in 'channelNames(x)'.")
     stopifnot(length(background)==length(foreground))
     lmat = lapply(background, function(k) ad[[k]])
-    y = y - do.call("cbind", lmat)
+    y = y - do.call(cbind, lmat)
   }
 
   return(y)

@@ -16,7 +16,7 @@ setAs("RGList", "NChannelSet", function(from) {
     if (exists("Gb", inherits=FALSE))
       elts[["Gb"]] <- Gb
     
-    do.call("assayDataNew",
+    do.call(assayDataNew,
             c(storage.mode="lockedEnvironment", elts))
   })
   

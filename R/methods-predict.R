@@ -91,7 +91,7 @@ predict_vsn_NChannelSet = function(object, newdata, strata, log2scale, useDataIn
       args[[i+1L]] = mat[, seq_len(d)+(i-1L)*d, drop=FALSE]
   names(args) = c("storage.mode", chn)
     
-  assayData(newdata) = do.call("assayDataNew", args)
+  assayData(newdata) = do.call(assayDataNew, args)
   if(!(is(newdata, "NChannelSet") && validObject(newdata)))
     stop("Failed to create a valid 'NChannelSet'.")
   return(newdata)
