@@ -127,7 +127,7 @@ vsnMatrix(x,
   The data are returned on a \eqn{glog} scale to base 2. More precisely,
   the transformed data are subject to the transformation
   \eqn{glog_2(f(b)*x+a) + c}, where the function
-  \eqn{glog_2(u) = log_2(u+\sqrt{u*u+1}) = \asinh(u)/\log(2)} is called the
+  \eqn{glog_2(u) = log_2(u+\sqrt{u*u+1}) = asinh(u)/\log(2)} is called the
   generalised logarithm, the offset \eqn{a} and the scaling parameter
   \eqn{b} are the fitted model parameters
   (see references), and \eqn{f(x)=\exp(x)} is a parameter transformation that
