@@ -40,6 +40,8 @@ pagecolor=darkblue,raiselinks,plainpages,pdftex]{hyperref}
   \end{figure}
 }
 
+\newcommand{\figphrase}[1]{Figure~\ref{#1} on page~\pageref{#1}}
+
 \setlength\columnsep{20pt}  
 \renewcommand{\floatpagefraction}{0.99}
 \renewcommand{\dblfloatpagefraction}{0.99}
@@ -105,6 +107,26 @@ stopifnot(
   identical(exprs(xnorm), exprs(fit)))
 @ 
 %
+\begin{figure*}[tb]\begin{center}
+\includegraphics[width=0.9\textwidth]{vsn-nkid-scp}  
+\caption{\label{vsn-nkid-scp}%
+Scatterplots of the kidney example data, which were obtained from a 
+two-colour cDNA array by quantitating spots and subtracting a local background 
+estimate.
+a) unnormalised and $\log_2$-transformed.
+b) normalised and transformed with VSN, 
+Panel b shows the data from the complete set of \Sexpr{nrow(kidney)} 
+spots on the array, panel a only the \Sexpr{sum(0==rowSums(exprs(kidney)<=0))} 
+spots for which both red and green net intensities were greater than 0. 
+Those spots which are missing in panel a are coloured in orange in panel b.}
+\end{center}\end{figure*}
+%
+\begin{figure*}[tb]\begin{center}
+\includegraphics[width=0.9\textwidth]{vsn-nkid-sdmean}  
+\caption{\label{vsn-nkid-sdmean}%
+Standard deviation versus rank of the mean, and the mean, respectively.}
+\end{center}\end{figure*}
+%
 where \Robject{fit} is an object of class \Rclass{vsn} that contains
 the fitted calibration and transformation parameters, and the method
 \Rfunction{predict} applies the fit to the data.
@@ -128,60 +150,45 @@ values are the \emph{generalised log-ratios}. These are
 shrinkage estimators of the logarithm of the fold change.
 The usual \emph{log-ratio} is another example for an estimator\footnote{%
 In statistics, the term \emph{estimator} is used to denote an algorithm
-that calculates a value from a set of measured data. 
-This value is intended to correspond to a parameter of the 
-underlying distribution that generated the data. Depending on the amount of the 
-available data and the quality of the estimator, the 
-correspondence between the estimated value and the true value may be more 
-or less faithful. For example, the arithmetic mean and the median are two 
-different estimators of the center of a symmetric distribution.}
-of log fold change. 
+that calculates a value from measured data. 
+This value is intended to correspond to the true value of a parameter of the 
+underlying process that generated the data. Depending on the amount of the 
+available data and the quality of the estimator, the intention 
+may be more or less satisfied.} of log fold change. 
 There is also a close relationship between background correction of 
 the intensities and the variance properties of the different estimators. Please
 see Section~\ref{sec:shrink} for more explanation of these issues. 
 
-How does VSN work? In short, each column is calibrated by
-an affine transformation\footnote{It is possible to stratify the
-transformations within columns, see the \Robject{strata} parameter of
-the function \Rfunction{vsn2}.}, then the whole data are transformed
-by a $\glog_2$ variance-stabilising transformation.  After this,
-systematic array- or dye-biases should be removed, and the variance
-should be approximately independent of the mean intensity.  Many
-common hypothesis testing, clustering or classification schemes are
-based on an assumption of common variance. If this assumption does not
-hold, such methods can produce misleading results; a transformation
-which makes this assumption roughly true makes the use of such methods
-more appropriate.
+How does VSN work? There are two components: First, an affine
+transformation whose aim is to calibrate systematic experimental
+factors such as labelling efficiency or detector sensitivity.  Second,
+a $\glog_2$ transformation whose aim is variance stabilisation.
 
-Note, however, that VSN only addresses the dependence of
-the variance on the mean intensity. There may be other factors
-influencing the variance, such as gene-inherent properties or changes
-of the tightness of transcriptional control in different conditions.
-These need to be addressed by other methods.
+An \emph{affine transformation} is simply a shifting and scaling of
+the data, i.\,e.\ a mapping of the form $x\mapsto (x-a)/s$ with offset
+$a$ and scaling factor $s$.  By default, a different offset and a
+different scaling factor are used for each column, but the same for
+all rows within a column. There are two parameters of the function
+\Rfunction{vsn2} to control this behaviour: With the parameter
+\Robject{strata}, you can ask \Rfunction{vsn2} to choose different
+offset and scaling factors for different groups (``strata'') of
+rows. These strata could, for example, correspond to sectors on the
+array\footnote{See Section~\ref{sec:strata}.}. With the parameter
+\Robject{calib}, you can ask \Rfunction{vsn2} to choose the same
+offset and scaling factor throughout\footnote{See
+Section~\ref{sec:nocalib}.}. This can be useful, for example, if the
+calibration has already been done by other means, e.\,g.\ quantile
+normalisation.
+
+Note that VSN's \emph{variance stabilisation} only addresses the
+dependence of the variance on the mean intensity. There may be other
+factors influencing the variance, such as gene-inherent properties or
+changes of the tightness of transcriptional control in different
+conditions.  These need to be addressed by other methods.
 
 %------------------------------------------------------------
 \section{Running VSN on data from a single two-colour array} 
 %------------------------------------------------------------
-\begin{figure*}[tb]\begin{center}
-\includegraphics[width=0.9\textwidth]{vsn-nkid-scp}  
-\caption{\label{vsn-nkid-scp}%
-Scatterplots of the kidney example data, which were obtained from a 
-two-colour cDNA array by quantitating spots and subtracting a local background 
-estimate.
-a) unnormalised and $\log_2$-transformed.
-b) normalised and transformed with VSN, 
-Panel b shows the data from the complete set of \Sexpr{nrow(kidney)} 
-spots on the array, panel a only the \Sexpr{sum(0==rowSums(exprs(kidney)<=0))} 
-spots for which both red and green net intensities were greater than 0. 
-Those spots which are missing in panel a are coloured in orange in panel b.}
-\end{center}\end{figure*}
-%
-\begin{figure*}[tb]\begin{center}
-\includegraphics[width=0.9\textwidth]{vsn-nkid-sdmean}  
-\caption{\label{vsn-nkid-sdmean}%
-Standard deviation versus rank of the mean, and the mean, respectively.}
-\end{center}\end{figure*}
-%
 The dataset \Robject{kidney} contains example data from a spotted cDNA
 two-colour microarray on which cDNA from two adjacent tissue samples
 of the same kidney were hybridised, one labeled in green (Cy3), one in
@@ -192,7 +199,7 @@ on the relationship between background correction and variance
 stabilising transformations.}  was calculated by the image analysis
 software and subtracted, hence some of the intensities in
 \Robject{kidney} are close to zero or negative. In
-Figure~\ref{vsn-nkid-scp} you can see the scatterplot of the
+\figphrase{vsn-nkid-scp} you can see the scatterplot of the
 calibrated and transformed data. For comparison, the scatterplot of
 the log-transformed raw intensities is also shown.
 %
@@ -233,7 +240,7 @@ meanSdPlot(xnorm, ranks=FALSE)
 dev.off()
 @ 
 
-The two plots are shown in Figure~\ref{vsn-nkid-sdmean}.  The red
+The two plots are shown in \figphrase{vsn-nkid-sdmean}.  The red
 dots, connected by lines, show the running median of the standard
 deviation\footnote{The parameters used were: window width 10\%, window
 midpoints 5\%, 10\%, 15\%, \ldots.  It should be said that the proper
@@ -257,7 +264,7 @@ command with the argument \Robject{ranks=FALSE}; but this is
 less effective in assessing variance and hence is not the default.
 
 The histogram of the generalized log-ratios is shown in 
-Figure~\ref{vsn-nkid-histM}.
+\figphrase{vsn-nkid-histM}.
 %
 <<nkid-histM,echo=FALSE,fig=TRUE,results=hide>>=
 hist(M, breaks=33, col="#d95f0e")
@@ -265,9 +272,18 @@ hist(M, breaks=33, col="#d95f0e")
 \myincfig{vsn-nkid-histM}{0.45\textwidth}{Histogram of generalised 
 log-ratios \Robject{M} for the kidney example data.}
 
+\myincfig{vsn-lym-sdmean}{0.45\textwidth}{Standard deviation 
+versus rank of the mean for the lymphoma example data}
+
+\myincfig{vsn-lym-M}{0.45\textwidth}{$M$-$A$-plot 
+for slide \texttt{DLCL-0032} from the lymphoma example data.
+A false-colour representation of the data point density is used,
+in addition the 100 data points in the least dense regions are 
+plotted as dots.}
+
 %------------------------------------------------------------
 \section{Running VSN on data from multiple arrays 
-(``single colour normalisation'')} 
+(``single colour normalisation'')}\label{sec:lymphoma} 
 %------------------------------------------------------------
 The package includes example data from a series of 8 spotted cDNA arrays 
 on which cDNA samples from different lymphoma were hybridised together 
@@ -307,10 +323,7 @@ meanSdPlot(lym)
 dev.off()
 @ 
 
-\myincfig{vsn-lym-sdmean}{0.45\textwidth}{Standard deviation 
-versus rank of the mean for the lymphoma example data}
-
-Again, Figure~\ref{vsn-lym-sdmean} helps to visually verify that the
+Again, \figphrase{vsn-lym-sdmean} helps to visually verify that the
 variance stabilisation worked.  As above, we can obtain the
 generalised log-ratios for each slide by subtracting the common
 reference intensities from those for the 8 samples:
@@ -330,13 +343,7 @@ smoothScatter(A[,j], M[,j], main=j,
 abline(h=0, col="red")
 @
 %
-\myincfig{vsn-lym-M}{0.45\textwidth}{$M$-$A$-plot 
-for slide \Sexpr{j} from the lymphoma example data.
-A false-colour representation of the data point density is used,
-in addition the 100 data points in the least dense regions are 
-plotted as dots.}
-%
-Figure~\ref{vsn-lym-M} shows the resulting $M$-$A$-plot~\cite{Dudoit578}
+\figphrase{vsn-lym-M} shows the resulting $M$-$A$-plot~\cite{Dudoit578}
 for one of the arrays. 
 
 %---------------------------------------------------------
@@ -360,38 +367,32 @@ the method \Rfunction{vsnrma}.
 <<affy1,results=hide>>=
 require("affydata")
 data("Dilution")
-d.vsn = vsnrma(Dilution)
+d_vsn = vsnrma(Dilution)
 @ 
 For comparison, we also run \Rfunction{rma}.
 <<affy2,results=hide>>=
-d.rma = rma(Dilution)
+d_rma = rma(Dilution)
 @ 
 %
-The resulting scatterplots are shown and compared in Figure~\ref{vsn-figaffy}.
+The resulting scatterplots are shown and compared in \figphrase{vsn-affy}.
 %
 <<figaffy1,echo=FALSE>>=
-openBitmap("figaffy", cols=2, rows=2)
+openBitmap("affy", cols=3, rows=1)
 @ 
 <<figaffy2,results=hide>>=
 par(pch=".")
 w = c(1,3)
 ax = c(2, 16)
-plot(exprs(d.vsn)[,w], 
+plot(exprs(d_vsn)[,w], 
   main="vsn: chip 1 vs 3", 
   asp=1, xlim=ax, ylim=ax)
-plot(exprs(d.rma)[,w], 
+plot(exprs(d_rma)[,w], 
   main="rma: chip 1 vs 3",
   asp=1, xlim=ax, ylim=ax)
-plot(exprs(d.rma)[,1], exprs(d.vsn)[,1], 
+plot(exprs(d_rma)[,1], exprs(d_vsn)[,1], 
   xlab="rma", ylab="vsn", 
   asp=1, xlim=ax, ylim=ax,
   main="chip 1: expression values")
-abline(a=0, b=1, col="red")
-plot(diff(t(exprs(d.rma)[,w])), 
-     diff(t(exprs(d.vsn)[,w])), 
-     xlab="rma", ylab="vsn", asp=1,
-     main="M values chip 1 vs 3",
-     xlim=c(-1,1), ylim=c(-1,1))
 abline(a=0, b=1, col="red")
 @
 <<figaffy3,echo=FALSE,results=hide>>=
@@ -404,10 +405,10 @@ is stronger with VSN (cf.\ the bottom right plot),
 which also leads to a lower dynamic range, cf.\ the 
 bottom left plot.
 
-\afterpage{\clearpage}
-\begin{figure*}[p!]\begin{center}
-\includegraphics[width=0.8\textwidth]{vsn-figaffy}  
-\caption{\label{vsn-figaffy}%
+%\afterpage{\clearpage}
+\begin{figure*}[tb]\begin{center}
+\includegraphics[width=\textwidth]{vsn-affy}  
+\caption{\label{vsn-affy}%
 Results of \Rfunction{vsnrma} and \Rfunction{rma} on the Dilution 
 example data. Chip 1 was hybridised with 20 $\mu$g RNA from liver,
 Chip 3 with 10 $\mu$g of the same RNA.}
@@ -434,6 +435,15 @@ lymRG = new("RGList", list(
 
 lymNCS = justvsn(lymRG)
 @ 
+%
+\begin{figure*}[tb]\begin{center}
+\includegraphics[width=0.9\textwidth]{vsn-figlimma}  
+\caption{\label{vsn-figlimma}%
+Left: histogram of $p$-values from the moderated $t$-test between the 
+\Sexpr{levels(lymNCS$sampR)[1]} and
+\Sexpr{levels(lymNCS$sampR)[2]} groups on the \Robject{lymM} values.
+Right: $M$-values for the 5 genes with the smallest $p$-values.}
+\end{center}\end{figure*}
 %
 The \Rfunction{justvsn} method for \Rclass{RGList} 
 converts its argument into an \Rclass{NChannelSet}, using a copy 
@@ -498,7 +508,7 @@ adf = new("AnnotatedDataFrame",
 phenoData(lymNCS) = adf 
 @ 
 %
-Now let's combine the red and green values from each array
+Now let us combine the red and green values from each array
 into the glog-ratio \Robject{M} 
 and use the linear modeling tools from \Rpackage{limma} to find
 differentially expressed genes (note that it is often suboptimal
@@ -518,18 +528,9 @@ lf = lmFit(lymM, design[, 2, drop=FALSE])
 lf = eBayes(lf)
 @ 
 %
-Figure~\ref{vsn-figlimma} shows the resulting $p$-values and
+\figphrase{vsn-figlimma} shows the resulting $p$-values and
 the expression profiles of the genes corresponding to the 
 top 5 features.
-%
-\begin{figure*}[tb]\begin{center}
-\includegraphics[width=0.9\textwidth]{vsn-figlimma}  
-\caption{\label{vsn-figlimma}%
-Left: histogram of $p$-values from the moderated $t$-test between the 
-\Sexpr{levels(lymNCS$sampR)[1]} and
-\Sexpr{levels(lymNCS$sampR)[2]} groups on the \Robject{lymM} values.
-Right: $M$-values for the 5 genes with the smallest $p$-values.}
-\end{center}\end{figure*}
 %
 <<figlimma,fig=TRUE,width=8>>=
 par(mfrow=c(1,2))
@@ -644,7 +645,7 @@ EsenzaStr = justvsn(lymRG[,1])
 @
 %
 A scatterplot comparing the transformed red intensities,
-using the two models, is shown in Figure~\ref{vsn-figstrata}.
+using the two models, is shown in \figphrase{vsn-figstrata}.
 %
 <<figstrata1,echo=FALSE>>=
 openBitmap("figstrata")
@@ -695,7 +696,7 @@ fit2 = vsn2(lym2)
 @ 
 %
 The resulting fitted parameters are not identical, but very similar, 
-see Figure~\ref{vsn-figmiss}.
+see \figphrase{vsn-figmiss}.
 %
 <<figmiss,fig=TRUE,width=8>>=
 par(mfrow=c(1,2))
@@ -813,7 +814,7 @@ coefficients(f8)[,1,]
 coefficients(fall)[,8,]
 @
 % 
-and compare the resulting values in the scatterplot Figure~\ref{vsn-figref}:
+and compare the resulting values in the scatterplot shown in \figphrase{vsn-figref}:
 they are very similar. 
 %
 <<figref1,echo=FALSE>>=
@@ -1012,7 +1013,50 @@ rm(list="oldwarn")
 Notice the change in the parameter $b$ of the red 
 channel: it is now larger by about $\log(4)\approx 1.4$,
 and the shift parameter $a$ has also been adjusted.  
-The result is shown in Figure~\ref{vsn-nkid-calib}.
+The result is shown in \figphrase{vsn-nkid-calib}.
+
+%-------------------------------------------------------------------
+\section{Variance stabilisation without calibration}\label{sec:nocalib}
+%-------------------------------------------------------------------
+It is possible to force $\lambda_{si}=1$ and $\alpha_{si}=0$ for all
+$s$ and $i$ in Equation~(\ref{eq.cal}) by setting \Rfunction{vsn2}'s
+parameter \Robject{calib} to \texttt{"none"}. Hence, only the global
+variance stabilisation transformation~(\ref{eq.vs}) will be applied,
+but no column- or row-specific calibration.
+
+Here, I show an example where this feature is used in conjunction with
+quantile normalisation.
+%
+<<vsnQ, results=hide>>= 
+lym_q = normalizeQuantiles(exprs(lymphoma))
+lym_qvsn = vsn2(lym_q, calib="none")
+@ 
+<<figqvsn1,echo=FALSE>>=
+openBitmap("qvsn", cols=2, rows=1)
+@ 
+<<figqvsn>>=
+plot(exprs(lym_qvsn)[, 1:2], pch=".", 
+   main="lym_qvsn")
+plot(exprs(lym)[,1], exprs(lym_qvsn)[, 1], 
+  main="lym_qvsn vs lym", pch=".", 
+  ylab="lym_qvsn[,1]", xlab="lym[,1]")
+@
+<<figqvsn3,echo=FALSE,results=hide>>=
+dev.off()
+@ 
+The result is shown in \figphrase{vsn-qvsn}.
+
+\begin{figure*}[tb]\begin{center}
+\includegraphics[width=0.9\textwidth]{vsn-qvsn}  
+\caption{\label{vsn-qvsn}%
+The left panel shows the scatterplot between the red and green intensities of
+the array of the lymphoma dataset after quantile
+normalisation followed by VSN variance stabilisation without calibration.
+The right panel compares the values from that method, for CH1 of the first
+array, to that of VSN variance stabilisation with affine calibration 
+(\Robject{lym} was computed in Section~\ref{sec:lymphoma}).}
+\end{center}\end{figure*}
+
 
 %-------------------------------------------------------------------
 \section{Assessing the performance of VSN}
@@ -1067,6 +1111,29 @@ produce more or less the same results; differences arise when the data
 are problematic, and when more or less successful measures may be
 taken by preprocessing methods to correct these problems.
 
+\begin{figure}[tb]
+\begin{center}
+\includegraphics[width=0.45\textwidth]{vsn-figshrink}
+\caption{\label{vsn-figshrink}The shrinkage property of the 
+generalised log-ratio.  
+Blue diamonds and error bars correspond to mean and standard
+deviation of the generalised log-ratio $h$, as obtained from VSN, 
+and black dots and error bars to the standard log-ratio $q$ (both base 2).  
+For this figure, data were generated from the 
+additive-multiplicative error 
+model~\cite{RockeDurbin2001,HuberSAGMB2003,HuberWiley2004}.
+The horizontal line corresponds to the true $\log_2$-ratio $1$ 
+(corresponding to a factor of 2).
+For intensities $x_2$ that are larger than about ten times the additive noise 
+level $\sigma_a$, generalised log-ratio $h$ and standard log-ratio $q$ coincide. 
+For smaller intensities, we can see a \textit{variance-bias trade-off}: 
+$q$ has no bias but a huge variance, thus an estimate of the 
+fold change based on a limited set of data can be arbitrarily off.
+In contrast, $h$ keeps a constant variance -- at the 
+price of systematically underestimating the true fold change.}
+\end{center}
+\end{figure}
+
 %------------------------------------------------------------
 \section{VSN, shrinkage and background correction} \label{sec:shrink}
 %------------------------------------------------------------
@@ -1119,29 +1186,6 @@ segments(x2, m-2*s, x2, m+2*s, lwd=lwd, col=colq, lty=lty)
 legend(8.75, -0.1, c("q","h"), col=colq, pch=pch, lty=lty, lwd=lwd)
 @
 %
-\begin{figure}[tb]
-\begin{center}
-\includegraphics[width=0.45\textwidth]{vsn-figshrink}
-\caption{\label{vsn-figshrink}The shrinkage property of the 
-generalised log-ratio.  
-Blue diamonds and error bars correspond to mean and standard
-deviation of the generalised log-ratio $h$, as obtained from VSN, 
-and black dots and error bars to the standard log-ratio $q$ (both base 2).  
-For this figure, data were generated from the 
-additive-multiplicative error 
-model~\cite{RockeDurbin2001,HuberSAGMB2003,HuberWiley2004}.
-The horizontal line corresponds to the true $\log_2$-ratio $1$ 
-(corresponding to a factor of 2).
-For intensities $x_2$ that are larger than about ten times the additive noise 
-level $\sigma_a$, generalised log-ratio $h$ and standard log-ratio $q$ coincide. 
-For smaller intensities, we can see a \textit{variance-bias trade-off}: 
-$q$ has no bias but a huge variance, thus an estimate of the 
-fold change based on a limited set of data can be arbitrarily off.
-In contrast, $h$ keeps a constant variance -- at the 
-price of systematically underestimating the true fold change.}
-\end{center}
-\end{figure}
-
 Generalised log-ratios can be viewed as a \textit{shrinkage estimator}: 
 for low intensities either in the numerator and denominator,
 they are smaller in absolute value than the standard log-ratios,
@@ -1149,7 +1193,7 @@ whereas for large intensities, they become equal.
 Their advantage is that they do not suffer from the variance
 divergence of the standard log-ratios at small intensities: they remain
 well-defined and have limited variance when the data come close to zero or
-even become negative. An illustration is shown in Figure~\ref{vsn-figshrink}.
+even become negative. An illustration is shown in \figphrase{vsn-figshrink}.
 Please consult the references for more on the
 mathematical background~\cite{HuberISMB2002,HSG2002,HuberSAGMB2003}.
 
@@ -1181,7 +1225,7 @@ $\glog_2$-transformed intensities. The dataframe
 \Robject{arrayGeometry} (from Section~\ref{sec:strata})
 contains, for each array feature, the
 identifier of the print-tip by which it was spotted and the row and
-column within the print-tip sector. Figure~\ref{fig:lymbox}
+column within the print-tip sector. \figphrase{fig:lymbox}
 shows the boxplots of \Robject{A} values of array 
 \texttt{CLL-13} stratified by row.
 %
@@ -1208,9 +1252,9 @@ You may want to explore similar boxplots for other stratifying factors
 such as column within print-tip sector or print-tip sector and look at
 these plots for the other arrays as well.
 
-In Figure~\ref{fig:lymbox}, we see that the features in rows 22 and
+In \figphrase{fig:lymbox}, we see that the features in rows 22 and
 23 are all very dim.  If we now look at these data in the $M$-$A$-plot
-(Figure~\ref{vsn-lymquscp}), we see that these features not only have
+(\figphrase{vsn-lymquscp}), we see that these features not only have
 low $A$-values, but fall systematically away from the $M=0$ line.
 
 

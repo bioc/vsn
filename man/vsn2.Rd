@@ -24,8 +24,7 @@
     nx = predict(fit, newdata=x)
   }
   or the wrapper \code{\link{justvsn}}.
-  Please see the vignette \emph{Introduction to vsn} for a description
-  on how to use \code{vsn2} for different use cases.
+  Please see the vignette \emph{Introduction to vsn}.
 }
 
 \usage{
@@ -55,8 +54,7 @@ vsnMatrix(x,
 \S4method{vsn2}{RGList}(x, reference, strata, backgroundsubtract=FALSE, ...)
 }
 \arguments{
-  \item{x}{An object containing the data to which the model is to be
-    fitted.}
+  \item{x}{An object containing the data to which the model is fitted.}
   \item{reference}{Optional, a \code{\linkS4class{vsn}} object from
     a previous fit. If this argument is specified, the data in \code{x}
     are normalized "towards" an existing set of reference arrays whose
@@ -64,17 +62,18 @@ vsnMatrix(x,
     argument is not specified, then the data in \code{x} are normalized
     "among themselves". See Details for a more precise explanation.}
   \item{strata}{Optional, a \code{factor} or \code{integer}
-    whose length is \code{nrow(x)}. Can
-    be used for stratified normalization (i.e. separate offsets \code{a} and
-    factors \code{b} for each level of \code{strata}). If missing, all
+    whose length is \code{nrow(x)}. It can
+    be used for stratified normalization (i.e. separate offsets \eqn{a} and
+    factors \eqn{b} for each level of \code{strata}). If missing, all
     rows of \code{x} are assumed to come from one stratum.
     If \code{strata} is an integer, its values must cover the range
-    1...\emph{n}, where \emph{n} is the number of strata.}
+    \eqn{1,\ldots,n}, where \eqn{n} is the number of strata.}
   \item{lts.quantile}{Numeric of length 1. The quantile that is used for
     the resistant least trimmed sum of squares regression. Allowed
     values are between 0.5 and 1. A value of 1 corresponds to ordinary
     least sum of squares regression.}
-  \item{subsample}{Integer of length 1. If its value is \code{>0}, the model parameters are
+  \item{subsample}{Integer of length 1. If its value is greater than 0,
+    the model parameters are
     estimated from a subsample of the data of size \code{subsample}
     only, yet the fitted transformation is
     then applied to all data. For large datasets, this can substantially
@@ -99,7 +98,8 @@ vsnMatrix(x,
     new feature, in which no affine calibration is performed and only
     two global variance stabilisation transformation parameters \code{a}
     and \code{b} are fitted. This functionality might be useful in
-    conjunction with other calibration methods, such as quantile normalisation.}
+    conjunction with other calibration methods, such as quantile
+    normalisation - see the vignette \emph{Introduction to vsn}.}
   \item{pstart}{Optional, a three-dimensional numeric array that
     specifies start values for the iterative parameter
     estimation algorithm.
@@ -124,20 +124,18 @@ vsnMatrix(x,
 
 \section{Note on overall scale and location of the glog
   transformation}{
-  The data are returned on a \emph{glog} scale to base 2. More precisely,
+  The data are returned on a \eqn{glog} scale to base 2. More precisely,
   the transformed data are subject to the transformation
-  \emph{glog2(f(b)*x+a) + c}, where the function
-  \emph{glog2(u) = log2(u+sqrt(u*u+1)) = asinh(u)/log(2)} is called the
-  generalised logarithm, the offset \emph{a} and the scaling parameter
-  \emph{b} are the fitted model parameters
-  (see references), and \emph{f(x)=exp(x)} is a parameter transformation that
-  allows ensuring positivity of the factor in front of \emph{x} while
-  using an unconstrained optimisation over \emph{b} [4].
-  Different parameters  \emph{a} and \emph{b} are fit for each array,
-  and, if applicable, for each stratum.
-  The overall offset \emph{c} is computed from the \emph{b}'s such that for
-  large \emph{x} the transformation approximately corresponds to the
-  \emph{log2} function. This is done separately for each stratum, but with the
+  \eqn{glog_2(f(b)*x+a) + c}, where the function
+  \eqn{glog_2(u) = log_2(u+\sqrt{u*u+1}) = \asinh(u)/\log(2)} is called the
+  generalised logarithm, the offset \eqn{a} and the scaling parameter
+  \eqn{b} are the fitted model parameters
+  (see references), and \eqn{f(x)=\exp(x)} is a parameter transformation that
+  allows ensuring positivity of the factor in front of \eqn{x} while
+  using an unconstrained optimisation over \eqn{b} [4].
+  The overall offset \eqn{c} is computed from the \eqn{b}'s such that for
+  large \eqn{x} the transformation approximately corresponds to the
+  \eqn{\log_2} function. This is done separately for each stratum, but with the
   same value across arrays. More precisely, if the element \code{b[s,i]}
   of the array \emph{b} is the scaling parameter for the \code{s}-th
   stratum and the \code{i}-th array, then \code{c[s]} is computed as
@@ -166,11 +164,11 @@ vsnMatrix(x,
 
 \section{Standalone versus reference normalisation}{
   If the \code{reference} argument is \emph{not} specified, then the model
-  parameters $\mu_k$ and $\sigma$ are fit from the data in \code{x}.
+  parameters \eqn{\mu_k} and \eqn{\sigma} are fit from the data in \code{x}.
   This is the mode of operation described in [1]
   and that was the only option in versions 1.X of this package.
   If \code{reference} is specified, the model parameters
-  $\mu_k$ and $\sigma$ are taken from it.
+  \eqn{\mu_k} and \eqn{\sigma} are taken from it.
   This allows for 'incremental' normalization [4].}
 
 \section{Convergence of the iterative likelihood optimisation}{
