@@ -45,13 +45,13 @@ vsnML = function(v) {
     calib = v@calib)
 
   if (o$fail!=0L) {
-    nrp = if(length(p)<=6L) length(p) else 6L
+    nrp = if(length(p)<=6) length(p) else 6L
     msg = paste("** This is a diagnostic message on the performance of the optimizer,\n",
                 "** it need not indicate a relevant problem:\n",
                 sprintf("fail=%d\npstart[1:%d]=", o$fail, nrp),
-                paste(signif(p[1:nrp], 4L), collapse=", "),
+                paste(signif(p[1:nrp], 4), collapse=", "),
                 sprintf("\n  coef[1:%d]=", nrp),
-                paste(signif(coefficients(rv)[1:nrp], 4L), collapse=", "), "\n", sep="")
+                paste(signif(coefficients(rv)[1:nrp], 4), collapse=", "), "\n", sep="")
     ## warning(msg)
   }
   
@@ -72,7 +72,7 @@ calcistrat = function(vp) {
 
   switch(vp@calib,
     affine = {
-      if(length(vp@strata)>0L) {
+      if(length(vp@strata)>0) {
         stopifnot(vp@ordered)
         istr = which(!duplicated(vp@strata))-1L
       } else {
@@ -153,15 +153,18 @@ vsnLTS = function(v, showprogress=v@verbose) {
       }
     }
     
-    ## row variances
-    rvar  = rowV(hy, mean=hmean, na.rm=TRUE)
+    ## sum of squared residuals for each row
+    rvar  = rowSums((hy-hmean)^2)
 
     ## select those data points whose rvar is within the quantile; do this separately
     ## within each stratum, and also within 5 slices defined by hmean
     ## (see the SAGMB 2003 paper for details)
     nrslice = 5
-    slice = ceiling(rank(hmean, na.last=TRUE)*(nrslice/length(hmean)))
-    facslice = factor(slice, levels=paste(1:nrslice))
+    facslice = cut(rank(hmean, na.last=TRUE), breaks=nrslice)
+    slice = as.integer(facslice)
+
+    ##slice = ceiling(rank(hmean, na.last=TRUE)*(nrslice/length(hmean)))
+    ##facslice = factor(slice, levels=paste(1:nrslice))
     stopifnot(!any(is.na(facslice)))
     
     grquantile = tapply(rvar, list(facslice, facstrata), quantile, probs=v@lts.quantile, na.rm=TRUE)
@@ -169,7 +172,7 @@ vsnLTS = function(v, showprogress=v@verbose) {
     ## Only use those datapoints with residuals less than grquantile,
     ##    but use all datapoints for slice 1 (the lowest intensity spots)
     whsel = which((rvar <= grquantile[ cbind(slice, intstrata) ]) |
-                  (slice == 1))
+                  (slice == 1L))
     
     ## Convergence check
     ## after a suggestion from David Kreil, kreil@ebi.ac.uk
