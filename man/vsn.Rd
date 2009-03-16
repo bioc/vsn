@@ -166,23 +166,11 @@ http://www.bepress.com/sagmb/vol2/iss1/art3.}
 data(kidney)
 log.na = function(x) log(ifelse(x>0, x, NA))
 
-if(interactive()) {
-  x11(width=9, height=4.5)
-  par(mfrow=c(1,2))
-}
 plot(log.na(exprs(kidney)), pch=".", main="log-log")
 
 vsnkid = vsn(kidney)   ## transform and calibrate
 plot(exprs(vsnkid), pch=".", main="h-h")
-
-if (interactive()) {
-  x11(width=9, height=4)
-  par(mfrow=c(1,3))
-}
-
 meanSdPlot(vsnkid)
-vsnPlotPar(vsnkid, "factors")
-vsnPlotPar(vsnkid, "offsets")
 
 ## this should always hold true
 params = preproc(description(vsnkid))$vsnParams
