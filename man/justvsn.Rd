@@ -3,15 +3,12 @@
 \alias{vsnrma}
 
 \title{Wrapper functions for vsn}
-\description{\code{justvsn} returns the vsn-normalised intensities in
-  an object generally of the same class as its first
-  argument (see the man page of \code{\link[vsn:vsn2trsf]{predict}} for
-  details). It preserves the metadata. It is equivalent to calling
+\description{\code{justvsn} is equivalent to calling
 \preformatted{
   fit = vsn2(x, ...)
   nx = predict(fit, newdata=x, useDataInFit = TRUE)
 }
- \code{vsnrma} is a wrapper around \code{\link{vsn2}} and \code{\link[affy:rma]{rma}}    
+\code{vsnrma} is a wrapper around \code{\link{vsn2}} and \code{\link[affy:rma]{rma}}.    
 }
 
 \usage{
@@ -35,6 +32,14 @@ vsnrma(x, ...)
   \code{\link[affy:rma]{rma}}. 
 }
 
+\value{\code{justvsn} returns the vsn-normalised intensities in
+  an object generally of the same class as its first
+  argument (see the man page of \code{\link[vsn:vsn2trsf]{predict}} for
+  details). It preserves the metadata.
+  
+  \code{vsnrma} returns an \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}}.
+}
+  
 \seealso{
   \code{\link{vsn2}}
 }
