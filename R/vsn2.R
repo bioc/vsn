@@ -449,7 +449,7 @@ scalingFactorTransformation = function(b) {
 
 ##----------------------------------------------------------
 ## row-wise variances of a matrix (slightly more efficient
-##  than geneplotter:rowVars since can pass 'mean')
+##  than genefilter:rowVars since can pass 'mean')
 ##-----------------------------------------------------------
 rowV = function(x, mean, ...) {
   sqr     = function(x)  x*x

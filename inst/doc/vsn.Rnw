@@ -336,7 +336,6 @@ A=(exprs(lym)[,ismp]+exprs(lym)[,iref])/2
 colnames(M) = lymphoma$sample[ismp]
 colnames(A) = colnames(M)
 
-require("geneplotter")
 j = "DLCL-0032"
 smoothScatter(A[,j], M[,j], main=j, 
         xlab="A", ylab="M", pch=".")
