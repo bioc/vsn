@@ -680,18 +680,19 @@ missing data (\Robject{fit2}).}
 The parameter estimation algorithm of VSN is able to deal with
 missing values in the input data. To demonstrate this, we generate an 
 \Rclass{ExpressionSet} \Robject{lym2} in which about 10\% of all intensities 
-are missing,
+are randomly missing,
 %
 <<miss1>>=
 lym2 = lymphoma
-wh = sample(prod(dim(lym2)), 16000)
+nfeat = prod(dim(lym2))
+wh = sample(nfeat, nfeat/10)
 exprs(lym2)[wh] = NA
 table(is.na(exprs(lym2)))
 @ 
 and call \Rfunction{vsn2} on it.
 <<miss2, results=hide>>=
-fit1 = vsn2(lymphoma)
-fit2 = vsn2(lym2)
+fit1 = vsn2(lymphoma, lts.quantile=1)
+fit2 = vsn2(lym2, lts.quantile=1)
 @ 
 %
 The resulting fitted parameters are not identical, but very similar, 
@@ -703,7 +704,7 @@ for(j in 1:2){
   p1 = coef(fit1)[,,j]
   p2 = coef(fit2)[,,j]
   d  = max(abs(p1-p2))
-  stopifnot(d<(2/j))
+  stopifnot(d < c(0.02, 0.01)[j])
   plot(p1, p2, pch = 16, asp = 1,
     main = paste(letters[j], 
       ": max.diff.=", signif(d,2), sep = ""),
@@ -712,6 +713,16 @@ for(j in 1:2){
   abline(a = 0, b = 1, col = "blue")
 }
 @ 
+%
+Note that \Robject{p1} and \Robject{p2} would differ more if we used a
+different value than \Robject{1} for the \Robject{lts.quantile}
+argument in the above calls of \Rfunction{vsn2}.  This is because the
+outlier removal algorithm of \Rfunction{vsn2} will, for this dataset,
+identify different sets of features as outliers for \Robject{fit1} and
+\Robject{fit2} and consequently the optimisation result will be
+slightly different; this difference is arguably negligible compared to
+the noise level in the data.
+
 
 %---------------------------------------------------------------------
 \section{Normalisation with 'spike-in' probes} \label{sec:spike}
@@ -1118,18 +1129,7 @@ generalised log-ratio.
 Blue diamonds and error bars correspond to mean and standard
 deviation of the generalised log-ratio $h$, as obtained from VSN, 
 and black dots and error bars to the standard log-ratio $q$ (both base 2).  
-For this figure, data were generated from the 
-additive-multiplicative error 
-model~\cite{RockeDurbin2001,HuberSAGMB2003,HuberWiley2004}.
-The horizontal line corresponds to the true $\log_2$-ratio $1$ 
-(corresponding to a factor of 2).
-For intensities $x_2$ that are larger than about ten times the additive noise 
-level $\sigma_a$, generalised log-ratio $h$ and standard log-ratio $q$ coincide. 
-For smaller intensities, we can see a \textit{variance-bias trade-off}: 
-$q$ has no bias but a huge variance, thus an estimate of the 
-fold change based on a limited set of data can be arbitrarily off.
-In contrast, $h$ keeps a constant variance -- at the 
-price of systematically underestimating the true fold change.}
+}
 \end{center}
 \end{figure}
 
@@ -1145,11 +1145,11 @@ log2.na = function(x){
   return(res)
 }
   
-fc = 0.5
-x2 = seq(0.5, 15, by=0.5)
-x1 = x2/fc
+fc = 0.5                    ## true fold change
+x2 = seq(0.5, 15, by=0.5)   ## 'true values' in sample 1
+x1 = x2/fc                  ## 'true values' in sample 2
 m = s = numeric(length(x1))
-n  = 20000
+n  = 10000
 sa = 1
 b  = 1
 sb = 0.1
@@ -1192,10 +1192,30 @@ whereas for large intensities, they become equal.
 Their advantage is that they do not suffer from the variance
 divergence of the standard log-ratios at small intensities: they remain
 well-defined and have limited variance when the data come close to zero or
-even become negative. An illustration is shown in \figphrase{vsn-figshrink}.
+even become negative. 
+
+An illustration is shown in \figphrase{vsn-figshrink}.  Data were
+generated from the additive-multiplicative error
+model~\cite{RockeDurbin2001,HuberSAGMB2003,HuberWiley2004}.  The
+horizontal line corresponds to the true $\log_2$-ratio $1$
+(corresponding to a factor of 2).  For intensities $x_2$ that are
+larger than about ten times the additive noise level $\sigma_a$,
+generalised log-ratio $h$ and standard log-ratio $q$ coincide.  For
+smaller intensities, we can see a \textit{variance-bias trade-off}:
+$q$ has almost no bias, but a huge variance, thus an estimate of the
+fold change based on a limited set of data can be arbitrarily
+off. In contrast, $h$ keeps a constant
+variance -- at the price of systematically underestimating the true
+fold change. This is the main argument for using a variance stabilising 
+transformation.
+
+Note that there is also some bias in the behaviour of $q$ for small $x_2$, particularly at
+$x_2=0.5$. This results from the occurence of negative values in the
+data, which are discarded from the sampling when the (log-)ratio is
+computed. 
+
 Please consult the references for more on the
 mathematical background~\cite{HuberISMB2002,HSG2002,HuberSAGMB2003}.
-
 
 It is possible to give a \emph{Bayesian} interpretation: our prior
 assumption is the conservative one of no differential expression.

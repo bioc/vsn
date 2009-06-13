@@ -28,20 +28,21 @@
 \section{Slots}{
  \describe{
   \item{\code{coefficients}:}{A 3D array of size (number of strata) x (number of
-    columns of the data matrix) x 2 containing fitted normalization parameters
+    columns of the data matrix) x 2. It contains the fitted normalization parameters
     (see vignette).}
   \item{\code{strata}:}{A factor of length 0 or n. If its length is
     n, then its levels correspond to different normalization strata
     (see vignette).}
   \item{\code{mu}:}{A numeric vector of length n with the fitted
-    parameters $\hat{\mu}_k$, $k=1,...,n$.}
-  \item{\code{sigsq}:}{A numeric scalar, $\hat{\sigma}^2$.}
+    parameters \eqn{\hat{\mu}_k}, for \eqn{k=1,...,n}.}
+  \item{\code{sigsq}:}{A numeric scalar, \eqn{\hat{\sigma}^2}.}
   \item{\code{hx}:}{A numeric matrix with 0 or n rows. If the number of
     rows is n, then \code{hx} contains the transformed data matrix.}
   \item{\code{lbfgsb}:}{An integer scalar containing the return code
     from the L-BFGS-B optimizer.}
-  }
-}
+  \item{\code{hoffset}:}{Numeric scalar, the overall offset \eqn{c}- see manual page of \code{\link{vsn2}}.}
+  \item{\code{calib}:}{Character of length 1, see manual page of \code{\link{vsn2}}.}
+}}
 
 
 \section{Methods}{

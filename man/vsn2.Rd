@@ -44,14 +44,12 @@ vsnMatrix(x,
 
 \S4method{vsn2}{ExpressionSet}(x, reference, strata, ...)
 
-\S4method{vsn2}{AffyBatch}(x, reference, strata, ...)
-
-\S4method{vsn2}{matrix}(x, reference, strata, ...)
+\S4method{vsn2}{AffyBatch}(x, reference, strata, subsample, ...)
 
 \S4method{vsn2}{NChannelSet}(x, reference, strata, backgroundsubtract=FALSE,
        foreground=c("R","G"), background=c("Rb", "Gb"), ...)
 
-\S4method{vsn2}{RGList}(x, reference, strata, backgroundsubtract=FALSE, ...)
+\S4method{vsn2}{RGList}(x, reference, strata, ...)
 }
 \arguments{
   \item{x}{An object containing the data to which the model is fitted.}

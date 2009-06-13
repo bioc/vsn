@@ -9,7 +9,7 @@
   for the vsn model. \code{plotVsnLogLik} makes a false color plot for
   a 2D section of the likelihood landscape.}
 \usage{
-\S4method{logLik}{vsnInput}(object, p, mu=numeric(0), sigsq=as.numeric(NA))
+\S4method{logLik}{vsnInput}(object, p, mu = numeric(0), sigsq=as.numeric(NA), calib="affine")
 
 plotVsnLogLik(object,
               p,
@@ -30,6 +30,7 @@ plotVsnLogLik(object,
     If the length is 0, there is no reference and \code{sigsq} must be
     \code{NA} (the default value). See \code{\link{vsn2}}.}
   \item{sigsq}{Numeric scalar.}
+  \item{calib}{as in \code{\link{vsn2}}.}
   \item{whichp}{Numeric vector of length 2, with the indices of those
     two parameters in \code{p} along which the section is to be taken.}
   \item{expand}{Numeric vector of length 1 or 2 with expansion factors
@@ -40,7 +41,7 @@ plotVsnLogLik(object,
     parameter is exposed only for testing purposes.}
   \item{main}{This parameter is passed on \code{levelplot}.}
   \item{...}{Arguments that get passed on to \code{fun}, use this for
-    \code{mu} and \code{sigsq}.}
+    \code{mu}, \code{sigsq}, \code{calib}.}
 }
 \value{
 For \code{logLik}, a numeric matrix of size \code{nrow(p)+1} by \code{ncol(p)}.

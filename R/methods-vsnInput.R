@@ -39,5 +39,4 @@ setMethod("show", signature("vsnInput"),
   })
 
 
-setMethod("logLik", signature(object="vsnInput"),
-          function(object, ...) vsnLogLik(object, ...))
+setMethod("logLik", signature(object="vsnInput"), vsnLogLik)

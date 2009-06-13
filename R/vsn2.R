@@ -98,16 +98,10 @@ calcistrat = function(vp) {
   return(istrat)
 }
 
-progress = function(i, imax) {
-  #--- Commented out for now - can perhaps be removed ---
-  ## cat(if(i==0L) "\n" else "\r",
-  ##    sprintf("%3d", as.integer(i/imax*100)), "% done.", sep="")
-}
- 
 ##-------------------------------------------------------------------------
 ## LTS robust modification of the ML estimator
 ##-------------------------------------------------------------------------
-vsnLTS = function(v, showprogress=v@verbose) {
+vsnLTS = function(v) {
 
   ## for calculating a convergence criterion: earlier result
   oldhy   = Inf
@@ -120,9 +114,6 @@ vsnLTS = function(v, showprogress=v@verbose) {
   stopifnot(!any(is.na(facstrata)))
     
   for(iter in seq_len(v@optimpar$cvg.niter)) {
-
-    if(showprogress)
-      progress(iter-1, v@optimpar$cvg.niter)
 
     sv  = if(iter==1) v else v[whsel, ]
     rsv = vsnML(sv)
@@ -160,13 +151,9 @@ vsnLTS = function(v, showprogress=v@verbose) {
     ## select those data points whose rvar is within the quantile; do this separately
     ## within each stratum, and also within 5 slices defined by hmean
     ## (see the SAGMB 2003 paper for details)
-    nrslice = 5
+    nrslice = 5L
     facslice = cut(rank(hmean, na.last=TRUE), breaks=nrslice)
     slice = as.integer(facslice)
-
-    ##slice = ceiling(rank(hmean, na.last=TRUE)*(nrslice/length(hmean)))
-    ##facslice = factor(slice, levels=paste(1:nrslice))
-    stopifnot(!any(is.na(facslice)))
     
     grquantile = tapply(rvar, list(facslice, facstrata), quantile, probs=v@lts.quantile, na.rm=TRUE)
 
@@ -176,7 +163,7 @@ vsnLTS = function(v, showprogress=v@verbose) {
                   (slice == 1L))
     
     ## Convergence check
-    ## after a suggestion from David Kreil, kreil@ebi.ac.uk
+    ## after a suggestion from David Kreil
     if(v@optimpar$cvg.eps>0) {
       cvgc    = max(abs(hy - oldhy), na.rm=TRUE)
       cvgcCnt = if(cvgc<v@optimpar$cvg.eps) (cvgcCnt+1) else 0 
@@ -187,11 +174,6 @@ vsnLTS = function(v, showprogress=v@verbose) {
 
   } ## end of for-loop
   
-  if(showprogress){
-    progress(1L, 1L)
-    cat("\n")
-  }
-  
   return(rsv)
 }
 
@@ -199,8 +181,7 @@ vsnLTS = function(v, showprogress=v@verbose) {
 ## vsnColumnByColumn
 ##----------------------------------------------------------------------------------
 vsnColumnByColumn = function(v) {
-  rlv = vsnLTS(v[,1], showprogress=FALSE)
-  if(v@verbose) { cat("\n"); progress(1, ncol(v)) }
+  rlv = vsnLTS(v[,1])
   
   d = dim(coefficients(rlv))
   n = ncol(v)
@@ -209,8 +190,7 @@ vsnColumnByColumn = function(v) {
   cf[,1,] = coefficients(rlv)
   
   for(j in seq_len(n)[-1]) {
-    cf[,j,] = coefficients(vsnLTS(v[,j], showprogress=FALSE))
-    if(v@verbose) { progress(j, ncol(v)); if(j==n) cat("\n") }
+    cf[,j,] = coefficients(vsnLTS(v[,j]))
   }
   
   return(new("vsn",

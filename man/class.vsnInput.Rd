@@ -36,10 +36,11 @@
   \item{\code{lts.quantile}:}{Numeric scalar, see\code{\link{vsn2}}.}
   \item{\code{subsample}:}{Integer scalar, see\code{\link{vsn2}}.}
   \item{\code{verbose}:}{Logical scalar, see\code{\link{vsn2}}.}
+  \item{\code{calib}}{Character of length 1, see manual page of \code{\link{vsn2}}.}
   \item{\code{pstart}:}{A 3D array of size (number of strata) x (number of
-    columns of the data matrix) x 2 containing start parameters.}
-  \item{\code{cvg.niter}:}{Integer scalar, see\code{\link{vsn2}}.}
-  \item{\code{cvg.eps}:}{Numeric scalar, see\code{\link{vsn2}}.}
+    columns of the data matrix) x 2. It contains the start parameters.}
+  \item{\code{optimpar}:}{List with parameters for the numerical
+    optimiser \code{L-BFGS-B}; see the manual page of \code{\link{vsn2}}.}
   }
 }
 
