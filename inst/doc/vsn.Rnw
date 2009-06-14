@@ -373,46 +373,101 @@ For comparison, we also run \Rfunction{rma}.
 d_rma = rma(Dilution)
 @ 
 %
-The resulting scatterplots are shown and compared in \figphrase{vsn-affy}.
+The scatterplots produced by the code below are compared in \figphrase{vsn-affy}.
 %
 <<figaffy1,echo=FALSE>>=
 openBitmap("affy", cols=3, rows=1)
 @ 
 <<figaffy2,results=hide>>=
 par(pch=".")
-w = c(1,3)
 ax = c(2, 16)
+
 plot(exprs(d_vsn)[,w], 
-  main="vsn: chip 1 vs 3", 
+  main = "vsn: array 1 vs 3",
   asp=1, xlim=ax, ylim=ax)
+
 plot(exprs(d_rma)[,w], 
-  main="rma: chip 1 vs 3",
+  main = "rma: array 1 vs 3",
   asp=1, xlim=ax, ylim=ax)
-plot(exprs(d_rma)[,1], exprs(d_vsn)[,1], 
-  xlab="rma", ylab="vsn", 
-  asp=1, xlim=ax, ylim=ax,
-  main="chip 1: expression values")
-abline(a=0, b=1, col="red")
+
+plot(exprs(d_rma)[,1], 
+     exprs(d_vsn)[,1], 
+     xlab="rma", ylab="vsn", 
+     asp=1, xlim=ax, ylim=ax,
+     main = "array 1")
+abline(a=0, b=1, col="#ff0000d0")
 @
 <<figaffy3,echo=FALSE,results=hide>>=
 dev.off()
 @ 
 %
 Both methods control the variance at low intensities, but we see that
-VSN does so more strongly. The shrinkage (see also Section~\ref{sec:shrink})
-is stronger with VSN (cf.\ the bottom right plot), 
-which also leads to a lower dynamic range, cf.\ the 
-bottom left plot.
+VSN does so more strongly. See also Section~\ref{sec:shrink} for further 
+discussion on the VSN shrinkage.
 
-%\afterpage{\clearpage}
 \begin{figure*}[tb]\begin{center}
 \includegraphics[width=\textwidth]{vsn-affy}  
 \caption{\label{vsn-affy}%
 Results of \Rfunction{vsnrma} and \Rfunction{rma} on the Dilution 
-example data. Chip 1 was hybridised with 20 $\mu$g RNA from liver,
-Chip 3 with 10 $\mu$g of the same RNA.}
+example data. Array 1 was hybridised with 
+$\Sexpr{as.character(pData(Dilution)$liver[1])}\mu$g RNA from liver,
+array 3 with 
+$\Sexpr{as.character(pData(Dilution)$liver[3])}\mu$g of the same RNA.}
 \end{center}\end{figure*}
 
+%---------------------------------------------------------------
+\subsection{Comparison of VSN's and RMA's background correction} 
+\label{sec:affybg}
+%---------------------------------------------------------------
+Let us use the function \Rfunction{bg.correct.rma} in the
+\Rpackage{preprocessCore} package to explore the background correction
+of RMA with that of VSN.
+%
+<<affybg1, results=hide>>=
+library("preprocessCore")
+rawData = pm(Dilution)
+bg_rma = rma.background.correct(rawData)
+@ 
+
+The corresponding call to \Rfunction{vsn2} is as follows. We use the
+\Robject{subsample} argument to speed up computations, then the function \Rfunction{exprs}
+to extract the matrix of expression values, and apply the exponential transformation
+to reverse the logarithmic transformation that is implicit in 
+\Rfunction{vsn2}.
+%
+<<affybg2, results=hide>>=
+fit = vsn2(rawData, subsample=4e4)
+bg_vsn = 2^exprs(fit)
+@ 
+<<figaffybg1,echo=FALSE>>=
+openBitmap("affybg", cols=1, rows=1)
+@ 
+Finally we can plot the data before and after background correction,
+on a double-logarithmic scale. 
+%
+<<figaffybg2,results=hide>>=
+colors = c("black", "blue")
+rsel = sample(nrow(bg_rma), 3000)
+matplot(rawData[rsel,1],
+  cbind(bg_vsn[rsel,1], 
+        bg_rma[rsel,1]),
+  log="xy", pch=".", col=colors,
+  main="background correction", 
+  xlab="before", ylab="after")
+legend("topleft", legend=c("vsn", "rma"), 
+       fill=colors)
+abline(a=0, b=1, col="#808080d0")
+@ 
+<<figaffybg3,echo=FALSE,results=hide>>=
+dev.off()
+@
+
+\begin{figure*}[tb]\begin{center}
+\includegraphics[width=0.45\textwidth]{vsn-affybg}  
+\caption{\label{vsn-bg}%
+Comparison of VSN and RMA background correction.  
+The straight line corresponds to the identity line.}
+\end{center}\end{figure*}
 
 %---------------------------------------------------------
 \section{Running VSN on \Robject{RGList} objects} \label{limma}
@@ -452,22 +507,6 @@ the \Rfunction{justvsn} method for \Rclass{NChannelSet}.
 The return value is an \Rclass{NChannelSet}, shown in 
 Table~\ref{tab:lymNCS}. 
 %
-\begin{table*}[tbp]
-\begin{minipage}{\textwidth}
-<<width1,echo=FALSE>>=
-oo=options(width=75L)
-@ 
-<<lymNCS>>=
-lymNCS
-@ 
-<<width2,echo=FALSE>>=
-options(oo)
-@ 
-\end{minipage}
-\caption{\label{tab:lymNCS}%
-The \Rclass{NChannelSet} object \Robject{lymNCS}.}
-\end{table*}
-%
 Note that, due to the flexibility in the amount and 
 quality of metadata that is in an \Rclass{RGList}, and due to 
 differences in the implementation of these classes,
@@ -506,6 +545,22 @@ adf = new("AnnotatedDataFrame",
 
 phenoData(lymNCS) = adf 
 @ 
+%
+\begin{table*}[tbp]
+\begin{minipage}{\textwidth}
+<<width1,echo=FALSE>>=
+oo=options(width=75L)
+@ 
+<<lymNCS>>=
+lymNCS
+@ 
+<<width2,echo=FALSE>>=
+options(oo)
+@ 
+\end{minipage}
+\caption{\label{tab:lymNCS}%
+The \Rclass{NChannelSet} object \Robject{lymNCS}.}
+\end{table*}
 %
 Now let us combine the red and green values from each array
 into the glog-ratio \Robject{M} 
@@ -704,7 +759,7 @@ for(j in 1:2){
   p1 = coef(fit1)[,,j]
   p2 = coef(fit2)[,,j]
   d  = max(abs(p1-p2))
-  stopifnot(d < c(0.02, 0.01)[j])
+  stopifnot(d < c(0.05, 0.03)[j])
   plot(p1, p2, pch = 16, asp = 1,
     main = paste(letters[j], 
       ": max diff=", signif(d,2), sep = ""),
