@@ -707,7 +707,7 @@ for(j in 1:2){
   stopifnot(d < c(0.02, 0.01)[j])
   plot(p1, p2, pch = 16, asp = 1,
     main = paste(letters[j], 
-      ": max.diff.=", signif(d,2), sep = ""),
+      ": max diff=", signif(d,2), sep = ""),
     xlab = "no missing data",
     ylab = "10% of data missing")
   abline(a = 0, b = 1, col = "blue")
@@ -1121,18 +1121,6 @@ produce more or less the same results; differences arise when the data
 are problematic, and when more or less successful measures may be
 taken by preprocessing methods to correct these problems.
 
-\begin{figure}[tb]
-\begin{center}
-\includegraphics[width=0.45\textwidth]{vsn-figshrink}
-\caption{\label{vsn-figshrink}The shrinkage property of the 
-generalised log-ratio.  
-Blue diamonds and error bars correspond to mean and standard
-deviation of the generalised log-ratio $h$, as obtained from VSN, 
-and black dots and error bars to the standard log-ratio $q$ (both base 2).  
-}
-\end{center}
-\end{figure}
-
 %------------------------------------------------------------
 \section{VSN, shrinkage and background correction} \label{sec:shrink}
 %------------------------------------------------------------
@@ -1184,6 +1172,45 @@ points(x2, m, pch=pch, col=colq, cex=cex)
 segments(x2, m-2*s, x2, m+2*s, lwd=lwd, col=colq, lty=lty)
 legend(8.75, -0.1, c("q","h"), col=colq, pch=pch, lty=lty, lwd=lwd)
 @
+
+
+<<figgraph,fig=TRUE,results=hide,echo=FALSE>>=
+par(mai = c(0.8, 0.6, 0.01, 0.01))
+x = seq(-70.5, 170.5, by=1)
+cols = c("black", "blue", "darkgrey")
+xoff = cc = 50
+ymat = cbind(log2.na(x)*log(2), log(x+sqrt(x^2+cc^2))-log(2), log2.na(x+xoff)*log(2))
+ylim = range(ymat, na.rm=TRUE)
+matplot(x, ymat, 
+        lty=c(1,1,2), col=cols, lwd=3, type="l", ylim=ylim, ylab="")
+abline(v = 0, col = "#80808080", lty = 2)
+legend(x = par("usr")[2], y = par("usr")[3], 
+       legend = c(expression(y = log(x)), expression(y = glog[c](x)), expression(y = log(x+x[off]))), 
+       fill=cols, density = c(NA, NA, 50), xjust=1.1, yjust=-0.1)
+@
+%
+\begin{figure}[tb]
+\begin{center}
+\includegraphics[width=0.45\textwidth]{vsn-figshrink}
+\caption{\label{vsn-figshrink}The shrinkage property of the 
+generalised log-ratio.  
+Blue diamonds and error bars correspond to mean and standard
+deviation of the generalised log-ratio $h$, as obtained from VSN, 
+and black dots and error bars to the standard log-ratio $q$ (both base 2).  
+}
+\end{center}
+\end{figure}
+
+\begin{figure}[tb]
+\begin{center}
+\includegraphics[width=0.45\textwidth]{vsn-figgraph}
+\caption{\label{vsn-figgraph}Graphs of the functions $y=\log(x)$,
+  $y=\glog_c(x)=\log(x+\sqrt{x^2+c^2})-\log2$, and
+  $y=\log(x+x_{\mbox{\scriptsize off}})$, where $c=\Sexpr{cc}$ and
+  $x_{\mbox{\scriptsize off}}=\Sexpr{xoff}$.
+}
+\end{center}
+\end{figure}
 %
 Generalised log-ratios can be viewed as a \textit{shrinkage estimator}: 
 for low intensities either in the numerator and denominator,
@@ -1223,6 +1250,8 @@ Evidence from a feature with high overall intensity is taken strongly,
 and the posterior results in an estimate close to the empirical
 intensity ratio. Evidence from features with low intensity is
 downweighted, and the posterior is still strongly influenced by the prior.
+
+
 
 %---------------------------------------------------------
 \section{Quality assessment}\label{sec.qc}
