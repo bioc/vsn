@@ -444,7 +444,7 @@ openBitmap("affybg", cols=1, rows=1)
 @ 
 Finally we can plot the data before and after background correction,
 on a double-logarithmic scale. The result is shown in \figphrase{vsn-affybg}.
-RMA is more aggressive.
+The RMA background correction is more aggressive.
 %
 <<figaffybg2,results=hide>>=
 colors = c("black", "blue")
