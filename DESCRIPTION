@@ -6,8 +6,8 @@ Author: Wolfgang Huber, with contributions from Anja von
         acknowledged, among them Dennis Kostka, David Kreil, Hans-Ulrich
         Klein, Robert Gentleman, Deepayan Sarkar and Gordon Smyth.
 Maintainer: Wolfgang Huber <huber@ebi.ac.uk>
-Depends: Biobase (>= 2.3.1)
-Imports: methods, affy, limma, lattice
+Depends: Biobase (>= 2.5.5)
+Imports: methods, affy (>= 1.23.4), limma, lattice
 Suggests: affydata, hgu95av2cdf
 Description: The package implements a method for normalising microarray intensities,
         both between colours within array, and between arrays. The method uses a 
