@@ -1,5 +1,5 @@
 Package: vsn
-Version: 3.13.4
+Version: 3.13.5
 Title: Variance stabilization and calibration for microarray data
 Author: Wolfgang Huber, with contributions from Anja von
         Heydebreck. Many comments and suggestions by users are 
@@ -32,7 +32,7 @@ Reference: [1] Variance stabilization applied to microarray data
         Statistical Applications in Genetics and Molecular Biology
         (2003) Vol. 2 No. 1, Article 3;
         http://www.bepress.com/sagmb/vol2/iss1/art3.
-License: Artistic-2.0, see http://www.opensource.org/licenses/artistic-license-2.0.php
+License: Artistic-2.0
 URL: http://www.r-project.org, http://www.ebi.ac.uk/huber
 biocViews: Microarray, OneChannel, TwoChannel, Preprocessing
 Collate: AllClasses.R  AllGenerics.R
