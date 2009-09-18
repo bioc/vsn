@@ -6,7 +6,9 @@
   a vsn fit}
 \usage{vsnPlotPar(x, what, xlab="iter", ylab=what, \dots)} 
 \arguments{
-  \item{x}{An object of class \code{\link[Biobase]{ExpressionSet-class}} which has been
+  \item{x}{An object of class
+    \code{\link[Biobase:class.ExpressionSet]{ExpressionSet-class}} which
+    has been 
     created by the function \code{\link{vsn}}.}
   \item{what}{Character, should either be "factors" or "offsets".}
   \item{xlab}{Character, label for the x-axis.}

@@ -7,7 +7,7 @@
 \usage{getIntensityMatrix (intensities, verbose)}
 \arguments{
 \item{intensities}{Object of class
-  \code{\link[Biobase:ExpressionSet-class]{ExpressionSet}}
+  \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}}
   with raw intensity values from a microarray experiment. Alternatively,
   this may be a \code{\link{matrix}}, a \code{\link{data.frame}} with
   all numeric columns or an

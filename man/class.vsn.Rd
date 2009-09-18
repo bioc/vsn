@@ -22,14 +22,15 @@
 
 \section{Creating Objects}{
   \code{new("vsn")}
-  \code{vsn2(x)} with \code{x} being an \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}}.
+  \code{vsn2(x)} with \code{x} being an
+  \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}}. 
 }
 
 \section{Slots}{
  \describe{
   \item{\code{coefficients}:}{A 3D array of size (number of strata) x (number of
-    columns of the data matrix) x 2. It contains the fitted normalization parameters
-    (see vignette).}
+    columns of the data matrix) x 2. It contains the fitted
+    normalization parameters (see vignette).}
   \item{\code{strata}:}{A factor of length 0 or n. If its length is
     n, then its levels correspond to different normalization strata
     (see vignette).}
@@ -40,8 +41,10 @@
     rows is n, then \code{hx} contains the transformed data matrix.}
   \item{\code{lbfgsb}:}{An integer scalar containing the return code
     from the L-BFGS-B optimizer.}
-  \item{\code{hoffset}:}{Numeric scalar, the overall offset \eqn{c}- see manual page of \code{\link{vsn2}}.}
-  \item{\code{calib}:}{Character of length 1, see manual page of \code{\link{vsn2}}.}
+  \item{\code{hoffset}:}{Numeric scalar, the overall offset \eqn{c}- see
+ manual page of \code{\link{vsn2}}.} 
+  \item{\code{calib}:}{Character of length 1, see manual page of
+ \code{\link{vsn2}}.} 
 }}
 
 
@@ -53,7 +56,8 @@
     \item{\code{ncol}}{Get number of columns of data matrix.}
     \item{\code{show}}{Print a summary of the object}
     \item{\code{exprs}}{Accessor to slot \code{hx}.}
-    \item{\code{coef}, \code{coefficients}}{Accessors to slot \code{coefficients}.}
+    \item{\code{coef}, \code{coefficients}}{Accessors to slot
+  \code{coefficients}.} 
 }}
 
 

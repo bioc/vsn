@@ -4,7 +4,8 @@
 \description{Robust estimation of variance-stabilizing and calibrating 
   transformations for microarray data.
   This function has been superseded by \code{\link{vsn2}}.
-  The function \code{\link{vsn}} remains in the package for backward compatibility,
+  The function \code{\link{vsn}} remains in the package for backward
+  compatibility, 
   but for new projects, please use \code{\link{vsn2}}.}
 \usage{
 vsn(intensities,
@@ -115,7 +116,7 @@ vsn(intensities,
   If \code{describe.preprocessing} is \code{TRUE}, the transformation
   parameters are returned in the \code{preprocessing} slot of the
   \code{experimentData} slot of the resulting 
-  \code{\link[Biobase:ExpressionSet-class]{ExpressionSet}} object, in the form 
+  \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}} object, in the form 
   of a \code{\link{list}} with three elements
   \itemize{
   \item \code{vsnParams}: the parameter array (see \code{\link{vsnh}} 
@@ -128,14 +129,15 @@ vsn(intensities,
     each row of the intensities matrix reports whether it was below
     (TRUE) or above (FALSE) the trimming threshold.
   }
-  If \code{intensities} has class \code{\link[Biobase:ExpressionSet-class]{ExpressionSet}},
+  If \code{intensities} has class
+  \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}}, 
   and its \code{experimentData} slot has class
-  \code{\link[Biobase:MIAME-class]{MIAME}}, then this list is appended to any
+  \code{\link[Biobase:class.MIAME]{MIAME}}, then this list is appended to any
   existing entries in the \code{preprocessing} slot. Otherwise, the
   \code{experimentData} object and its \code{preprocessing} slot are created.  
 }
 
-\value{An object of class \code{\link[Biobase:ExpressionSet-class]{ExpressionSet}}.
+\value{An object of class \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}}.
  Differences between the columns of the transformed intensities are 
  "generalized log-ratios", which are shrinkage estimators of the natural
  logarithm of the fold change. For the transformation parameters,
@@ -158,8 +160,8 @@ http://www.bepress.com/sagmb/vol2/iss1/art3.}
 \author{Wolfgang Huber \url{http://www.ebi.ac.uk/huber}}
 
 \seealso{\code{\link{vsnh}}, \code{\link{vsnPlotPar}}, 
-  \code{\link[Biobase:ExpressionSet-class]{ExpressionSet-class}}, 
-  \code{\link[Biobase:MIAME-class]{MIAME-class}},
+  \code{\link[Biobase:class.ExpressionSet]{ExpressionSet-class}}, 
+  \code{\link[Biobase:class.MIAME]{MIAME-class}},
   \code{\link{normalize.AffyBatch.vsn}}}
 
 \examples{
