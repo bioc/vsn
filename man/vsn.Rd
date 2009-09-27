@@ -1,12 +1,11 @@
-\name{vsn}
+\name{vsn.old}
 \alias{vsn}
 \title{Variance stabilization and calibration for microarray data. }
 \description{Robust estimation of variance-stabilizing and calibrating 
   transformations for microarray data.
   This function has been superseded by \code{\link{vsn2}}.
   The function \code{\link{vsn}} remains in the package for backward
-  compatibility, 
-  but for new projects, please use \code{\link{vsn2}}.}
+  compatibility, but for new projects, please use \code{\link{vsn2}}.}
 \usage{
 vsn(intensities,
     lts.quantile = 0.5,
@@ -20,9 +19,7 @@ vsn(intensities,
 }
 \arguments{
 \item{intensities}{An object that contains intensity values from
-  a microarray experiment. See
-  \code{\link[vsn:getIntensityMatrix]{getIntensityMatrix}} for details.
-  The intensities are assumed to be the raw
+  a microarray experiment. The intensities are assumed to be the raw
   scanner data, summarized over the spots by an image analysis program,
   and possibly "background subtracted".
   The intensities must not be logarithmically or otherwise transformed,

@@ -12,7 +12,7 @@ importClassesFrom("affy", "AffyBatch")
 exportClasses("vsn", "vsnInput")
 export(
   ## Deprecated
-  "vsn", "vsnh", "vsnPlotPar", "getIntensityMatrix",
+  "vsn", "vsnh", "vsnPlotPar", 
 
   ## needs update     
   "normalize.AffyBatch.vsn",
