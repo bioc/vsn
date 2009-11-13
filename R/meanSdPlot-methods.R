@@ -50,3 +50,9 @@ setMethod("meanSdPlot", signature="vsn", definition =
    function(x, ranks=TRUE, xlab = ifelse(ranks, "rank(mean)", "mean"),
             ylab = "sd", pch  = ".", plot = TRUE, ...)
          meanSdPlot(exprs(x), ranks=ranks, xlab=xlab, ylab=ylab, pch=pch, plot=plot, ...))
+
+setMethod("meanSdPlot", signature="MAList", definition =
+   function(x, ranks=TRUE, xlab = ifelse(ranks, "rank(mean)", "mean"),
+            ylab = "sd", pch  = ".", plot = TRUE, ...)
+         meanSdPlot(with(x, cbind(A+M/2, A-M/2)),
+                              ranks=ranks, xlab=xlab, ylab=ylab, pch=pch, plot=plot, ...))
