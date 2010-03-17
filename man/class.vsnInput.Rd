@@ -54,9 +54,7 @@
     \item{\code{show}}{Print a summary of the object}
 }}
 
-
-
-\author{Wolfgang Huber \url{http://www.ebi.ac.uk/huber}}
+\author{Wolfgang Huber}
 
 \seealso{
   \code{\link{vsn2}}

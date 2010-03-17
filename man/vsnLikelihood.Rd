@@ -61,7 +61,7 @@ log likelihood values.
   \code{logLik} is an R interface to the likelihood computations in vsn (which are done in C).
 }
 
-\author{Wolfgang Huber \url{http://www.ebi.ac.uk/huber}}
+\author{Wolfgang Huber}
 \seealso{\code{\link{vsn2}}}
 
 \examples{

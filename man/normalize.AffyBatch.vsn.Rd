@@ -70,7 +70,7 @@
   \code{description(abatch)@preprocessing$vsnReference}.
 }
 \author{D. P. Kreil \url{http://bioinf.boku.ac.at/},
-        Wolfgang Huber \url{http://www.ebi.ac.uk/huber}}
+        Wolfgang Huber}
 
 \seealso{\code{\link{vsn2}}}
 \examples{

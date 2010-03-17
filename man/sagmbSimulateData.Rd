@@ -50,8 +50,8 @@ sagmbAssess(h1, sim)
   Vol. 2: No. 1, Article 3.
   http://www.bepress.com/sagmb/vol2/iss1/art3}
 
-\author{Wolfgang Huber \url{http://www.ebi.ac.uk/huber}}
-\seealso{ \code{\link{vsn}} }
+\author{Wolfgang Huber}
+\seealso{\code{\link{vsn}}}
 
 \examples{
   sim <- sagmbSimulateData(nrstrata=4)

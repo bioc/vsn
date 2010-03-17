@@ -5,12 +5,14 @@
 \alias{meanSdPlot,matrix-method}
 \alias{meanSdPlot,ExpressionSet-method}
 \alias{meanSdPlot,vsn-method}
+\alias{meanSdPlot,MAList-method}
 \title{Plot row standard deviations versus row means}
 
 \description{Methods for objects of classes
   \code{\link{matrix}}, 
-  \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}} and
-  \code{\linkS4class{vsn}}
+  \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}},
+  \code{\linkS4class{vsn}} and
+  \code{\link[limma:malist]{MAList}}
   to plot row standard deviations versus row means.}
 \usage{
 meanSdPlot(x, 
@@ -23,8 +25,9 @@ meanSdPlot(x,
 \arguments{
   \item{x}{An object of class
     \code{\link{matrix}}, 
-    \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}}, or
-    \code{\linkS4class{vsn}}.}
+    \code{\link[Biobase:class.ExpressionSet]{ExpressionSet}}, 
+    \code{\linkS4class{vsn}} or
+    \code{\link[limma:malist]{MAList}}.}
 \item{ranks}{Logical, indicating whether the x-axis (means) should be plotted
   on the original scale (\code{FALSE}) or on the rank scale (\code{TRUE}). The latter
   distributes the data more evenly along the x-axis and allows a
@@ -54,7 +57,7 @@ meanSdPlot(x,
   Depending on the value of \code{plot}, the method can also have a side effect, which is to create a plot on the
   active graphics device.
 }
-\author{Wolfgang Huber \url{http://www.ebi.ac.uk/huber}}
+\author{Wolfgang Huber}
 \seealso{\code{\link{vsn}}}
 \examples{
   data(kidney)

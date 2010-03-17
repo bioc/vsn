@@ -18,7 +18,7 @@ scalingFactorTransformation(b)
   vignette \emph{Likelihood Calculations for vsn}).
 }
 
-\author{Wolfgang Huber \url{http://www.ebi.ac.uk/huber}}
+\author{Wolfgang Huber}
 
 \examples{
 b  = seq(-3, 2, length=20)

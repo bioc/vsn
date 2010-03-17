@@ -44,7 +44,7 @@ vsnrma(x, ...)
   \code{\link{vsn2}}
 }
 
-\author{Wolfgang Huber \url{http://www.ebi.ac.uk/huber}}
+\author{Wolfgang Huber}
 
 \examples{
 ##--------------------------------------------------

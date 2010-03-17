@@ -48,7 +48,7 @@
   column.
 }
 
-\author{Wolfgang Huber \url{http://www.ebi.ac.uk/huber}}
+\author{Wolfgang Huber}
 
 \examples{
 data("kidney")

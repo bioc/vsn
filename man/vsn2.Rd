@@ -213,7 +213,7 @@ Technical Report, Northwestern University (1996).
 [4] Package vignette: Likelihood Calculations for vsn
 }
 
-\author{Wolfgang Huber \url{http://www.ebi.ac.uk/huber}}
+\author{Wolfgang Huber}
 
 \examples{
 data("kidney")
