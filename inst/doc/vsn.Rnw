@@ -65,7 +65,7 @@ set.seed(0xdada)
 ##   (pdfs are too large)
 openBitmap = function(nm, rows=1, cols=1) {
   png(paste("vsn-", nm, ".png", sep=""), 
-       width=600*cols, height=640*rows)
+       width=600*cols, height=640*rows, pointsize=16)
   par(mfrow=c(rows, cols), cex=2)
 }
 @ 
@@ -413,61 +413,6 @@ example data. Array 1 was hybridised with
 $\Sexpr{as.character(pData(Dilution)$liver[1])}\mu$g RNA from liver,
 array 3 with 
 $\Sexpr{as.character(pData(Dilution)$liver[3])}\mu$g of the same RNA.}
-\end{center}\end{figure*}
-
-%---------------------------------------------------------------
-\subsection{Comparison of VSN's and RMA's background correction} 
-\label{sec:affybg}
-%---------------------------------------------------------------
-Let us use the function \Rfunction{bg.correct.rma} in the
-\Rpackage{preprocessCore} package to explore the background correction
-of RMA with that of VSN.
-%
-<<affybg1, results=hide>>=
-library("preprocessCore")
-rawData = pm(Dilution)
-bg_rma = rma.background.correct(rawData)
-@ 
-
-The corresponding call to \Rfunction{vsn2} is as follows. We use the
-\Robject{subsample} argument to speed up computations, then the function \Rfunction{exprs}
-to extract the matrix of expression values, and apply the exponential transformation
-to reverse the logarithmic transformation that is implicit in 
-\Rfunction{vsn2}.
-%
-<<affybg2, results=hide>>=
-fit = vsn2(rawData, subsample=4e4)
-bg_vsn = 2^exprs(fit)
-@ 
-<<figaffybg1,echo=FALSE>>=
-openBitmap("affybg", cols=1, rows=1)
-@ 
-Finally we can plot the data before and after background correction,
-on a double-logarithmic scale. The result is shown in \figphrase{vsn-affybg}.
-The RMA background correction is more aggressive.
-%
-<<figaffybg2,results=hide>>=
-colors = c("black", "blue")
-rsel = sample(nrow(bg_rma), 3000)
-matplot(rawData[rsel,1],
-  cbind(bg_vsn[rsel,1], 
-        bg_rma[rsel,1]),
-  log="xy", pch=".", col=colors,
-  main="background correction", 
-  xlab="before", ylab="after")
-legend("topleft", legend=c("vsn", "rma"), 
-       fill=colors)
-abline(a=0, b=1, col="#808080d0")
-@ 
-<<figaffybg3,echo=FALSE,results=hide>>=
-dev.off()
-@
-
-\begin{figure*}[tb]\begin{center}
-\includegraphics[width=0.45\textwidth]{vsn-affybg}  
-\caption{\label{vsn-bg}%
-Comparison of VSN and RMA background correction.  
-The straight line corresponds to the identity line.}
 \end{center}\end{figure*}
 
 %---------------------------------------------------------
