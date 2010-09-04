@@ -105,8 +105,9 @@ vsnMatrix(x,
     The first dimension corresponds to the levels of \code{strata},
     the second dimension to the columns of \code{x} and the third dimension
     must be 2, corresponding to offsets and factors.}
-  \item{minDataPointsPerStratum}{ The minimum number of data points per
-    stratum. }
+  \item{minDataPointsPerStratum}{The minimum number of data points per
+    stratum. Normally there is no need for the user to change this;
+    refer to the vignette for further documentation.}
   \item{optimpar}{Optional, a list with parameters for the likelihood
     optimisation algorithm. Default parameters are taken from
     \code{defaultpar}. See details.}

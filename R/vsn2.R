@@ -300,10 +300,18 @@ vsnMatrix = function(x,
   
   stratasplit = if(length(strata)>0L) split(seq_len(nrow(x)), strata) else list(all=seq_len(nrow(x)))
   if(!(identical(names(stratasplit), levels(strata)) &&
-       all(listLen(stratasplit)>minDataPointsPerStratum)))
-    stop("One or more of the strata contain less than ", minDataPointsPerStratum, " elements.\n",
-         "Please reduce the number of strata so that there is enough in each stratum.\n")
-  
+       all(listLen(stratasplit) >= minDataPointsPerStratum))) {
+    msg = if(length(stratasplit)>1){
+      ## more than one stratum
+      paste("This function is worried that for some strata, the number of corresponding rows in the data matrix is too small for reliable estimation of the vsn transformation parameters. Strata sizes are:", paste(sort(unique(listLen(stratasplit))), collapse=", "), ". Consider reducing the number of strata.")
+    } else {
+      ## one stratum
+      sprintf("This function is worried that the number of rows in the data matrix, %d, is too small for reliable estimation of the vsn transformation parameters. If you think that your data really have more rows, then please check whether there is a data transmission problem (e.g., matrix transposition?).", nrow(x))
+    }
+    msg = paste(msg, "Otherwise, if you are sure about what you are doing, you can change the parameter 'minDataPointsPerStratum' in order to reduce the minimal number of rows acceptable for proceeding.")
+    stop(msg)
+  }
+    
   if(missing(pstart))
     pstart = pstartHeuristic(x, stratasplit, calib)
   
