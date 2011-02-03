@@ -6,6 +6,8 @@ importFrom("Biobase", "exprs")
 importFrom("stats", "logLik", "coef", "coefficients")
 importFrom("lattice", "levelplot")
 
+importFrom("affy", "rma", "normalize.AffyBatch.methods", "upDate.normalize.AffyBatch.methods")
+
 importClassesFrom("limma", "RGList")
 importClassesFrom("affy", "AffyBatch")
 
