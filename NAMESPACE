@@ -5,6 +5,7 @@ importFrom("methods", "show")
 importFrom("Biobase", "exprs")
 importFrom("stats", "logLik", "coef", "coefficients")
 importFrom("lattice", "levelplot")
+importFrom("graphics", "smoothScatter")
 
 importFrom("affy", "rma", "normalize.AffyBatch.methods", "upDate.normalize.AffyBatch.methods")
 

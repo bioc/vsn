@@ -31,7 +31,8 @@ setMethod("meanSdPlot", signature="matrix", definition =
       }
       
       if(plot) {
-        plot(res$px, res$py, pch=pch, xlab=xlab, ylab=ylab, ...)
+        #plot(res$px, res$py, pch=pch, xlab=xlab, ylab=ylab, ...)
+        smoothScatter(res$px, res$py, xlab=xlab, ylab=ylab, ...)
         lines(res[[1L]], res$sd, col="red", type="b", pch=19)
       }
       
