@@ -1,8 +1,9 @@
 useDynLib("vsn")
 
+import("Biobase")
+
 importFrom("stats", "predict")
 importFrom("methods", "show")
-importFrom("Biobase", "exprs", "note")
 importFrom("stats", "logLik", "coef", "coefficients")
 importFrom("lattice", "levelplot")
 importFrom("graphics", "smoothScatter")
@@ -15,12 +16,12 @@ importClassesFrom("affy", "AffyBatch")
 exportClasses("vsn", "vsnInput")
 export(
   ## Deprecated
-  "vsn", "vsnh", "vsnPlotPar", 
+  "vsn", "vsnh", "vsnPlotPar",
 
-  ## needs update     
+  ## needs update
   "normalize.AffyBatch.vsn",
 
-  ## New     
+  ## New
   "vsnMatrix", "justvsn", "vsnrma",
   "sagmbAssess", "sagmbSimulateData", "plotVsnLogLik", "scalingFactorTransformation")
 
