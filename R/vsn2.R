@@ -253,8 +253,15 @@ vsnSample = function(v) {
   if(length(v@reference@mu)>0L) {
     wh = which(!is.na(v@reference@mu))
   }
-  
 
+  ## remove those rows that are all NA
+  allNA = (rowSums(is.na(v@x))==ncol(v@x))
+  numNA = sum(allNA)
+  if(numNA>0) {
+    wh = if(is.null(wh)) which(!allNA) else setdiff(wh, which(allNA))
+    warning(sprintf("%d rows were removed since they contained only NA elements.", numNA))
+  }
+  
   if(!is.null(wh)){
     
     res = vsnStrata(v[wh, ])
