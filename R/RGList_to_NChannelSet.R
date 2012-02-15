@@ -1,21 +1,33 @@
-## Wolfgang Huber 2007-2008
-## 
-## Based on code by Martin Morgan (27 August 2007) from the package "convert"
+## I copied this file from https://hedgehog.fhcrc.org/bioconductor/trunk/madman/Rpacks/convert/R/RGList_to_NChannelSet.R
+## on 15.2.2012. The subversion long stated for the file of origin:
+##     "Last Changed Rev: 36027, Last Changed Date: 2008-12-16 22:48:47 +0100 (Tue, 16 Dec 2008)"
+
 
 setAs("RGList", "NChannelSet", function(from) {
 
   ## assayData
   assayData <- with(from, {
-    if (exists("other", inherits=FALSE))
-      note("Ignoring slot 'other'.")
-
-    elts <- list(R=R, G=G)
-
+    if (!exists("other", inherits=FALSE)) {
+      elts <- list(R=R, G=G)
+    } else {
+      if (is.null(names(other)) ||
+          !all(sapply(names(other), nzchar)))
+        stop(paste("RGList 'other' elements must be named, found '",
+                   paste(names(other), collapse="', '"),
+                   "'", sep=""))
+      bad <- names(other) %in% c("R", "G", "Rb", "Gb")
+      if (any(bad))
+        stop(paste("RGList 'other' elements contain reserved names '",
+                   paste(names(other)[bad],
+                         collapse="', '"),
+                   "'", sep=""))
+      
+      elts <- c(R=R, G=G, other)
+    }
     if (exists("Rb", inherits=FALSE))
       elts[["Rb"]] <- Rb
     if (exists("Gb", inherits=FALSE))
       elts[["Gb"]] <- Gb
-    
     do.call(assayDataNew,
             c(storage.mode="lockedEnvironment", elts))
   })
@@ -28,7 +40,6 @@ setAs("RGList", "NChannelSet", function(from) {
       new("AnnotatedDataFrame",
           data=data.frame(rep(0, ncol(from)))[,FALSE])
     }
-  
   ## featureData
   fData <-
     if (!is.null(from$genes))
