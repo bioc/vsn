@@ -1,10 +1,4 @@
-all: vsn likelihoodcomputations convergence2 clean
-
-vsn: vsn.tex
-	texi2dvi --pdf vsn.tex
-
-likelihoodcomputations: likelihoodcomputations.tex
-	texi2dvi --pdf likelihoodcomputations.tex
+all: convergence2 clean
 
 convergence2: convergence2.tex
 	cp -p ../scripts/convergence2.pdf .
