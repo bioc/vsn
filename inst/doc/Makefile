@@ -2,8 +2,11 @@ all: vsn likelihoodcomputations convergence2 clean
 
 vsn: vsn.tex
 	pdflatex vsn.tex
+	pdflatex vsn.tex
+	pdflatex vsn.tex
 
 likelihoodcomputations: likelihoodcomputations.tex
+	pdflatex likelihoodcomputations.tex
 	pdflatex likelihoodcomputations.tex
 
 convergence2: convergence2.tex
