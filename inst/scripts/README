@@ -1,4 +1,4 @@
-convergence2.Rnw is the most comprehensive test suite. It assesses the
+inst/vignettes/convergence2.Rnw is the most comprehensive test suite. It assesses the
 accuracy of fitted transformations versus the known true ones, using
 simulated data.
 
