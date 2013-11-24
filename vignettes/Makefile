@@ -16,7 +16,7 @@ copy: $(STUBS)
 	pdflatex $*
 
 %: %.tex
-	cp -p $(abspath $(SRCS_DIR)/$*.pdf) .
+	cp -p $(SRCS_DIR)/$*.pdf .
 
 clean:
 	$(RM) *.out *.bbl *.log *.aux *.blg *.brf *.toc *.tex
