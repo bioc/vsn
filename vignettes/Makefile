@@ -1,7 +1,7 @@
-# vignettes actually build
+# vignettes actually being built here
 BUILD = vsn likelihoodcomputations
 
-# prebuild vignettes copied from the SRCS_DIR directory
+# prebuilt vignettes that are copied from the SRCS_DIR directory
 STUBS = convergence2
 SRCS_DIR = ../inst/vignettes
 
