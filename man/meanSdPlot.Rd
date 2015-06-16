@@ -45,20 +45,21 @@ meanSdPlot(x,
 }
 \details{Standard deviation and mean are calculated row-wise from the
   expression matrix (in) \code{x}. The scatterplot of these versus each other
-  allows to visually verify whether there is a dependence of the standard
+  allows you to visually verify whether there is a dependence of the standard
   deviation (or variance) on the mean.
-  The red dots depict the running median estimator (window-width 10\%).
-  If there is no variance-mean dependence, then the line formed by the
-  red dots should be approximately horizontal.
+  The red line depicts the running median estimator (window-width 10\%).
+  If there is no variance-mean dependence, then the line should be approximately horizontal.
 }
 \value{
-  A named list with four components: its elements \code{px} and
+  A named list with five components: its elements \code{px} and
   \code{py} are the x- and y-coordinates of the individual data points
   in the plot; its first and second element are the x-coordinates and values of
-  the running median estimator (the red dots in the plot).
-  Depending on the value of \code{plot}, the method can also have a side effect, which is to create a plot on the
-  active graphics device.
+  the running median estimator (the red line in the plot).
+  Its element \code{gg} is the plot object.
+  Depending on the value of \code{plot}, the method can also have a side effect,
+  which is to print \code{gg} on the active graphics device.
 }
+
 \author{Wolfgang Huber}
 \seealso{\code{\link{vsn}}}
 \examples{
