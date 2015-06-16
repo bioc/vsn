@@ -121,11 +121,14 @@ spots for which both red and green net intensities were greater than 0.
 Those spots which are missing in panel a are coloured in orange in panel b.}
 \end{center}\end{figure*}
 %
-\begin{figure*}[tb]\begin{center}
-\includegraphics[width=0.9\textwidth]{vsn-nkid-sdmean}  
+\begin{figure*}[tb]
+\begin{center}
+\includegraphics[width=0.48\textwidth]{vsn-nkid-sdmean1}  
+\includegraphics[width=0.48\textwidth]{vsn-nkid-sdmean2}  
 \caption{\label{vsn-nkid-sdmean}%
 Standard deviation versus rank of the mean, and the mean, respectively.}
-\end{center}\end{figure*}
+\end{center}
+\end{figure*}
 %
 where \Robject{fit} is an object of class \Rclass{vsn} that contains
 the fitted calibration and transformation parameters, and the method
@@ -229,16 +232,12 @@ $\hat{\mu}_k$ on the $x$-axis.
 \hat{\sigma}_k^2=\frac{1}{d-1}\sum_{i=1}^d (h_{ki}-\hat{\mu}_k)^2
 \end{equation}
 
-<<nkid-sdmean1,echo=FALSE>>=
-openBitmap("nkid-sdmean", cols=2)
-@ 
-<<nkid-sdmean2,results=hide>>=
+<<nkid-sdmean1,results=hide,fig=TRUE,height=3>>=
 meanSdPlot(xnorm, ranks=TRUE)
+@ 
+<<nkid-sdmean2,results=hide,fig=TRUE,height=3>>=
 meanSdPlot(xnorm, ranks=FALSE)
 @
-<<nkid-sdmean3,echo=FALSE,results=hide>>=
-dev.off()
-@ 
 
 The two plots are shown in \figphrase{vsn-nkid-sdmean}.  The red
 dots, connected by lines, show the running median of the standard
@@ -313,15 +312,9 @@ the CH2 intensities in columns $2, 4, \ldots, 16$.  We can call
 <<lymjustvsn,results=hide>>=
 lym = justvsn(lymphoma)
 @ 
-<<lym-sdmean1,echo=FALSE>>=
-openBitmap("lym-sdmean")
-@ 
-<<lym-sdmean2,results=hide>>=
+<<lym-sdmean,results=hide,fig=TRUE,height=3>>=
 meanSdPlot(lym)
 @
-<<lym-sdmean3,echo=FALSE,results=hide>>=
-dev.off()
-@ 
 
 Again, \figphrase{vsn-lym-sdmean} helps to visually verify that the
 variance stabilisation worked.  As above, we can obtain the

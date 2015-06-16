@@ -19,8 +19,9 @@ meanSdPlot(x,
            ranks = TRUE,
            xlab  = ifelse(ranks, "rank(mean)", "mean"),
            ylab  = "sd",
-           pch   = ".",
+           pch,
            plot  = TRUE,
+	   bins  = 50,
            \dots)} 
 \arguments{
   \item{x}{An object of class
@@ -35,11 +36,12 @@ meanSdPlot(x,
   the mean.}
 \item{xlab}{Character, label for the x-axis.}
 \item{ylab}{Character, label for the y-axis.}
-\item{pch}{Plot symbol.}
+\item{pch}{Ignored - exists for backward compatibility.}
 \item{plot}{Logical.  If \code{TRUE} (default), a plot is produced.
   Calling the function with \code{plot=FALSE} can be useful if only
   its return value is of interest.}
-\item{\dots}{Further arguments that get passed to plot.default.}
+\item{bins}{Gets passed on to \code{\link[ggplot2:stat_binhex]{stat_binhex}}.}
+\item{\dots}{Further arguments that get passed on to \code{\link[ggplot2:stat_binhex]{stat_binhex}}.}
 }
 \details{Standard deviation and mean are calculated row-wise from the
   expression matrix (in) \code{x}. The scatterplot of these versus each other
