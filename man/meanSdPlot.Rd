@@ -55,19 +55,22 @@ meanSdPlot(x,
   \code{py} are the x- and y-coordinates of the individual data points
   in the plot; its first and second element are the x-coordinates and values of
   the running median estimator (the red line in the plot).
-  Its element \code{gg} is the plot object.
-  Depending on the value of \code{plot}, the method can also have a side effect,
+  Its element \code{gg} is the plot object (see examples).
+  Depending on the value of \code{plot}, the method can (and by default does) have a side effect,
   which is to print \code{gg} on the active graphics device.
 }
 
 \author{Wolfgang Huber}
 \seealso{\code{\link{vsn}}}
 \examples{
-  data(kidney)
-  log.na = function(x) log(ifelse(x>0, x, NA))
+  data("kidney")
+  log.na <- function(x) log(ifelse(x>0, x, NA))
 
-  exprs(kidney) = log.na(exprs(kidney))
-  meanSdPlot(kidney)
+  exprs(kidney) <- log.na(exprs(kidney))
+  msd <- meanSdPlot(kidney)
+
+  ## modify plot parameters
+  msd$gg + ggplot2::ggtitle("Hello world") + ggplot2::scale_fill_gradient(low = "yellow", high = "darkred") + scale_y_continuous(limits = c(0, 7))  
 
   ## ...try this out with non-logged data, the lymphoma data, your data...
 }
