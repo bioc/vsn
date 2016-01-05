@@ -33,12 +33,8 @@ setMethod("meanSdPlot", signature="matrix", definition =
         list(quantile=quantile(px, probs=midpoints, na.rm=TRUE), sd=rq.sds, px=px, py=py)
       }
       
-      ## plot(res$px, res$py, pch=pch, xlab=xlab, ylab=ylab, ...)
-      ## smoothScatter(res$px, res$py, xlab=xlab, ylab=ylab, ...)
-      ## lines(res[[1L]], res$sd, col="red", type="b", pch=19)
-      fmt = function() {
-      function(x) format(round(x, 0), nsmall = 0L, scientific = FALSE)
-      }
+      fmt = function() function(x) format(round(x, 0), nsmall = 0L, scientific = FALSE)
+
       res$gg = ggplot(data.frame(px = res$px, py = res$py),
             aes(x = px, y = py)) + xlab(xlab) + ylab(ylab) +
             stat_binhex(bins = bins, ...) +

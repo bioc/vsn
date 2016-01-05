@@ -69,10 +69,11 @@ meanSdPlot(x,
   exprs(kidney) <- log.na(exprs(kidney))
   msd <- meanSdPlot(kidney)
 
-  ## modify plot parameters
-  msd$gg + ggplot2::ggtitle("Hello world") + ggplot2::scale_fill_gradient(low = "yellow", high = "darkred") + scale_y_continuous(limits = c(0, 7))  
+  ## The `ggplot` object is returned in list element `gg`, here is an example of how to modify the plot
+  library("ggplot2")
+  msd$gg + ggtitle("Hello world") + scale_fill_gradient(low = "yellow", high = "darkred") + scale_y_continuous(limits = c(0, 7))  
 
-  ## ...try this out with non-logged data, the lymphoma data, your data...
+  ## Try this out with not log-transformed data, vsn2-transformed data, the lymphoma data, your data ...
 }
 \keyword{hplot}
 \keyword{methods}
