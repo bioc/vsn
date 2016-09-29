@@ -103,8 +103,10 @@ ynorm = predict(fit, kidney)
 @
 <<overv4, echo=FALSE, results=hide>>=
 stopifnot(
-  identical(exprs(xnorm), exprs(ynorm)), 
-  identical(exprs(xnorm), exprs(fit)))
+  max(abs(exprs(xnorm) - exprs(ynorm))) < 1e-16, 
+  max(abs(exprs(xnorm) - exprs(fit)))   < 1e-16,
+  identical(dim(exprs(xnorm)), dim(exprs(ynorm))), 
+  identical(dim(exprs(xnorm)), dim(exprs(fit))))
 @ 
 %
 \begin{figure*}[tb]\begin{center}
