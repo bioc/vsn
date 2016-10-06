@@ -50,6 +50,7 @@ sagmbSimulateData <- function(n=8064, d=2, de=0, up=0.5, nrstrata=1, miss=0, log
 ## assess
 sagmbAssess <- function(h1, sim) {
   stopifnot(all(c("y", "hy", "is.de") %in% names(sim)))
+  h1    <- unname(h1)
   h2    <- sim$hy
   is.de <- sim$is.de
 

@@ -134,21 +134,28 @@ vsn = function(intensities,
     }
   }
   if(is.null(descr))   descr = new("MIAME")
-  if(is.null(res))     res   = new("ExpressionSet", experimentData=descr)
-
-  if(isReordered) {
-    v$hy  = v$hy[reord, ]
-    v$sel = v$sel[reord]
-  }
   
   if (describe.preprocessing) {
-    exprs(res) = v$hy
-    vsnPreprocessing =  list(vsnParams      = v$par,
-                           vsnParamsIter    = v$params,
-                           vsnTrimSelection = v$sel)
+    if(isReordered) {
+      v$hy  = v$hy[reord, ]
+      v$sel = v$sel[reord]
+    }
+    
+    if ( is.null(res) )
+      res = ExpressionSet(assayData=v$hy, experimentData=descr)
+    else
+      exprs(res) = v$hy
+    
+    vsnPreprocessing =  list(vsnParams        = v$par,
+                             vsnParamsIter    = v$params,
+                             vsnTrimSelection = v$sel)
     class(vsnPreprocessing) = c("vsnPreprocessing", class(vsnPreprocessing))
     preproc(description(res)) = append(preproc(description(res)), vsnPreprocessing)
+  } else {
+    if ( is.null(res) )
+      res = new("ExpressionSet", experimentData=descr)
   }
+  
   return(res)
 }
 
