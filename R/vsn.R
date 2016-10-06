@@ -4,11 +4,6 @@
 ## With contributions from Markus Ruschhaupt, Dennis Kostka, David Kreil
 ##----------------------------------------------------------------------
 
-VSN_DEPR_MSG = paste(
-"\nThe function 'vsn' has been superseded by 'vsn2'.",
-  "The function 'vsn' remains in the package for backward compatibility,", 
-  "but for new projects, please use 'vsn2'.\n", sep="\n")
-
 ##----------------------------------------------------------------------
 ## vsn: the main function of this library
 ##----------------------------------------------------------------------
@@ -22,7 +17,7 @@ vsn = function(intensities,
                 pstart,
                 strata) {
   
-  note(msg=VSN_DEPR_MSG)
+  .Deprecated("vsn2")
   
   y = getIntensityMatrix(intensities, verbose)
   d = ncol(y)

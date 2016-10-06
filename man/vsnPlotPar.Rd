@@ -2,8 +2,8 @@
 \alias{vsnPlotPar}
 \title{Plot trajectories of calibration and transformation parameters for
   a vsn fit}
-\description{Plot trajectories of calibration and transformation parameters for
-  a vsn fit}
+\description{This function is provided for backward compatibility with older versions
+  of \sQuote{vsn} only, and will be defunct at the next release.}
 \usage{vsnPlotPar(x, what, xlab="iter", ylab=what, \dots)} 
 \arguments{
   \item{x}{An object of class

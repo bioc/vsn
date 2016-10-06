@@ -6,8 +6,9 @@
   This function works in conjunction with \code{\link{vsn}}.
   \code{vsn} and \code{vsnh} have been superseded by \code{\link{vsn2}} and
   the \code{\link[vsn:vsn2trsf]{predict}} method for \code{vsn} objects.
-  The functions \code{vsn} and \code{vsnh} remain in the package for backward compatibility,
-  but for new projects, please use \code{\link{vsn2}} and  \code{\link[vsn:vsn2trsf]{predict}}.}
+  The functions \code{vsn} and \code{vsnh} remain in the package for backward compatibility only,
+  and will be defunct at the next release.
+  For new projects, please use \code{\link{vsn2}} and  \code{\link[vsn:vsn2trsf]{predict}}.}
 
 \usage{vsnh(y, p, strata)}
 \arguments{
@@ -62,7 +63,7 @@ http://www.bepress.com/sagmb/vol2/iss1/art3.}
 \author{Wolfgang Huber}
 \seealso{ \code{\link{vsn}} }
 
-\examples{
+\examples{\donttest{
 data(kidney)
 y      = exprs(kidney)
 p      = array(c(-0.2, -0.1, 0.1, 0.2, 0.0026, 0.0028, 0.0030, 0.0032), dim=c(2,2,2))
@@ -72,5 +73,4 @@ res1   = vsnh(exprs(kidney), p, strata)
 res2   = asinh(p[strata,,1] + p[strata,,2] * y) - log(2*p[strata,1,2])
 
 stopifnot(max(abs(res1 - res2)) < 1e-10)
-}
-
+}}

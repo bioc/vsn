@@ -1,5 +1,6 @@
 vsnPlotPar = function(x, what, xlab="iter", ylab=what, ...) {
-
+  .Deprecated()
+  
   stopifnot(is.character(what), length(what)==1)
 
   whatopts <- c("offsets", "factors")

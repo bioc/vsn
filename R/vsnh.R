@@ -7,6 +7,9 @@
 ## It has no effect on the generalized log-ratios.
 ##--------------------------------------------------------------------
 vsnh <- function(y, p, strata) {
+  if ( as.character(sys.call(sys.parent(2L))[1L]) != "vsn" )
+    .Deprecated()
+  
   if (!is.matrix(y) || !is.numeric(y))
     stop("vsnh: 'y' must be a numeric matrix.\n")
   

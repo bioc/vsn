@@ -5,7 +5,8 @@
   transformations for microarray data.
   This function has been superseded by \code{\link{vsn2}}.
   The function \code{\link{vsn}} remains in the package for backward
-  compatibility, but for new projects, please use \code{\link{vsn2}}.}
+  compatibility only, and will be defunct at the next release.
+  For new projects, please use \code{\link{vsn2}}.}
 \usage{
 vsn(intensities,
     lts.quantile = 0.5,
@@ -161,7 +162,7 @@ http://www.bepress.com/sagmb/vol2/iss1/art3.}
   \code{\link[Biobase:class.MIAME]{MIAME-class}},
   \code{\link{normalize.AffyBatch.vsn}}}
 
-\examples{
+\examples{\donttest{
 data(kidney)
 log.na = function(x) log(ifelse(x>0, x, NA))
 
@@ -173,7 +174,7 @@ meanSdPlot(vsnkid)
 
 ## this should always hold true
 params = preproc(description(vsnkid))$vsnParams
-stopifnot(all(vsnh(exprs(kidney), params) == exprs(vsnkid))) 
-}
+stopifnot(all(vsnh(exprs(kidney), params) == exprs(vsnkid)))
+}}
 
 \keyword{robust}

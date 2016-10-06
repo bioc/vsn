@@ -55,7 +55,7 @@ sagmbAssess(h1, sim)
 
 \examples{
   sim <- sagmbSimulateData(nrstrata=4)
-  ny  <- vsn(sim$y, strata=sim$strata)
+  ny  <- vsn2(sim$y, strata=sim$strata)
   res <- sagmbAssess(exprs(ny), sim)
   res
 }
