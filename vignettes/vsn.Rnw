@@ -3,21 +3,17 @@
 %\VignetteKeywords{Expression Analysis}
 %\VignettePackage{vsn}
 
-\documentclass[11pt,twocolumn]{article}
-\usepackage[margin=2cm,nohead]{geometry}
-\usepackage{color}
+\documentclass{article}
+
+<<style-Sweave, eval=TRUE, echo=FALSE, results=tex>>=
+BiocStyle::latex2()
+@
+
 \usepackage{cite}
 \usepackage{flafter}
 \usepackage{afterpage}
+
 \definecolor{darkblue}{rgb}{0.0,0.0,0.75}
-\usepackage[%
-baseurl={http://www.bioconductor.org},%
-pdftitle={Introduction to robust calibration and variance stabilisation with vsn},%
-pdfauthor={Wolfgang Huber},%
-pdfsubject={vsn},%
-pdfkeywords={Bioconductor},%
-pagebackref,bookmarks,colorlinks,linkcolor=darkblue,citecolor=darkblue,%
-pagecolor=darkblue,raiselinks,plainpages,pdftex]{hyperref}
 
 \SweaveOpts{keep.source=TRUE,eps=FALSE,include=FALSE,width=4,height=4.5} 
 
@@ -26,27 +22,9 @@ pagecolor=darkblue,raiselinks,plainpages,pdftex]{hyperref}
 %------------------------------------------------------------
 \newcommand{\arsinh}{\mathop{\mathgroup\symoperators arsinh}\nolimits}
 \newcommand{\glog}{\mathop{\mathgroup\symoperators glog}\nolimits}
-\newcommand{\Robject}[1]{\texttt{#1}}
-\newcommand{\Rpackage}[1]{\textit{#1}}
-\newcommand{\Rclass}[1]{\textit{#1}}
-\newcommand{\Rfunction}[1]{{\small\texttt{#1}}}
-
-\newcommand{\myincfig}[3]{%
-  \begin{figure}[tb]
-    \begin{center}
-      \includegraphics[width=#2]{#1}
-      \caption{\label{#1}#3}
-    \end{center}
-  \end{figure}
-}
 
 \newcommand{\figphrase}[1]{Figure~\ref{#1} on page~\pageref{#1}}
-
-\setlength\columnsep{20pt}  
-\renewcommand{\floatpagefraction}{0.99}
-\renewcommand{\dblfloatpagefraction}{0.99}
-\renewcommand{\textfraction}{0.2}
-\renewcommand{\topfraction}{0.65}
+\def\fps@figure{tb}
 
 \begin{document}
 %----------------------------------------------------------------------------------------
@@ -109,8 +87,8 @@ stopifnot(
   identical(dim(exprs(xnorm)), dim(exprs(fit))))
 @ 
 %
-\begin{figure*}[tb]\begin{center}
-\includegraphics[width=0.9\textwidth]{vsn-nkid-scp}  
+\begin{figure*}
+\includegraphics{vsn-nkid-scp}  
 \caption{\label{vsn-nkid-scp}%
 Scatterplots of the kidney example data, which were obtained from a 
 two-colour cDNA array by quantitating spots and subtracting a local background 
@@ -121,15 +99,13 @@ Panel b shows the data from the complete set of \Sexpr{nrow(kidney)}
 spots on the array, panel a only the \Sexpr{sum(0==rowSums(exprs(kidney)<=0))} 
 spots for which both red and green net intensities were greater than 0. 
 Those spots which are missing in panel a are coloured in orange in panel b.}
-\end{center}\end{figure*}
+\end{figure*}
 %
-\begin{figure*}[tb]
-\begin{center}
-\includegraphics[width=0.48\textwidth]{vsn-nkid-sdmean1}  
-\includegraphics[width=0.48\textwidth]{vsn-nkid-sdmean2}  
+\begin{figure*}
+\includegraphics[width=0.49\textwidth]{vsn-nkid-sdmean1}  
+\includegraphics[width=0.49\textwidth]{vsn-nkid-sdmean2}  
 \caption{\label{vsn-nkid-sdmean}%
 Standard deviation versus rank of the mean, and the mean, respectively.}
-\end{center}
 \end{figure*}
 %
 where \Robject{fit} is an object of class \Rclass{vsn} that contains
@@ -270,13 +246,13 @@ The histogram of the generalized log-ratios is shown in
 <<nkid-histM,echo=FALSE,fig=TRUE,results=hide>>=
 hist(M, breaks=33, col="#d95f0e")
 @
-\myincfig{vsn-nkid-histM}{0.45\textwidth}{Histogram of generalised 
+\incfig{vsn-nkid-histM}{0.65\textwidth}{Histogram of generalised 
 log-ratios \Robject{M} for the kidney example data.}
 
-\myincfig{vsn-lym-sdmean}{0.45\textwidth}{Standard deviation 
+\incfig{vsn-lym-sdmean}{0.65\textwidth}{Standard deviation 
 versus rank of the mean for the lymphoma example data}
 
-\myincfig{vsn-lym-M}{0.45\textwidth}{$M$-$A$-plot 
+\incfig{vsn-lym-M}{0.65\textwidth}{$M$-$A$-plot 
 for slide \texttt{DLCL-0032} from the lymphoma example data.
 A false-colour representation of the data point density is used,
 in addition the 100 data points in the least dense regions are 
@@ -294,19 +270,11 @@ data("lymphoma")
 dim(lymphoma)
 @
 %
-\begin{table}[tbp]
-\begin{minipage}{0.5\textwidth}
+The 16 columns of the \Robject{lymphoma} object contain the red and
+green intensities, respectively, from the 8 slides.
 <<pDatalym>>=
 pData(lymphoma)
 @ 
-\end{minipage}
-\caption{\label{tab:lymPD}%
-The \Robject{phenoData} of the \Robject{lymphoma} dataset.}
-\end{table}
-%
-The 16 columns of the \Robject{lymphoma} object contain the red and
-green intensities, respectively, from the 8 slides, as shown in 
-Table~\ref{tab:lymPD}. 
 Thus, the CH1 intensities are in columns $1, 3, \ldots, 15$,
 the CH2 intensities in columns $2, 4, \ldots, 16$.  We can call
 \Rfunction{justvsn} on all of them at once:
@@ -400,7 +368,7 @@ Both methods control the variance at low intensities, but we see that
 VSN does so more strongly. See also Section~\ref{sec:shrink} for further 
 discussion on the VSN shrinkage.
 
-\begin{figure*}[tb]\begin{center}
+\begin{figure*}
 \includegraphics[width=\textwidth]{vsn-affy}  
 \caption{\label{vsn-affy}%
 Results of \Rfunction{vsnrma} and \Rfunction{rma} on the Dilution 
@@ -408,7 +376,7 @@ example data. Array 1 was hybridised with
 $\Sexpr{as.character(pData(Dilution)$liver[1])}\mu$g RNA from liver,
 array 3 with 
 $\Sexpr{as.character(pData(Dilution)$liver[3])}\mu$g of the same RNA.}
-\end{center}\end{figure*}
+\end{figure*}
 
 %---------------------------------------------------------
 \section{Running VSN on \Robject{RGList} objects} \label{limma}
@@ -431,22 +399,24 @@ lymRG = new("RGList", list(
 lymNCS = justvsn(lymRG)
 @ 
 %
-\begin{figure*}[tb]\begin{center}
-\includegraphics[width=0.9\textwidth]{vsn-figlimma}  
+\begin{figure*}
+\includegraphics[width=\textwidth]{vsn-figlimma}  
 \caption{\label{vsn-figlimma}%
 Left: histogram of $p$-values from the moderated $t$-test between the 
 \Sexpr{levels(lymNCS$sampR)[1]} and
 \Sexpr{levels(lymNCS$sampR)[2]} groups on the \Robject{lymM} values.
 Right: $M$-values for the 5 genes with the smallest $p$-values.}
-\end{center}\end{figure*}
+\end{figure*}
 %
 The \Rfunction{justvsn} method for \Rclass{RGList} 
 converts its argument into an \Rclass{NChannelSet}, using a copy 
 of the coercion method from Martin Morgan in the package \Rpackage{convert}.
 It then passes this on to 
 the \Rfunction{justvsn} method for \Rclass{NChannelSet}. 
-The return value is an \Rclass{NChannelSet}, shown in 
-Table~\ref{tab:lymNCS}. 
+The return value is an \Rclass{NChannelSet}, as shown below.
+<<lymNCS>>=
+lymNCS
+@ 
 %
 Note that, due to the flexibility in the amount and 
 quality of metadata that is in an \Rclass{RGList}, and due to 
@@ -486,23 +456,6 @@ adf = new("AnnotatedDataFrame",
 
 phenoData(lymNCS) = adf 
 @ 
-%
-\begin{table*}[tbp]
-\begin{minipage}{\textwidth}
-<<width1,echo=FALSE>>=
-oo=options(width=75L)
-@ 
-<<lymNCS>>=
-lymNCS
-@ 
-<<width2,echo=FALSE>>=
-options(oo)
-@ 
-\end{minipage}
-\caption{\label{tab:lymNCS}%
-The \Rclass{NChannelSet} object \Robject{lymNCS}.}
-\end{table*}
-%
 Now let us combine the red and green values from each array
 into the glog-ratio \Robject{M} 
 and use the linear modeling tools from \Rpackage{limma} to find
@@ -590,15 +543,15 @@ Here we only do this for the first 3 arrays to save compute time.
 %--------------------------------------------------
 \subsection{Print-tip groups}\label{sec:strata}
 %--------------------------------------------------
-\begin{figure}[tb]\begin{center}
-\includegraphics[width=0.45\textwidth]{vsn-figstrata}  
+\begin{smallfigure}
+\includegraphics[width=\textwidth]{vsn-figstrata}  
 \caption{\label{vsn-figstrata}%
 Scatterplot of normalised and transformed intensities for 
 the red channel of array 1. Values on the $x$-axis correspond 
 to normalisation without strata (\Robject{EsenzaStr}), 
 values on the $y$-axis to normalisation with strata (\Robject{EconStr}).
 The different colours correspond to the 16 different strata.}
-\end{center}\end{figure}
+\end{smallfigure}
 %
 By default, VSN computes one normalisation transformation
 with a common set of parameters for all features of an array (separately
@@ -664,14 +617,14 @@ dev.off()
 %---------------------------------------------------------------------
 \section{Missing values} \label{sec:miss}
 %---------------------------------------------------------------------
-\begin{figure*}[tb]\begin{center}
-\includegraphics[width=0.9\textwidth]{vsn-figmiss}  
+\begin{figure*}
+\includegraphics[width=\textwidth]{vsn-figmiss}  
 \caption{\label{vsn-figmiss}%
 Scatterplots of fitted parameters, values on the $x$-axis correspond 
 to normalisation without missing data (\Robject{fit1}), 
 values on the $y$-axis to normalisation with $\approx 10\%$ 
 missing data (\Robject{fit2}).}
-\end{center}\end{figure*}
+\end{figure*}
 %
 The parameter estimation algorithm of VSN is able to deal with
 missing values in the input data. To demonstrate this, we generate an 
@@ -789,7 +742,7 @@ procedure that normalises the new test arrays ``towards'' the existing
 reference dataset without changing the latter.
 
 % 
-\myincfig{vsn-figref}{0.45\textwidth}{Scatterplot of normalised 
+\incfig{vsn-figref}{0.65\textwidth}{Scatterplot of normalised 
 intensities after normalisation by reference ($x$-axis, \Robject{f8})
 and joint normalisation ($y$-axis, \Robject{fall}).
 There is good agreement.}
@@ -976,13 +929,13 @@ transformed values vary~\cite{HuberSAGMB2003}.
 %---------------------------------------------------------------------
 \subsection{More on calibration} 
 %---------------------------------------------------------------------
-\begin{figure*}[tb]\begin{center}
-\includegraphics[width=0.9\textwidth]{vsn-nkid-calib}  
+\begin{figure*}
+\includegraphics[width=\textwidth]{vsn-nkid-calib}  
 \caption{\label{vsn-nkid-calib}%
 Scatterplots for badly biased data. 
 Left hand side: raw data on log-log scale, 
 right hand side: after calibration and transformation with vsn.}
-\end{center}\end{figure*}
+\end{figure*}
 %
 Now suppose the kidney example data were not that well measured, and 
 the red channel had a baseline that was shifted by 500 and a scale 
@@ -1052,8 +1005,8 @@ dev.off()
 @ 
 The result is shown in \figphrase{vsn-qvsn}.
 
-\begin{figure*}[tb]\begin{center}
-\includegraphics[width=0.9\textwidth]{vsn-qvsn}  
+\begin{figure*}
+\includegraphics[width=\textwidth]{vsn-qvsn}  
 \caption{\label{vsn-qvsn}%
 The left panel shows the scatterplot between the red and green intensities of
 the array of the lymphoma dataset after quantile
@@ -1061,7 +1014,7 @@ normalisation followed by VSN variance stabilisation without calibration.
 The right panel compares the values from that method, for CH1 of the first
 array, to that of VSN variance stabilisation with affine calibration 
 (\Robject{lym} was computed in Section~\ref{sec:lymphoma}).}
-\end{center}\end{figure*}
+\end{figure*}
 
 
 %-------------------------------------------------------------------
@@ -1185,28 +1138,24 @@ legend(x = par("usr")[2], y = par("usr")[3],
        fill=cols, density = c(NA, NA, 50), xjust=1.1, yjust=-0.1)
 @
 %
-\begin{figure}[tb]
-\begin{center}
-\includegraphics[width=0.45\textwidth]{vsn-figshrink}
+\begin{smallfigure}
+\includegraphics[width=\textwidth]{vsn-figshrink}
 \caption{\label{vsn-figshrink}The shrinkage property of the 
 generalised log-ratio.  
 Blue diamonds and error bars correspond to mean and standard
 deviation of the generalised log-ratio $h$, as obtained from VSN, 
 and black dots and error bars to the standard log-ratio $q$ (both base 2).  
 }
-\end{center}
-\end{figure}
+\end{smallfigure}
 
-\begin{figure}[tb]
-\begin{center}
-\includegraphics[width=0.45\textwidth]{vsn-figgraph}
+\begin{smallfigure}
+\includegraphics[width=\textwidth]{vsn-figgraph}
 \caption{\label{vsn-figgraph}Graphs of the functions $y=\log_2(x)$,
   $y=\glog_2(x,c)=\log_2(x+\sqrt{x^2+c^2})-1$, and
   $y=\log_2(x+x_{\mbox{\scriptsize off}})$, where $c=\Sexpr{cc}$ and
   $x_{\mbox{\scriptsize off}}=\Sexpr{xoff}$.
 }
-\end{center}
-\end{figure}
+\end{smallfigure}
 %
 Generalised log-ratios can be viewed as a \textit{shrinkage estimator}: 
 for low intensities either in the numerator and denominator,
@@ -1252,13 +1201,13 @@ downweighted, and the posterior is still strongly influenced by the prior.
 %---------------------------------------------------------
 \section{Quality assessment}\label{sec.qc}
 %---------------------------------------------------------
-\begin{figure*}[tb]\begin{center}
-\includegraphics[width=0.9\textwidth]{vsn-lymbox}  
+\begin{figure*}
+\includegraphics[width=\textwidth]{vsn-lymbox}  
 \caption{\label{fig:lymbox}%
 Boxplot of \Robject{A} values of array \texttt{CLL-13}
 stratified by within-sector row. The features in rows 22 and 23 are 
 all very dim.}
-\end{center}\end{figure*}
+\end{figure*}
 
 Quality problems can often be associated with physical parameters of
 the manufacturing or experimental process. Let us look a bit closer at
@@ -1281,7 +1230,7 @@ boxplot(A[, j] ~ arrayGeometry$spotrow,
    ylab="A", xlab="spotrow")
 @ 
 %
-\myincfig{vsn-lymquscp}{0.45\textwidth}{$M$-$A$-plot of the data from
+\incfig{vsn-lymquscp}{0.65\textwidth}{$M$-$A$-plot of the data from
 array \Sexpr{j}. Dots coloured in orange are from rows 22 and 23. A
 possible explanation may be as follows (although I do not know for
 sure that this is the right explanation): The PCR product (cDNA) that
@@ -1448,19 +1397,16 @@ differentially transcribed genes balance out.
 I acknowledge helpful comments and feedback from Anja von Heydebreck, 
 Richard Bourgon, Martin Vingron, Ulrich Mansmann and Robert Gentleman.
 
+
 %---------------------------------------------------------
-% SessionInfo
+\section{Session info}
 %---------------------------------------------------------
-\begin{table*}[tbp]
-\begin{minipage}{\textwidth}
-<<sessionInfo, results=tex, print=TRUE>>=
+
+The output of \Rfunction{sessionInfo()} on the system on which
+this document was compiled:
+<<sessionInfo, results=tex, echo=FALSE>>=
 toLatex(sessionInfo())
-@ 
-\end{minipage}
-\caption{\label{tab:sessioninfo}%
-The output of \Rfunction{sessionInfo} on the build system 
-after running this vignette.}
-\end{table*}
+@
 
 
 %---------------------------------------------------------

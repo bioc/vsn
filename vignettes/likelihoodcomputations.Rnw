@@ -3,26 +3,18 @@
 %\VignetteKeywords{Expression Analysis}
 %\VignettePackage{vsn}
 
-\documentclass[11pt]{article}
-\usepackage{color}
+\documentclass{article}
+<<style-Sweave, eval=TRUE, echo=FALSE, results=tex>>=
+BiocStyle::latex2()
+@
+
 \usepackage{amssymb}
 \definecolor{darkblue}{rgb}{0.0,0.0,0.75}
-\usepackage[%
-baseurl={http://www.bioconductor.org},%
-pdftitle={vsn likelihood Calculations},%
-pdfauthor={Wolfgang Huber},%
-pdfsubject={vsn},%
-pdfkeywords={Bioconductor},%
-pagebackref,bookmarks,colorlinks,linkcolor=darkblue,citecolor=darkblue,%
-pagecolor=darkblue,raiselinks,plainpages,pdftex]{hyperref}
-\usepackage{geometry}
 
 %------------------------------------------------------------
 % newcommand
 %------------------------------------------------------------
 \newcommand{\arsinh}{\mathop{\mathgroup\symoperators arsinh}\nolimits}
-\newcommand{\Robject}[1]{\texttt{#1}}
-\newcommand{\Rpackage}[1]{\textit{#1}}
 \newcommand{\mbs}[1]{{\mbox{\scriptsize #1}}}
 
 \begin{document}
@@ -60,10 +52,10 @@ positive for all $b\in\mathbb{R}$, and as it turns out, simplifies
 some of the computations.
 
 In the following calculations, I will also use the notation
-\begin{eqnarray}
-Y \equiv Y(y,a,b) &=&              f(b)\cdot y+a\\
-h \equiv h(y,a,b) &=& \arsinh\left(f(b)\cdot y+a\right).
-\end{eqnarray}
+\begin{align}
+Y \equiv Y(y,a,b) &=              f(b)\cdot y+a\\
+h \equiv h(y,a,b) &= \arsinh\left(f(b)\cdot y+a\right).
+\end{align}
 
 The probability of the data $(y_{ki})_{k=1\ldots n,\;i=1\ldots d}$ 
 lying in a certain volume element of $y$-space
@@ -91,15 +83,15 @@ L=\left(\frac{1}{\sqrt{2\pi\sigma^2}}\right)^{nd}
 \end{equation}
 
 For the following, I will need the derivatives
-\begin{eqnarray}
-\frac{\partial Y}{\partial a}&=&1\\
-\frac{\partial Y}{\partial b}&=&y\cdot f'(b)\\
-\frac{dh}{dy}&=&
+\begin{align}
+\frac{\partial Y}{\partial a}&=1\\
+\frac{\partial Y}{\partial b}&=y\cdot f'(b)\\
+\frac{dh}{dy}&=
 \frac{f(b)}{\sqrt{1+(f(b)y+a)^2}}=
 \frac{f(b)}{\sqrt{1+Y^2}},\\
-\frac{\partial h}{\partial a}&=&\frac{1}{\sqrt{1+Y^2}},\\
-\frac{\partial h}{\partial b}&=&\frac{y}{\sqrt{1+Y^2}}\cdot f'(b).
-\end{eqnarray}
+\frac{\partial h}{\partial a}&=\frac{1}{\sqrt{1+Y^2}},\\
+\frac{\partial h}{\partial b}&=\frac{y}{\sqrt{1+Y^2}}\cdot f'(b).
+\end{align}
 Note that for $f(b)=b$, we have $f'(b)=1$,
 and for $f(b)=e^b$,  $f'(b)=f(b)=e^b$.
 
@@ -117,55 +109,55 @@ these approaches;
 in versions $1.X$ only the profile likelihood approach was implemented, 
 and it was described in the initial publication~\cite{HuberISMB2002}.
 
-First, let us note that the likelihood (\ref{eq:likelihood}) 
+First, let us note that the likelihood \eqref{eq:likelihood}
 is simply a product of independent terms for different $i$. 
 We can optimize the parameters $(a_i,b_i)$ 
 separately for each $i=1,\ldots,d$.
-From the likelihood (\ref{eq:likelihood}) we get the 
+From the likelihood \eqref{eq:likelihood} we get the 
 $i$-th negative log-likelihood
-\begin{eqnarray}\label{eq:nll}
--\log(L) &=&\sum_{i=1}^d -LL_i\\
--LL_i&=&\frac{n}{2}\log\left(2\pi\sigma^2\right)+
+\begin{align}\label{eq:nll}
+-\log(L) &=\sum_{i=1}^d -LL_i\\
+-LL_i&=\frac{n}{2}\log\left(2\pi\sigma^2\right)+
 \sum_{k=1}^n \left(\frac{(h(y_{ki})-\mu_k)^2}{2\sigma^2}
 +\log\frac{\sqrt{1+Y_{ki}^2}}{f(b_i)}\right)\\
-&=&\frac{n}{2}\log\left(2\pi\sigma^2\right)
+&=\frac{n}{2}\log\left(2\pi\sigma^2\right)
 -n\log f(b_i)
 +\sum_{k=1}^n\left(\frac{(h(y_{ki})-\mu_k)^2}{2\sigma^2}
 +\frac{1}{2}\log\left(1+Y_{ki}^2\right)\right)
-\end{eqnarray}
+\end{align}
 This is what we want to optimize as a function of $a_i$ and $b_i$. 
 The optimizer benefits from the derivatives. 
 The  derivative with respect to $a_i$ is
-\begin{eqnarray}
-\frac{\partial}{\partial a_i}(-LL_i) &=&
+\begin{align}
+\frac{\partial}{\partial a_i}(-LL_i) &=
 \sum_{k=1}^n \left( \frac{h(y_{ki})-\mu_k}{\sigma^2}
 +\frac{Y_{ki}}{\sqrt{1+Y_{ki}^2}} \right)
 \cdot\frac{1}{\sqrt{1+Y_{ki}^2}}
 \nonumber\\
-&=& \sum_{k=1}^n 
+&= \sum_{k=1}^n 
 \left(\frac{r_{ki}}{\sigma^2}+A_{ki}Y_{ki}\right)A_{ki}
 \label{eq:ddanll}
-\end{eqnarray}
+\end{align}
 and with respect to $b_i$
-\begin{eqnarray}
-\frac{\partial}{\partial b_i}(-LL_i) &=&
+\begin{align}
+\frac{\partial}{\partial b_i}(-LL_i) &=
 -n\frac{f'(b_i)}{f(b_i)} 
 +\sum_{k=1}^n \left( \frac{h(y_{ki})-\mu_k}{\sigma^2}
 +\frac{Y_{ki}}{\sqrt{1+Y_{ki}^2}}\right)
 \cdot\frac{y_{ki}}{\sqrt{1+Y_{ki}^2}}\cdot f'(b_i)
 \nonumber\\
-&=&
+&=
 -n\frac{f'(b_i)}{f(b_i)} 
 +f'(b_i)\sum_{k=1}^n \left(\frac{r_{ki}}{\sigma^2}+A_{ki}Y_{ki}\right)
 A_{ki}y_{ki}
 \label{eq:ddbnll}
-\end{eqnarray}
+\end{align}
 Here, I have introduced the following shorthand notation for the 
 ``intermediate results'' terms
-\begin{eqnarray}
-r_{ki}&=& h(y_{ki})-\mu_k\\
-A_{ki}&=&\frac{1}{\sqrt{1+Y_{ki}^2}}.
-\end{eqnarray}
+\begin{align}
+r_{ki}&= h(y_{ki})-\mu_k\\
+A_{ki}&=\frac{1}{\sqrt{1+Y_{ki}^2}}.
+\end{align}
 Variables for these intermediate values are also used 
 in the C code to organise
 the computations of the gradient.
@@ -176,11 +168,11 @@ the computations of the gradient.
 If $\mu_1,\ldots,\mu_n$ and $\sigma^2$ are not already known,
 we can plug in their maximum likelihood estimates, obtained 
 from optimizing $LL$ for $\mu_1,\ldots,\mu_n$ and $\sigma^2$:
-\begin{eqnarray}
-\hat{\mu}_k &=& \frac{1}{d}\sum_{j=1}^d h(y_{kj})\label{eq:muhat}\\
-\hat{\sigma}^2 &=& \frac{1}{nd}\sum_{k=1}^n\sum_{j=1}^d 
+\begin{align}
+\hat{\mu}_k &= \frac{1}{d}\sum_{j=1}^d h(y_{kj})\label{eq:muhat}\\
+\hat{\sigma}^2 &= \frac{1}{nd}\sum_{k=1}^n\sum_{j=1}^d 
 (h(y_{kj})-\hat{\mu}_k)^2\label{eq:sigmahat}
-\end{eqnarray}
+\end{align}
 into the negative log-likelihood. 
 The result is called the negative profile log-likelihood
 \begin{equation}\label{eq:npll}
@@ -192,43 +184,43 @@ The result is called the negative profile log-likelihood
 \end{equation}
 Note that this no longer decomposes into a sum of terms for each $j$
 that are independent of each other -- the terms for different $j$
-are coupled through Equations~(\ref{eq:muhat}) and (\ref{eq:sigmahat}).
+are coupled through Equations~\eqref{eq:muhat} and \eqref{eq:sigmahat}.
 We need the following derivatives.
-\begin{eqnarray}
-\frac{\partial \hat{\sigma}^2}{\partial a_i} &=&
+\begin{align}
+\frac{\partial \hat{\sigma}^2}{\partial a_i} &=
 \frac{2}{nd}\sum_{k=1}^n
 r_{ki}\frac{\partial h(y_{ki})}{\partial a_i}\nonumber\\
-&=&
+&=
 \frac{2}{nd}
 \sum_{k=1}^n r_{ki}A_{ki}\\
-\frac{\partial \hat{\sigma}^2}{\partial b_i} &=&
+\frac{\partial \hat{\sigma}^2}{\partial b_i} &=
 \frac{2}{nd}\cdot f'(b_i)
 \sum_{k=1}^n r_{ki}A_{ki}y_{ki}
-\end{eqnarray}
+\end{align}
 So, finally
-\begin{eqnarray}
-\frac{\partial}{\partial a_i}(-PLL) &=&
+\begin{align}
+\frac{\partial}{\partial a_i}(-PLL) &=
 \frac{nd}{2\hat{\sigma}^2}\cdot 
 \frac{\partial \hat{\sigma}^2}{\partial a_i} 
 +\sum_{k=1}^n A_{ki}^2Y_{ki}\nonumber\\
-&=&\sum_{k=1}^n 
+&=\sum_{k=1}^n 
 \left(\frac{r_{ki}}{\hat{\sigma}^2}+A_{ki}Y_{ki}\right)A_{ki}
 \label{eq:ddanpll}\\
-\frac{\partial}{\partial b_i}(-PLL) &=&
+\frac{\partial}{\partial b_i}(-PLL) &=
 -n\frac{f'(b_i)}{f(b_i)} 
 + f'(b_i) \sum_{k=1}^n 
 \left(\frac{r_{ki}}{\hat{\sigma}^2}+A_{ki}Y_{ki}\right)A_{ki}y_{ki}
 \label{eq:ddbnpll}
-\end{eqnarray}
+\end{align}
 
 
 %--------------------------------------------------
 \newpage
 \section{Summary}\label{sec:ggu}
 %--------------------------------------------------
-Likelihoods, from Equations~(\ref{eq:nll}) and (\ref{eq:npll}):
-\begin{eqnarray}
--LL_i&=&
+Likelihoods, from Equations~\eqref{eq:nll} and \eqref{eq:npll}:
+\begin{align}
+-LL_i&=
 \underbrace{%
   \frac{n}{2}\log\left(2\pi\sigma^2\right)
 }_{\mbox{scale}} +
@@ -239,7 +231,7 @@ Likelihoods, from Equations~(\ref{eq:nll}) and (\ref{eq:npll}):
   -n\log f(b_i) + 
   \frac{1}{2}\sum_{k=1}^n \log(1+Y_{ki}^2)
 }_{\mbox{jacobian}}\\
--PLL&=&
+-PLL&=
 \underbrace{%
 \frac{nd}{2}\log\left(2\pi\hat{\sigma}^2\right)
 }_{\mbox{scale}}+
@@ -251,35 +243,35 @@ Likelihoods, from Equations~(\ref{eq:nll}) and (\ref{eq:npll}):
   -n\log f(b_i) + 
   \frac{1}{2}\sum_{k=1}^n \log(1+Y_{ki}^2)\right)
 }_{\mbox{jacobian}}
-\end{eqnarray}
+\end{align}
 The computations in the C code are organised into steps for computing the
 terms ``scale'', ``residuals'' and ``jacobian''.
 
 Partial derivatives with respect to $a_i$,
-from Equations~(\ref{eq:ddanll}) and (\ref{eq:ddanpll}):
-\begin{eqnarray}
-\frac{\partial}{\partial a_i}(-LL_i) &=&
+from Equations~\eqref{eq:ddanll} and \eqref{eq:ddanpll}:
+\begin{align}
+\frac{\partial}{\partial a_i}(-LL_i) &=
 \sum_{k=1}^n 
 \left(\frac{r_{ki}}{\sigma^2}+A_{ki}Y_{ki}\right)A_{ki}\\
 %
-\frac{\partial}{\partial a_i}(-PLL) &=&
+\frac{\partial}{\partial a_i}(-PLL) &=
 \sum_{k=1}^n 
 \left(\frac{r_{ki}}{\hat{\sigma}^2}+A_{ki}Y_{ki}\right)A_{ki}
-\end{eqnarray}
+\end{align}
 
 Partial derivatives with respect to $b_i$,
-from Equations~(\ref{eq:ddbnll}) and (\ref{eq:ddbnpll}):
-\begin{eqnarray}
-\frac{\partial}{\partial b_i}(-LL_i) &=&
+from Equations~\eqref{eq:ddbnll} and \eqref{eq:ddbnpll}:
+\begin{align}
+\frac{\partial}{\partial b_i}(-LL_i) &=
 -n\frac{f'(b_i)}{f(b_i)}
 +f'(b_i)\sum_{k=1}^n 
 \left(\frac{r_{ki}}{\sigma^2}+A_{ki}Y_{ki}\right)A_{ki}y_{ki}\\
 %
-\frac{\partial}{\partial b_i}(-PLL) &=&
+\frac{\partial}{\partial b_i}(-PLL) &=
 -n\frac{f'(b_i)}{f(b_i)}
 +f'(b_i)\sum_{k=1}^n 
 \left(\frac{r_{ki}}{\hat{\sigma}^2}+A_{ki}Y_{ki}\right)A_{ki}y_{ki}.
-\end{eqnarray}
+\end{align}
 
 Note that the terms have many similarities -- this
 is used in the implementation in the C code.
