@@ -17,6 +17,9 @@ knitr::opts_chunk$set(tidy = FALSE, cache = TRUE, autodep = TRUE,
 set.seed(0xdada)
 ```
 
+
+<span style="color:red">This is an unfinished port of the package's "old" Sweave/PDF vignette into Rmarkdown/HTML. There are still bugs in here, like unevaluated LaTeX markup, unmapped cross-references, awkward figure dimensions and the bibliography. Please bear with me. In doubt, please consult the [existing PDF vignette](vsn.pdf).</span>
+  
 # Getting started{#sec:overv}
 
 VSN is a method to preprocess microarray intensity data.  This can be as simple as
