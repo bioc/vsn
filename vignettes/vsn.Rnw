@@ -1,4 +1,4 @@
-%\VignetteIndexEntry{Introduction to vsn}
+%\VignetteIndexEntry{Introduction to vsn (Sweave version)}
 %\VignetteDepends{vsn,affydata,hgu95av2cdf}
 %\VignetteKeywords{Expression Analysis}
 %\VignettePackage{vsn}
@@ -28,7 +28,7 @@ BiocStyle::latex2()
 
 \begin{document}
 %----------------------------------------------------------------------------------------
-\title{Introduction to robust calibration and variance stabilisation with VSN}
+\title{Introduction to vsn (Sweave version)}
 \author{Wolfgang Huber}
 %----------------------------------------------------------------------------------------
 \maketitle

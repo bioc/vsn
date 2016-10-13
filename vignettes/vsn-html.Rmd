@@ -1,10 +1,10 @@
 ---
-title: "Introduction to robust calibration and variance stabilisation with VSN"
+title: "Introduction to vsn (HTML version)"
 author: "Wolfgang Huber"
 date: "`r doc_date()`"
 package: "`r pkg_ver('vsn')`"
 vignette: >
-  %\VignetteIndexEntry{Introduction to robust calibration and variance stabilisation with VSN}
+  %\VignetteIndexEntry{Introduction to vsn (HTML version)}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 output: BiocStyle::html_document2
