@@ -8,7 +8,7 @@ Author: Wolfgang Huber, with contributions from Anja von
 Maintainer: Wolfgang Huber <whuber@embl.de>
 Depends: R (>= 3.4.0), Biobase
 Imports: methods, affy, limma, lattice, ggplot2
-Suggests: affydata, hgu95av2cdf, BiocStyle, rmarkdown
+Suggests: affydata, hgu95av2cdf, BiocStyle, knitr
 Description: The package implements a method for normalising microarray intensities,
         both between colours within array, and between arrays. The method uses a
 	robust variant of the maximum-likelihood estimator for the stochastic model of
@@ -35,7 +35,7 @@ Reference: [1] Variance stabilization applied to microarray data
 License: Artistic-2.0
 URL: http://www.r-project.org, http://www.ebi.ac.uk/huber
 biocViews: Microarray, OneChannel, TwoChannel, Preprocessing
-VignetteBuilder: rmarkdown
+VignetteBuilder: knitr
 Collate: AllClasses.R  AllGenerics.R
 	vsn2.R vsnLogLik.R justvsn.R
 	methods-vsnInput.R methods-vsn.R methods-vsn2.R methods-predict.R
