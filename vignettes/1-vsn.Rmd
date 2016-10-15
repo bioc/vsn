@@ -8,7 +8,7 @@ output:
     toc: true
 bibliography: vsn.bib
 vignette: >
-  %\VignetteIndexEntry{"Introduction to vsn (HTML version)"}
+  %\VignetteIndexEntry{Introduction to vsn (HTML version)}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding[utf8]{inputenc}
 ---
