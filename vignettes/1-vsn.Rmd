@@ -3,20 +3,22 @@ title: "Introduction to vsn (HTML version)"
 author: "Wolfgang Huber"
 date: "`r doc_date()`"
 package: "`r pkg_ver('vsn')`"
+output: 
+  BiocStyle::html_document2:
+    toc: true
+bibliography: vsn.bib
 vignette: >
-  %\VignetteIndexEntry{Introduction to vsn (HTML version)}
+  %\VignetteIndexEntry{"Introduction to vsn (HTML version)"}
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
-output: BiocStyle::html_document2
+  %\VignetteEncoding[utf8]{inputenc}
 ---
 
 ```{r setup, echo = FALSE, results = "hide"}
-options(width = 41, signif = 3, digits = 3)
+options(signif = 3, digits = 3)
 knitr::opts_chunk$set(tidy = FALSE, cache = TRUE, autodep = TRUE,
     dev = "png", dpi = 600, message = FALSE, error = FALSE, warning = TRUE)
 set.seed(0xdada)
 ```
-
 
 <span style="color:red">This is an unfinished port of the package's "old" Sweave/PDF vignette into Rmarkdown/HTML. There are still bugs in here, like unevaluated LaTeX markup, unmapped cross-references, awkward figure dimensions and the bibliography. Please bear with me. In doubt, please consult the [existing PDF vignette](vsn.pdf).</span>
   
@@ -184,7 +186,7 @@ hist(M, breaks = 33, col = "#d95f0e")
 
 The package includes example data from a series of 8 spotted cDNA arrays 
 on which cDNA samples from different lymphoma were hybridised together 
-with a reference cDNA~\cite{Alizadeh}.
+with a reference cDNA [@Alizadeh].
 
 ```{r lymphoma}
 data("lymphoma")
@@ -237,7 +239,7 @@ the following steps:
 (ii) between-array normalization,
 (iii) transformation and (iv) summarisation.
 The VSN method addresses steps (i)--(iii).
-For the summarisation, I recommend to use the RMA method~\cite{RMA},
+For the summarisation, I recommend to use the RMA method [@RMA],
 and a simple wrapper that provides all of these is provided through 
 the method `vsnrma`.
 
@@ -551,7 +553,7 @@ preliminary normalisation, identify the least changing features, and
 then call VSN again on that subset. This strategy is already built
 into the VSN algorithm and is controlled by its `lts.quantile`
 parameter. Please see Section \@ref{sec:mostunch} and
-reference~\cite{HuberSAGMB2003} for details.
+reference [@Huber:2003:SAGMB] for details.
 
 
 # Normalisation against an existing reference dataset{#sec:ref}
@@ -635,9 +637,9 @@ systematic effects, such that an array-wide calibration is sufficient.
 
 A model with multiple strata per array may be useful for spotted
 arrays. For these, stratification may be according to
-print-tip~\cite{Dudoit578} or PCR-plate~\cite{HSG2002}. For
+print-tip [@Dudoit578] or PCR-plate [@Huber:2003:HSG]. For
 oligonucleotide arrays, it may be useful to stratify the features by
-physico-chemical properties, e.\,g.\, to assume that features of
+physico-chemical properties, e.g., to assume that features of
 different sequence composition attract systematically different levels
 of unspecific background signal.
 
@@ -679,8 +681,8 @@ is what was called $a_{si}$ in Eqn.~(\ref{eq.transf}), and
 ## The calibration parameters and the additive-multiplicative error model 
 
 VSN is based on the additive-multiplicative error 
-model~\cite{RockeDurbin2001,HuberWiley2004}, which predicts a quadratic variance-mean
-relationship of the form~\cite{HuberISMB2002}
+model [@RockeDurbin2001,@Huber:2004:Encyc], which predicts a quadratic variance-mean
+relationship of the form [@Huber:2002:Bioinformatics]
 \begin{equation}
 v(u)=(c_1u+c_2)^2+c_3.
 \end{equation}
@@ -698,7 +700,7 @@ Only the behaviour of $v(u)$ for $u\ge -c_2/c_3$ is typically relevant.
 The parameters $a$ and $b$ from Equation~(\ref{eq.transf})\footnote{I
   drop the indices $s$, $k$ and $i$, since for the purpose of this section,
   they are passive} and the parameters of the additive-multiplicative
-error model are related by~\cite{HuberISMB2002}
+error model are related by [@Huber:2002:Bioinformatics]
 \begin{eqnarray}
 a&=&\frac{c_2}{\sqrt{c_3}}\nonumber\\ 
 e^b&=&\frac{c_1}{\sqrt{c_3}}\label{eq:errmod2trsf}
@@ -713,7 +715,7 @@ transformation. This can be resolved, for example, if the coefficient of variati
 obtained by some other means than the `vsn2` function. For example, it can be
 estimated from the standard deviation of the VSN-transformed data, 
 which is, in the approximation of the delta method, 
-the same as the coefficient of variation~\cite{HuberISMB2002,HuberSAGMB2003}.
+the same as the coefficient of variation [@Huber:2002:Bioinformatics,@Huber:2003:SAGMB].
 Then, 
 \begin{eqnarray}
 c_3&=& c_1^2\, e^{-2b}\nonumber\\ 
@@ -735,7 +737,7 @@ The assessment of the precision of the estimated values of $a$ and $b$
 (e.\,g.\ by resampling, or by using replicate data) is therefore usually
 not very relevant; what is relevant is an assessment of the
 precision of the estimated transformation, i.\,e.\ how much do the
-transformed values vary~\cite{HuberSAGMB2003}.
+transformed values vary [@Huber:2003:SAGMB].
 
 
 ## More on calibration 
@@ -791,7 +793,7 @@ that comes with this package.
 
 Practically, the more interesting question is how different microarray
 calibration and data transformation methods compare to each other.
-Two such comparisons were made in reference~\cite{HuberISMB2002}, one
+Two such comparisons were made in reference [@Huber:2002:Bioinformatics], one
 with a set of two-colour cDNA arrays, one with an Affymetrix genechip
 dataset. Fold-change estimates from VSN led to
 higher sensitivity and specificity in identifying differentially
@@ -805,8 +807,8 @@ concentrations on top of a complex RNA background sample; and a
 *Dilution* dataset, in which RNA samples from heart and brain
 were combined in a number of dilutions and proportions.  The design of
 the benchmark study, which has been open for anyone to submit their method, was
-described in reference~\cite{Affycomp}.  A discussion of its results
-was given in reference~\cite{Affycomp2}. One of the results that emerged
+described in [@Affycomp].  A discussion of its results
+was given in [@Affycomp2]. One of the results that emerged
 was that VSN compares well with the background correction and
 quantile normalization method of RMA; both methods place a high
 emphasis on *precision* of the expression estimate, at the price
@@ -907,7 +909,7 @@ even become negative.
 
 An illustration is shown in \figphrase{vsn-figshrink}.  Data were
 generated from the additive-multiplicative error
-model~\cite{RockeDurbin2001,HuberSAGMB2003,HuberWiley2004}.  The
+model [@RockeDurbin2001,@Huber:2003:SAGMB,@Huber:2004:Encyc].  The
 horizontal line corresponds to the true $\log_2$-ratio $1$
 (corresponding to a factor of 2).  For intensities $x_2$ that are
 larger than about ten times the additive noise level $\sigma_a$,
@@ -926,7 +928,7 @@ data, which are discarded from the sampling when the (log-)ratio is
 computed. 
 
 Please consult the references for more on the
-mathematical background~\cite{HuberISMB2002,HSG2002,HuberSAGMB2003}.
+mathematical background [@Huber:2002:Bioinformatics,@Huber:2003:HSG,@Huber:2003:SAGMB].
 
 It is possible to give a Bayesian interpretation: our prior
 assumption is the conservative one of no differential expression.
@@ -984,7 +986,7 @@ into account the different row behaviours, for example,
 VSN with strata~(see Section~\ref{sec:strata}).
 - It has also been proposed to address this type of problem by using 
 a non-linear regression on the $A$-values, for example the 
-`loess` normalization of reference~\cite{YeeNorm}
+`loess` normalization of reference [@YeeNorm]
 that simply squeezes the $M$-$A$-plot to force the centre of the 
 distribution of $M$ to lie at 0 along the whole $A$-range.
 
@@ -1062,7 +1064,7 @@ batches.
 \end{description}
 
 How to reliably diagnose and deal with such violations is beyond the scope 
-of this vignette; see the references for more~\cite{HSG2002,Dudoit578}. 
+of this vignette; see the references for more [@Huber:2003:HSG,Dudoit578]. 
 
 ## Most genes unchanged assumption{#sec:mostunch}
 
@@ -1107,78 +1109,3 @@ Richard Bourgon, Martin Vingron, Ulrich Mansmann and Robert Gentleman.
 ```{r sessionInfo}
 sessionInfo()
 ```
-
-
-\begin{thebibliography}{10}
-
-\bibitem{HuberISMB2002}
-W. Huber, A. von Heydebreck, H. {S\"ultmann}, A. Poustka, and M. Vingron.
-\newblock Variance stablization applied to microarray data calibration and to
-  quantification of differential expression.
-\newblock \textit{Bioinformatics}, 18:S96--S104, 2002.
-
-\bibitem{HSG2002}
-W. Huber, A. von Heydebreck, and M. Vingron.
-\newblock Analysis of microarray gene expression data.
-\newblock \textit{Handbook of Statistical Genetics}, 
-Eds.: D. J. Balding, M. Bishop, C. Cannings. 
-John Wiley \& Sons, Inc. (2003).
-\textit{(preprint available from author)}
-
-\bibitem{HuberSAGMB2003}
-W. Huber, A. von Heydebreck, H. {S\"ultmann}, A. Poustka, and M. Vingron.
-\newblock Parameter estimation for the calibration and variance stabilization 
-of microarray data.
-\newblock \textit{Statistical Applications in Genetics and Molecular Biology}, 
-Vol. 2: No. 1, Article 3, 2003. 
-http://www.bepress.com/sagmb/vol2/iss1/art3
-
-\bibitem{HuberWiley2004}
-W. Huber, A. von Heydebreck, and M. Vingron.
-\newblock Error models for microarray intensities.
-\newblock \textit{Encyclopedia of Genomics, Proteomics and Bioinformatics}, 
-John Wiley \& Sons, Inc. (2004).
-\textit{(preprint available from author)}
-
-\bibitem{RockeDurbin2001}
-David~M. Rocke and Blythe Durbin.
-\newblock A model for measurement error for gene expression analysis.
-\newblock \textit{Journal of Computational Biology}, 8:557--569, 2001.
-
-\bibitem{Dudoit578}
-S. Dudoit, Y.~H. Yang, T.~P. Speed, and M.~J. Callow.
-\newblock Statistical methods for identifying differentially expressed genes in
-  replicated {cDNA} microarray experiments.
-\newblock \textit{Statistica Sinica}, 12:111--139, 2002.
-
-\bibitem{Alizadeh}
-A.~A. Alizadeh et al.
-\newblock Distinct types of diffuse large B-cell lymphoma identified by gene expression profiling.
-\newblock \textit{Nature}, 403:503--511, 2000.
-
-\bibitem{Affycomp}
-L.~M. Cope, R.~A. Irizarry, H.~A. Jaffee, Z.~Wu, and T.~P. Speed.
-\newblock A Benchmark for Affymetrix GeneChip Expression Measures.
-\newblock \textit{Bioinformatics}, 20:323--331, 2004.
-
-\bibitem{Affycomp2}
-R.~A. Irizarry, Z.~Wu, and H.~A. Jaffee.
-\newblock Comparison of Affymetrix GeneChip expression measures.
-\newblock \textit{Bioinformatics}, 22:789--794, 2006.
-
-\bibitem{RMA}
-R.~A. Irizarry, B.~Hobbs, F.~Collin, Y.~D. Beazer-Barclay, K.~J. Antonellis, 
-U.~Scherf, and T.~P. Speed. \newblock Exploration, normalization, and 
-summaries of high density oligonucleotide array probe level data.
-\newblock \textit{Biostatistics} 4:249--264, 2003.
-
-\bibitem{YeeNorm}
-Y.~H. Yang, S.~Dudoit, P.~Luu, and T.~P. Speed.
-\newblock Normalization for cDNA microarray data: a robust
-composite method addressing single and multiple
-slide systematic variation.
-\newblock \textit{Nucleic Acids Research} 30:e15, 2002.
-
-\end{thebibliography}
-
-

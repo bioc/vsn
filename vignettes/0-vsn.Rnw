@@ -42,7 +42,7 @@ set.seed(0xdada)
 ##   Sweave's fig=TRUE mechanism...
 ##   (pdfs are too large)
 openBitmap = function(nm, rows=1, cols=1) {
-  png(paste("vsn-", nm, ".png", sep=""), 
+  png(paste("0-vsn-", nm, ".png", sep=""), 
        width=600*cols, height=700*rows, pointsize=14)
   par(mfrow=c(rows, cols), cex=2)
 }

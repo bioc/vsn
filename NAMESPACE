@@ -3,11 +3,12 @@ useDynLib("vsn")
 import("Biobase")
 import("ggplot2")
 
-importFrom("stats", "predict")
-importFrom("methods", "show")
-importFrom("stats", "logLik", "coef", "coefficients")
+importFrom("grDevices", "colorRampPalette")
+importFrom("graphics", "matplot")
+importFrom("methods", ".valueClassTest", "as", "is", "new", "slot", "validObject", "show")
+importFrom("stats", "df", "median", "quantile", "rgamma", "rnorm", "runif", "predict", "logLik",
+           "coef", "coefficients")
 importFrom("lattice", "levelplot")
-
 importFrom("affy", "rma", "normalize.AffyBatch.methods", "upDate.normalize.AffyBatch.methods",
            "indexProbes", "intensity", "intensity<-")
 
@@ -19,10 +20,6 @@ export(
   ## Deprecated
   "vsn", "vsnh", "vsnPlotPar",
 
-  ## needs update
-  "normalize.AffyBatch.vsn",
-
-  ## New
   "vsnMatrix", "justvsn", "vsnrma",
   "sagmbAssess", "sagmbSimulateData", "plotVsnLogLik", "scalingFactorTransformation")
 
