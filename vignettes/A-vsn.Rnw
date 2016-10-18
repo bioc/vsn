@@ -42,7 +42,7 @@ set.seed(0xdada)
 ##   Sweave's fig=TRUE mechanism...
 ##   (pdfs are too large)
 openBitmap = function(nm, rows=1, cols=1) {
-  png(paste("0-vsn-", nm, ".png", sep=""), 
+  png(paste("A-vsn-", nm, ".png", sep=""), 
        width=600*cols, height=700*rows, pointsize=14)
   par(mfrow=c(rows, cols), cex=2)
 }
@@ -88,8 +88,8 @@ stopifnot(
 @ 
 %
 \begin{figure*}
-\includegraphics{0-vsn-nkid-scp}  
-\caption{\label{0-vsn-nkid-scp}%
+\includegraphics{A-vsn-nkid-scp}  
+\caption{\label{A-vsn-nkid-scp}%
 Scatterplots of the kidney example data, which were obtained from a 
 two-colour cDNA array by quantitating spots and subtracting a local background 
 estimate.
@@ -102,9 +102,9 @@ Those spots which are missing in panel a are coloured in orange in panel b.}
 \end{figure*}
 %
 \begin{figure*}
-\includegraphics[width=0.49\textwidth]{0-vsn-nkid-sdmean1}  
-\includegraphics[width=0.49\textwidth]{0-vsn-nkid-sdmean2}  
-\caption{\label{0-vsn-nkid-sdmean}%
+\includegraphics[width=0.49\textwidth]{A-vsn-nkid-sdmean1}  
+\includegraphics[width=0.49\textwidth]{A-vsn-nkid-sdmean2}  
+\caption{\label{A-vsn-nkid-sdmean}%
 Standard deviation versus rank of the mean, and the mean, respectively.}
 \end{figure*}
 %
@@ -180,7 +180,7 @@ on the relationship between background correction and variance
 stabilising transformations.}  was calculated by the image analysis
 software and subtracted, hence some of the intensities in
 \Robject{kidney} are close to zero or negative. In
-\figphrase{0-vsn-nkid-scp} you can see the scatterplot of the
+\figphrase{A-vsn-nkid-scp} you can see the scatterplot of the
 calibrated and transformed data. For comparison, the scatterplot of
 the log-transformed raw intensities is also shown.
 %
@@ -217,7 +217,7 @@ meanSdPlot(xnorm, ranks=TRUE)
 meanSdPlot(xnorm, ranks=FALSE)
 @
 
-The two plots are shown in \figphrase{0-vsn-nkid-sdmean}.  The red
+The two plots are shown in \figphrase{A-vsn-nkid-sdmean}.  The red
 dots, connected by lines, show the running median of the standard
 deviation\footnote{The parameters used were: window width 10\%, window
 midpoints 5\%, 10\%, 15\%, \ldots.  It should be said that the proper
@@ -241,18 +241,18 @@ command with the argument \Robject{ranks=FALSE}; but this is
 less effective in assessing variance and hence is not the default.
 
 The histogram of the generalized log-ratios is shown in 
-\figphrase{0-vsn-nkid-histM}.
+\figphrase{A-vsn-nkid-histM}.
 %
 <<nkid-histM,echo=FALSE,fig=TRUE,results=hide>>=
 hist(M, breaks=33, col="#d95f0e")
 @
-\incfig{0-vsn-nkid-histM}{0.65\textwidth}{Histogram of generalised 
+\incfig{A-vsn-nkid-histM}{0.65\textwidth}{Histogram of generalised 
 log-ratios \Robject{M} for the kidney example data.}
 
-\incfig{0-vsn-lym-sdmean}{0.65\textwidth}{Standard deviation 
+\incfig{A-vsn-lym-sdmean}{0.65\textwidth}{Standard deviation 
 versus rank of the mean for the lymphoma example data}
 
-\incfig{0-vsn-lym-M}{0.65\textwidth}{$M$-$A$-plot 
+\incfig{A-vsn-lym-M}{0.65\textwidth}{$M$-$A$-plot 
 for slide \texttt{DLCL-0032} from the lymphoma example data.
 A false-colour representation of the data point density is used,
 in addition the 100 data points in the least dense regions are 
@@ -286,7 +286,7 @@ lym = justvsn(lymphoma)
 meanSdPlot(lym)
 @
 
-Again, \figphrase{0-vsn-lym-sdmean} helps to visually verify that the
+Again, \figphrase{A-vsn-lym-sdmean} helps to visually verify that the
 variance stabilisation worked.  As above, we can obtain the
 generalised log-ratios for each slide by subtracting the common
 reference intensities from those for the 8 samples:
@@ -305,7 +305,7 @@ smoothScatter(A[,j], M[,j], main=j,
 abline(h=0, col="red")
 @
 %
-\figphrase{0-vsn-lym-M} shows the resulting $M$-$A$-plot~\cite{Dudoit578}
+\figphrase{A-vsn-lym-M} shows the resulting $M$-$A$-plot~\cite{Dudoit578}
 for one of the arrays. 
 
 %---------------------------------------------------------
@@ -336,7 +336,7 @@ For comparison, we also run \Rfunction{rma}.
 d_rma = rma(Dilution)
 @ 
 %
-The scatterplots produced by the code below are compared in \figphrase{0-vsn-affy}.
+The scatterplots produced by the code below are compared in \figphrase{A-vsn-affy}.
 %
 <<figaffy1,echo=FALSE>>=
 openBitmap("affy", cols=3, rows=1)
@@ -369,8 +369,8 @@ VSN does so more strongly. See also Section~\ref{sec:shrink} for further
 discussion on the VSN shrinkage.
 
 \begin{figure*}
-\includegraphics[width=\textwidth]{0-vsn-affy}  
-\caption{\label{0-vsn-affy}%
+\includegraphics[width=\textwidth]{A-vsn-affy}  
+\caption{\label{A-vsn-affy}%
 Results of \Rfunction{vsnrma} and \Rfunction{rma} on the Dilution 
 example data. Array 1 was hybridised with 
 $\Sexpr{as.character(pData(Dilution)$liver[1])}\mu$g RNA from liver,
@@ -400,8 +400,8 @@ lymNCS = justvsn(lymRG)
 @ 
 %
 \begin{figure*}
-\includegraphics[width=\textwidth]{0-vsn-figlimma}  
-\caption{\label{0-vsn-figlimma}%
+\includegraphics[width=\textwidth]{A-vsn-figlimma}  
+\caption{\label{A-vsn-figlimma}%
 Left: histogram of $p$-values from the moderated $t$-test between the 
 \Sexpr{levels(lymNCS$sampR)[1]} and
 \Sexpr{levels(lymNCS$sampR)[2]} groups on the \Robject{lymM} values.
@@ -476,7 +476,7 @@ lf = lmFit(lymM, design[, 2, drop=FALSE])
 lf = eBayes(lf)
 @ 
 %
-\figphrase{0-vsn-figlimma} shows the resulting $p$-values and
+\figphrase{A-vsn-figlimma} shows the resulting $p$-values and
 the expression profiles of the genes corresponding to the 
 top 5 features.
 %
@@ -544,8 +544,8 @@ Here we only do this for the first 3 arrays to save compute time.
 \subsection{Print-tip groups}\label{sec:strata}
 %--------------------------------------------------
 \begin{smallfigure}
-\includegraphics[width=\textwidth]{0-vsn-figstrata}  
-\caption{\label{0-vsn-figstrata}%
+\includegraphics[width=\textwidth]{A-vsn-figstrata}  
+\caption{\label{A-vsn-figstrata}%
 Scatterplot of normalised and transformed intensities for 
 the red channel of array 1. Values on the $x$-axis correspond 
 to normalisation without strata (\Robject{EsenzaStr}), 
@@ -593,7 +593,7 @@ EsenzaStr = justvsn(lymRG[,1])
 @
 %
 A scatterplot comparing the transformed red intensities,
-using the two models, is shown in \figphrase{0-vsn-figstrata}.
+using the two models, is shown in \figphrase{A-vsn-figstrata}.
 %
 <<figstrata1,echo=FALSE>>=
 openBitmap("figstrata")
@@ -618,8 +618,8 @@ dev.off()
 \section{Missing values} \label{sec:miss}
 %---------------------------------------------------------------------
 \begin{figure*}
-\includegraphics[width=\textwidth]{0-vsn-figmiss}  
-\caption{\label{0-vsn-figmiss}%
+\includegraphics[width=\textwidth]{A-vsn-figmiss}  
+\caption{\label{A-vsn-figmiss}%
 Scatterplots of fitted parameters, values on the $x$-axis correspond 
 to normalisation without missing data (\Robject{fit1}), 
 values on the $y$-axis to normalisation with $\approx 10\%$ 
@@ -645,7 +645,7 @@ fit2 = vsn2(lym2, lts.quantile=1)
 @ 
 %
 The resulting fitted parameters are not identical, but very similar, 
-see \figphrase{0-vsn-figmiss}.
+see \figphrase{A-vsn-figmiss}.
 %
 <<figmiss,fig=TRUE,width=8>>=
 par(mfrow=c(1,2))
@@ -742,7 +742,7 @@ procedure that normalises the new test arrays ``towards'' the existing
 reference dataset without changing the latter.
 
 % 
-\incfig{0-vsn-figref}{0.65\textwidth}{Scatterplot of normalised 
+\incfig{A-vsn-figref}{0.65\textwidth}{Scatterplot of normalised 
 intensities after normalisation by reference ($x$-axis, \Robject{f8})
 and joint normalisation ($y$-axis, \Robject{fall}).
 There is good agreement.}
@@ -773,7 +773,7 @@ coefficients(f8)[,1,]
 coefficients(fall)[,8,]
 @
 % 
-and compare the resulting values in the scatterplot shown in \figphrase{0-vsn-figref}:
+and compare the resulting values in the scatterplot shown in \figphrase{A-vsn-figref}:
 they are very similar. 
 %
 <<figref1,echo=FALSE>>=
@@ -930,8 +930,8 @@ transformed values vary~\cite{HuberSAGMB2003}.
 \subsection{More on calibration} 
 %---------------------------------------------------------------------
 \begin{figure*}
-\includegraphics[width=\textwidth]{0-vsn-nkid-calib}  
-\caption{\label{0-vsn-nkid-calib}%
+\includegraphics[width=\textwidth]{A-vsn-nkid-calib}  
+\caption{\label{A-vsn-nkid-calib}%
 Scatterplots for badly biased data. 
 Left hand side: raw data on log-log scale, 
 right hand side: after calibration and transformation with vsn.}
@@ -972,7 +972,7 @@ rm(list="oldwarn")
 Notice the change in the parameter $b$ of the red 
 channel: it is now larger by about $\log(4)\approx 1.4$,
 and the shift parameter $a$ has also been adjusted.  
-The result is shown in \figphrase{0-vsn-nkid-calib}.
+The result is shown in \figphrase{A-vsn-nkid-calib}.
 
 %-------------------------------------------------------------------
 \section{Variance stabilisation without calibration}\label{sec:nocalib}
@@ -1003,11 +1003,11 @@ plot(exprs(lym)[,1], exprs(lym_qvsn)[, 1],
 <<figqvsn3,echo=FALSE,results=hide>>=
 dev.off()
 @ 
-The result is shown in \figphrase{0-vsn-qvsn}.
+The result is shown in \figphrase{A-vsn-qvsn}.
 
 \begin{figure*}
-\includegraphics[width=\textwidth]{0-vsn-qvsn}  
-\caption{\label{0-vsn-qvsn}%
+\includegraphics[width=\textwidth]{A-vsn-qvsn}  
+\caption{\label{A-vsn-qvsn}%
 The left panel shows the scatterplot between the red and green intensities of
 the array of the lymphoma dataset after quantile
 normalisation followed by VSN variance stabilisation without calibration.
@@ -1139,8 +1139,8 @@ legend(x = par("usr")[2], y = par("usr")[3],
 @
 %
 \begin{smallfigure}
-\includegraphics[width=\textwidth]{0-vsn-figshrink}
-\caption{\label{0-vsn-figshrink}The shrinkage property of the 
+\includegraphics[width=\textwidth]{A-vsn-figshrink}
+\caption{\label{A-vsn-figshrink}The shrinkage property of the 
 generalised log-ratio.  
 Blue diamonds and error bars correspond to mean and standard
 deviation of the generalised log-ratio $h$, as obtained from VSN, 
@@ -1149,8 +1149,8 @@ and black dots and error bars to the standard log-ratio $q$ (both base 2).
 \end{smallfigure}
 
 \begin{smallfigure}
-\includegraphics[width=\textwidth]{0-vsn-figgraph}
-\caption{\label{0-vsn-figgraph}Graphs of the functions $y=\log_2(x)$,
+\includegraphics[width=\textwidth]{A-vsn-figgraph}
+\caption{\label{A-vsn-figgraph}Graphs of the functions $y=\log_2(x)$,
   $y=\glog_2(x,c)=\log_2(x+\sqrt{x^2+c^2})-1$, and
   $y=\log_2(x+x_{\mbox{\scriptsize off}})$, where $c=\Sexpr{cc}$ and
   $x_{\mbox{\scriptsize off}}=\Sexpr{xoff}$.
@@ -1166,7 +1166,7 @@ divergence of the standard log-ratios at small intensities: they remain
 well-defined and have limited variance when the data come close to zero or
 even become negative. 
 
-An illustration is shown in \figphrase{0-vsn-figshrink}.  Data were
+An illustration is shown in \figphrase{A-vsn-figshrink}.  Data were
 generated from the additive-multiplicative error
 model~\cite{RockeDurbin2001,HuberSAGMB2003,HuberWiley2004}.  The
 horizontal line corresponds to the true $\log_2$-ratio $1$
@@ -1202,7 +1202,7 @@ downweighted, and the posterior is still strongly influenced by the prior.
 \section{Quality assessment}\label{sec.qc}
 %---------------------------------------------------------
 \begin{figure*}
-\includegraphics[width=\textwidth]{0-vsn-lymbox}  
+\includegraphics[width=\textwidth]{A-vsn-lymbox}  
 \caption{\label{fig:lymbox}%
 Boxplot of \Robject{A} values of array \texttt{CLL-13}
 stratified by within-sector row. The features in rows 22 and 23 are 
@@ -1230,7 +1230,7 @@ boxplot(A[, j] ~ arrayGeometry$spotrow,
    ylab="A", xlab="spotrow")
 @ 
 %
-\incfig{0-vsn-lymquscp}{0.65\textwidth}{$M$-$A$-plot of the data from
+\incfig{A-vsn-lymquscp}{0.65\textwidth}{$M$-$A$-plot of the data from
 array \Sexpr{j}. Dots coloured in orange are from rows 22 and 23. A
 possible explanation may be as follows (although I do not know for
 sure that this is the right explanation): The PCR product (cDNA) that
@@ -1247,7 +1247,7 @@ these plots for the other arrays as well.
 
 In \figphrase{fig:lymbox}, we see that the features in rows 22 and
 23 are all very dim.  If we now look at these data in the $M$-$A$-plot
-(\figphrase{0-vsn-lymquscp}), we see that these features not only have
+(\figphrase{A-vsn-lymquscp}), we see that these features not only have
 low $A$-values, but fall systematically away from the $M=0$ line.
 
 
