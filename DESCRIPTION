@@ -1,5 +1,5 @@
 Package: vsn
-Version: 3.43.2
+Version: 3.43.3
 Title: Variance stabilization and calibration for microarray data
 Author: Wolfgang Huber, with contributions from Anja von
         Heydebreck. Many comments and suggestions by users are
@@ -8,7 +8,7 @@ Author: Wolfgang Huber, with contributions from Anja von
 Maintainer: Wolfgang Huber <whuber@embl.de>
 Depends: R (>= 3.0.0), Biobase
 Imports: methods, affy, limma, lattice, ggplot2
-Suggests: affydata, hgu95av2cdf, BiocStyle, knitr
+Suggests: affydata, hgu95av2cdf, BiocStyle, knitr, dplyr
 Description: The package implements a method for normalising microarray intensities, and works
         for single- and multiple-color arrays. It can also be used
 	for data from other technologies, as long as they have similar format. The method uses a
