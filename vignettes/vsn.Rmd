@@ -139,7 +139,7 @@ library("ggplot2")
 allpositive = (rowSums(exprs(kidney) <= 0) == 0)
 
 ## some data shuffling to bring data into the right shape and data.frame for ggplot
-df1 = data.frame(log2(exprs(kidney)[select, ]),
+df1 = data.frame(log2(exprs(kidney)[allpositive, ]),
                  type = "raw",
 		 allpositive = TRUE)
 df2 = data.frame(exprs(xnorm),
