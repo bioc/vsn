@@ -62,10 +62,10 @@ where `fit` is an object of class `vsn` that contains
 the fitted calibration and transformation parameters, and the method
 `predict` applies the fit to the data.
 The two-step protocol is useful when you want to fit the parameters on a
-subset of the data, e.\,g.\ a set of control or spike-in features,
+subset of the data, e.g. a set of control or spike-in features,
 and then apply the model to the complete set of data 
 (see Section~\@ref(sec:spike) for details). Furthermore, it
-allows further inspection of the `fit` object, e.\,g.\ for the
+allows further inspection of the `fit` object, e.g. for the
 purpose of quality assessment.
 
 Besides `ExpressionSet`s, there are also `justvsn` 
@@ -96,7 +96,7 @@ factors such as labelling efficiency or detector sensitivity.  Second,
 a glog$_2$ transformation whose aim is variance stabilisation.
 
 An affine transformation is simply a shifting and scaling of
-the data, i.\,e.\ a mapping of the form $x\mapsto (x-a)/s$ with offset
+the data, i.e. a mapping of the form $x\mapsto (x-a)/s$ with offset
 $a$ and scaling factor $s$.  By default, a different offset and a
 different scaling factor are used for each column, but the same for
 all rows within a column. There are two parameters of the function
@@ -168,8 +168,8 @@ meanSdPlot(xnorm, ranks = FALSE)
 ```
 
 The red dots, connected by lines, show the running median of the standard
-deviation^[The parameters used were: window width 10\%, window
-midpoints 5\%, 10\%, 15\%, \ldots.  It should be said that the proper
+deviation^[The parameters used were: window width 10%, window
+midpoints 5%, 10%, 15%, ... . It should be said that the proper
 way to do is with quantile regression such as provided by the
 `r CRANpkg("quantreg")` package---what is done here for these plots is
 simple, cheap and should usually be good enough due to the abundance
@@ -463,7 +463,7 @@ EsenzaStr = justvsn(lymRG[, 1])
 ```
 
 A scatterplot comparing the transformed red intensities,
-using the two models, is shown in \figphrase{vsn-figstrata}.
+using the two models, is shown in Figure \@ref(fig:figstrata2).
 
 ```{r figstrata2, fig.width = 4, fig.height = 4.5, fig.cap = "Scatterplot of normalised and transformed intensities for the red channel of Array 1. Values on the $x$-axis correspond to normalisation without strata (`EsenzaStr`), values on the $y$-axis to normalisation with strata (`EconStr`). The different colours correspond to the 16 different strata."}
 j = 1
@@ -481,7 +481,7 @@ plot(assayData(EsenzaStr)$R[,j],
 
 The parameter estimation algorithm of VSN is able to deal with
 missing values in the input data. To demonstrate this, we generate an 
-`ExpressionSet` `lym2` in which about 10\% of all intensities 
+`ExpressionSet` `lym2` in which about 10% of all intensities 
 are randomly missing,
 
 ```{r miss1}
@@ -502,7 +502,7 @@ fit2 = vsn2(lym2, lts.quantile=1)
 The resulting fitted parameters are not identical, but very similar, 
 see Figure \@ref(fig:miss).
 %
-```{r miss, fig.width = 6, fig.height = 3.5, fig.cap="Scatterplots of fitted parameters, values on the $x$-axis correspond to normalisation without missing data (`fit1`), values on the $y$-axis to normalisation with around 10\\% missing data (`fit2`)."}
+```{r miss, fig.width = 6, fig.height = 3.5, fig.cap="Scatterplots of fitted parameters, values on the $x$-axis correspond to normalisation without missing data (`fit1`), values on the $y$-axis to normalisation with around 10% missing data (`fit2`)."}
 par(mfrow=c(1,2))
 for(j in 1:2){
   p1 = coef(fit1)[,,j]
@@ -640,8 +640,8 @@ obtained through scaling by $\lambda_{si}$ and shifting by $\alpha_{si}$:
 \begin{equation}\label{eq.cal}
 y_{ki}' = \lambda_{si}y_{ki}+\alpha_{si}
 \end{equation}
-where $s\equiv s(k)$ is the so-called \textit{stratum} for feature $k$. In the
-simplest case, there is only one stratum, i.\,e.\ the index $s$ is always
+where $s\equiv s(k)$ is the so-called _stratum_ for feature $k$. In the
+simplest case, there is only one stratum, i.e. the index $s$ is always
 equal to 1, or may be omitted altogether. This amounts to assuming that 
 the data of all features on an array were subject to the same 
 systematic effects, such that an array-wide calibration is sufficient.
@@ -745,9 +745,9 @@ variance (it turns essentially into the usual logarithm transformation),
 but the resulting fit coefficients can be unstable. 
 
 The assessment of the precision of the estimated values of $a$ and $b$
-(e.\,g.\ by resampling, or by using replicate data) is therefore usually
+(e.g. by resampling, or by using replicate data) is therefore usually
 not very relevant; what is relevant is an assessment of the
-precision of the estimated transformation, i.\,e.\ how much do the
+precision of the estimated transformation, i.e. how much do the
 transformed values vary [@Huber:2003:SAGMB].
 
 
@@ -977,9 +977,9 @@ You may want to explore similar boxplots for other stratifying factors
 such as column within print-tip sector or print-tip sector and look at
 these plots for the other arrays as well.
 
-In \figphrase{fig:lymbox}, we see that the features in rows 22 and
+In Figure \@ref(fig:lymbox), we see that the features in rows 22 and
 23 are all very dim.  If we now look at these data in the $M$-$A$-plot
-(\figphrase{vsn-lymquscp}), we see that these features not only have
+(Figure \@(vsn-lymquscp)), we see that these features not only have
 low $A$-values, but fall systematically away from the $M=0$ line.
 
 ```{r lymquscp2, fig.width = 4, fig.height = 3, fig.cap = "MA-plot of the data from array `r j`. Dots coloured in orange are from rows 22 and 23. A possible explanation may be as follows (although I do not know for sure that this is the right explanation): The PCR product (cDNA) that is spotted on these arrays is put on by a print head that sucks cDNA out of microtitre plates and deposits them in spots one after another, row by row. If the content of one plate is faulty, this results in a set of subsequent spots that are faulty. Because the 16 print-tip sectors are spotted in parallel, this affects all sectors in the same way."}
@@ -1088,9 +1088,9 @@ differentially transcribed genes can act as outliers
 (but they do not necessarily need to do so in all cases).
 The maximal number of outliers that do not gravely affect the model
 fitting is controlled by the parameter `lts.quantile`. 
-Its default value is 0.9, which allows for 10\% outliers. The value of
+Its default value is 0.9, which allows for 10% outliers. The value of
 `lts.quantile` can be reduced down to 0.5, which allows for up
-to 50\% outliers. The maximal value is 1, which results in a
+to 50% outliers. The maximal value is 1, which results in a
 least-sum-of-squares estimation that does not allow for any outliers.
 
 So why is this parameter `lts.quantile` user-definable and why 
