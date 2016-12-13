@@ -35,7 +35,7 @@ BiocStyle::latex2()
 \tableofcontents
 
 <<setup,echo=FALSE,results=hide>>=
-options(width=41, signif=3, digits=3)
+options(signif=3, digits=3)
 set.seed(0xdada)
 
 ## To create bitmap versions of plots with many dots, circumventing
