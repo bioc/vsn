@@ -533,7 +533,7 @@ correspond to, differentially expressed targets, then we can help the
 algorithm by fitting the calibration and transformation parameters
 only to the subset of features for which the "not
 differentially expressed" assumption is most appropriate, and then
-applying the calibration and transformation to **all**_
+applying the calibration and transformation to **all**
 features. For example, some experimental designs provide "spike-in"
 control spots for which we know that their targets' abundance is the
 same across all arrays (and/or colours).
