@@ -105,23 +105,27 @@ validityVsnInput = function(object){
 ## validity method for 'vsn'
 ##--------------------------------------------------
 validityVsn = function(object){
-  if(any(is.na(object@coefficients))||(length(dim(object@coefficients))!=3))
+  if (any(is.na(object@coefficients)) || (length(dim(object@coefficients))!=3))
     return("'coefficients' must be a 3D array and not contain NA values.")
 
-  if(dim(object@coefficients)[3L]!=2L)
+  if (dim(object@coefficients)[3L] != 2L)
     return("'dim(coefficients)[3]' must be equal to 2.")
   
-  if(length(object@sigsq)!=1L)
+  if (length(object@sigsq) != 1L)
     return("'sigsq' must be of length 1.")
 
-  if(length(object@hoffset)!=dim(object@coefficients)[1L])
+  if (length(object@hoffset) != dim(object@coefficients)[1L])
     return("'length(hoffset)' and 'dim(coefficients)[1]' must match.")
 
-  if(!equalOrZero(length(object@strata), length(object@mu)))
+  if (!equalOrZero(length(object@strata), length(object@mu)))
     return("'length(strata)' and 'length(mu)' must match.")
 
-  if(nlevels(object@strata)!=dim(object@coefficients)[1])
+  if (nlevels(object@strata) != dim(object@coefficients)[1L])
     return("'nlevels(strata)' and 'dim(coefficients)[1]' must match.")
+
+  ## This does not always have to be the case, see e.g. assignment to 'f8' in the vignette
+  ## if (nrow(object@hx) != length(object@mu))
+  ##   return("'nrow(hx)' and 'length(mu)' must match.")
 
   switch(object@calib,
          affine = if(!equalOrZero(ncol(object@hx), dim(object@coefficients)[2]))
@@ -130,7 +134,7 @@ validityVsn = function(object){
            return("'dim(object@coefficients)' must be 'c(1,1,2)'."),
          return("Invalid 'calib'."))
 
-  if(!((length(object@lbfgsb)==1L)&&(is.integer(object@lbfgsb))))
+  if (!((length(object@lbfgsb)==1L) && (is.integer(object@lbfgsb))))
     return("'lbfgsb' must be an integer of length 1.")
   
   return(TRUE)

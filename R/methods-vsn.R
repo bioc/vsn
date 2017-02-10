@@ -2,12 +2,12 @@
 # methods related to the class 'vsn'
 #------------------------------------------------------------
 setMethod("nrow", signature("vsn"), function(x) length(x@mu))
-setMethod("ncol", signature("vsn"), function(x) dim(x@coefficients)[2])
+setMethod("ncol", signature("vsn"), function(x) switch(x@calib, affine = dim(x@coefficients)[2], none = nrow(x@hx), stop("Invalid 'calib' slot")))
 setMethod("dim",  signature("vsn"), function(x) c(nrow(x), ncol(x)))
 
 setMethod("show", signature("vsn"),
   function(object) {
-    cat(class(object), sprintf("object for n=%d features and d=%d samples.\n",
+    cat(class(object), sprintf("object for %d features and %d samples.\n",
       nrow(object), ncol(object)))
     if(length(object@strata)>0)
       cat(sprintf("strata: %d level%s.\n", nlevels(object@strata), c("", "s")[1+(nlevels(object@strata)>1)]))
