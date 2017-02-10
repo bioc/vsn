@@ -1,5 +1,5 @@
 test_that("calib='affine' option in 'vsn2' works with 'predict' method for resulting 'vsn' object.", {
-  # motivated by https://support.bioconductor.org/p/92235/
+  ## motivated by https://support.bioconductor.org/p/92235/
   nr   <- 500
   nc   <- 10
   dat  <- exp(matrix(rnorm(nr*nc), nr, nc) + log(seq_len(nr)))

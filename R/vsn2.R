@@ -353,8 +353,8 @@ vsnMatrix = function(x,
   
   ## Print welcome message
   if (verbose)
-    cat("vsn2: ", nrow(x), " x ", ncol(x), " matrix (", nlevels(strata), " strat",
-        ifelse(nlevels(strata)==1L, "um", "a"), "). ", sep="")
+    message("vsn2: ", nrow(x), " x ", ncol(x), " matrix (", nlevels(strata), " strat",
+        ifelse(nlevels(strata)==1L, "um", "a"), "). ")
 
   ## Here, the actual work is done.
   res = vsnSample(v)
@@ -377,7 +377,7 @@ vsnMatrix = function(x,
   stopifnot(validObject(res))
 
   if(verbose) {
-    cat("Please use 'meanSdPlot' to verify the fit.\n")
+    message("Please use 'meanSdPlot' to verify the fit.")
   }
   return(res)
 }
@@ -385,7 +385,7 @@ vsnMatrix = function(x,
 ##---------------------------------------------------------------------
 ## The glog transformation
 ##--------------------------------------------------------------------
-vsn2trsf = function(x, p, strata=numeric(0L), hoffset=NULL, calib="affine") {
+vsn2trsf = function(x, p, strata = numeric(0L), hoffset = NULL, calib) {
   if (!is.matrix(x) || !is.numeric(x))
     stop("'x' must be a numeric matrix.\n")
   
