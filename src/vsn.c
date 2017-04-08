@@ -274,7 +274,7 @@ SEXP vsn_c(SEXP e_y, SEXP e_par, SEXP e_strat, SEXP e_what)
 	      error("Invalid argument 'e_strat'.");
 	  }
       /* if what is 2, the return value is a matrix of the same size as y */
-      res        = PROTECT(allocVector(REALSXP, nr*nc);
+      res        = PROTECT(allocVector(REALSXP, nr*nc));
       dimres     = PROTECT(allocVector(INTSXP, 2));
       INTEGER(dimres)[0] = nr;
       INTEGER(dimres)[1] = nc;
