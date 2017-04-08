@@ -390,11 +390,12 @@ SEXP vsn2_point(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Smu, SEXP Ssigsq, SEXP Sca
   setupEverybody(Sy, Spar, Sstrat, Scalib, &x);
   cpar = setupLikelihoodstuff(Sy, Spar, Sstrat, Smu, Ssigsq, &x);
  
-  res = allocVector(REALSXP, x.npar+1);
+  res = PROTECT(allocVector(REALSXP, x.npar+1));
 
   REAL(res)[0] = loglik(x.npar, cpar, (void*) &x);
   grad_loglik(x.npar, cpar, REAL(res)+1, (void*) &x);
 
+  UNPROTECT(1);
   return(res);
 }
 
