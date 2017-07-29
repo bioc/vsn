@@ -16,12 +16,9 @@ importClassesFrom("limma", "RGList")
 importClassesFrom("affy", "AffyBatch")
 
 exportClasses("vsn", "vsnInput")
-export(
-  ## Deprecated
-  "vsn", "vsnh", "vsnPlotPar",
 
-  "vsnMatrix", "justvsn", "vsnrma",
-  "sagmbAssess", "sagmbSimulateData", "plotVsnLogLik", "scalingFactorTransformation")
+export("vsnMatrix", "justvsn", "vsnrma", "sagmbAssess", "sagmbSimulateData",
+       "plotVsnLogLik", "scalingFactorTransformation")
 
 exportMethods("vsn2", "meanSdPlot", "predict", "logLik", "coef", "coefficients",
               "show", "exprs", "nrow", "ncol", "dim", "coerce")

@@ -31,7 +31,7 @@ sagmbAssess(h1, sim)
   calibrated, transformed data;
   \code{y}, an \code{n x d} matrix with the simulated
   uncalibrated raw data - this is intended to be fed into
-  \code{\link[vsn:vsn]{vsn}};
+  \code{\link{vsn2}};
   \code{is.de}, a logical vector of length \code{n}, specifying
   which probes are simulated to be differentially expressed.
   \code{strata}, a factor of length \code{n}.
@@ -51,13 +51,12 @@ sagmbAssess(h1, sim)
   http://www.bepress.com/sagmb/vol2/iss1/art3}
 
 \author{Wolfgang Huber}
-\seealso{\code{\link{vsn}}}
 
 \examples{
-  sim <- sagmbSimulateData(nrstrata=4)
-  ny  <- vsn2(sim$y, strata=sim$strata)
+  sim <- sagmbSimulateData(nrstrata = 4)
+  ny  <- vsn2(sim$y, strata = sim$strata)
   res <- sagmbAssess(exprs(ny), sim)
   res
 }
 
-\keyword{datagen}
+

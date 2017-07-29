@@ -61,7 +61,7 @@ meanSdPlot(x,
 }
 
 \author{Wolfgang Huber}
-\seealso{\code{\link{vsn}}}
+
 \examples{
   data("kidney")
   log.na <- function(x) log(ifelse(x>0, x, NA))

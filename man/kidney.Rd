@@ -1,9 +1,9 @@
 \name{kidney}
 \alias{kidney}
 \docType{data}
-\title{Intensity data for 1 cDNA slide with two adjacent tissue samples
+\title{Intensity data for one cDNA slide with two adjacent tissue samples
   from a nephrectomy (kidney)}
-\description{Intensity data for 1 cDNA slide with two adjacent tissue samples
+\description{Intensity data for one cDNA slide with two adjacent tissue samples
   from a nephrectomy (kidney)}
 \usage{data(kidney)}
 
@@ -25,10 +25,9 @@
   cell carcinoma. Verh Dtsch Ges Pathol. 2002;86:153-64.
   PMID: 12647365}
 
-\seealso{\code{\link{vsn}}}
 \examples{
- data(kidney)
- plot(exprs(kidney), pch=".", log="xy")
- abline(a=0,b=1,col="blue")  
+ data("kidney")
+ plot(exprs(kidney), pch = ".", log = "xy")
+ abline(a = 0, b = 1, col = "blue")  
 }
 \keyword{datasets}

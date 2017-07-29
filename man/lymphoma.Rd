@@ -43,9 +43,8 @@ Feb 3, 2000.}
 
 \source{http://genome-www5.stanford.edu/MicroArray/SMD}
 
-\seealso{\code{\link{vsn}}}
 \examples{
-   data(lymphoma)
+   data("lymphoma")
    lymphoma
    pData(lymphoma)
 }
