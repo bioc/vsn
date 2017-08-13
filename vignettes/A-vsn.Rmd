@@ -1128,8 +1128,10 @@ differentially transcribed genes balance out.
 
 # Acknowledgements
 
-I acknowledge helpful comments and feedback from Anja von Heydebreck, 
-Richard Bourgon, Martin Vingron, Ulrich Mansmann and Robert Gentleman.
+I acknowledge helpful comments and feedback from Anja von Heydebreck, Richard Bourgon,
+Martin Vingron, Ulrich Mansmann and Robert Gentleman.  The active development of the
+`r Biocpkg("vsn")` package was from 2001 to 2003, and most of this document was written
+during that time (although the current layout is more recent).
 
 
 # Session info {.unnumbered}
