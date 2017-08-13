@@ -1,5 +1,5 @@
 ---
-title: "Introduction to vsn (HTML version)"
+title: "Introduction to vsn"
 author: "Wolfgang Huber"
 package: vsn
 output: 
@@ -74,8 +74,8 @@ is a function that is like the logarithm (base 2) for large values
 but is less steep for smaller values.  Differences between the transformed
 values are the generalised log-ratios. These are 
 shrinkage estimators of the logarithm of the fold change.
-The usual log-ratio is another example for an estimator^[
-In statistics, the term estimator is used to denote an algorithm
+The usual log-ratio is another example for an estimator^[In statistics,
+the term estimator is used to denote an algorithm
 that calculates a value from measured data. 
 This value is intended to correspond to the true value of a parameter of the 
 underlying process that generated the data. Depending on the amount of the 
@@ -126,13 +126,13 @@ software and subtracted, hence some of the intensities in
 `kidney` are close to zero or negative. In
 Figure \@ref(fig:nkid-scp) you can see the scatterplot of the
 calibrated and transformed data. For comparison, the scatterplot of
-the log-transformed raw intensities is also shown.
+the log-transformed raw intensities is also shown. The code below involves
+some data shuffling to move the data into datasframes for `ggplot`.
 
 ```{r nkid-scp, results = "hide", fig.cap = paste0("Scatterplots of the kidney example data, which were obtained from a two-color cDNA array by quantitating spots and subtracting a local background estimate. a) unnormalised and $\\log_2$-transformed. b) normalised and transformed with VSN. Panel b shows the data from the complete set of ", nrow(kidney), " spots on the array, Panel a only the ", sum(0==rowSums(exprs(kidney)<=0)), " spots for which both red and green net intensities were greater than 0. Those spots which are missing in Panel a are coloured in orange in Panel b."), fig.height = 4, fig.wide = TRUE}
 library("ggplot2")
 allpositive = (rowSums(exprs(kidney) <= 0) == 0)
 
-## some data shuffling to bring data into the right shape and data.frame for ggplot
 df1 = data.frame(log2(exprs(kidney)[allpositive, ]),
                  type = "raw",
 		 allpositive = TRUE)
@@ -1031,8 +1031,8 @@ definitely not the case.
 
 By default, the VSN method assumes that the measured 
 signal $y_{ik}$ increases, to sufficient approximation, proportionally 
-to the mRNA abundance $c_{ik}$ of gene $k$ on the $i$-th array, or 
-on the $i$-th colour channel:
+to the mRNA abundance $c_{ik}$ of gene $k$ on array $i$ (or 
+in colour channel $i$):
 
 \begin{equation}
 y_{ik}\approx \alpha_i + \lambda_i \lambda_k c_{ik}.
@@ -1071,8 +1071,7 @@ VSN methods allows for this option by using the `strata`
 argument of the function `vsn2`.  We have seen an example above
 where this could be useful.  For Affymetrix genechips, one can find
 systematic dependences of the affinities $\lambda_{is}$ and the background
-terms $\alpha_{is}$ on the reporter sequence, however, the optimal stratification
-of reporters based on their sequence is an active area of research.
+terms $\alpha_{is}$ on the reporter sequence.
 
 Nevertheless, there are situations in which either 
 assumption \@ref(eq:assumption1) or \@ref(eq:assumption2) 
@@ -1093,7 +1092,7 @@ used to simultaneously calibrate and transform data from different
 batches.
 
 How to reliably diagnose and deal with such violations is beyond the scope 
-of this vignette; see the references for more [@Huber:2003:HSG,Dudoit578]. 
+of this vignette; see the references for more [@Huber:2003:HSG,@Dudoit578]. 
 
 ## Most genes unchanged assumption{#sec:mostunch}
 
