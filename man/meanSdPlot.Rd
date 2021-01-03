@@ -40,8 +40,8 @@ meanSdPlot(x,
 \item{plot}{Logical.  If \code{TRUE} (default), a plot is produced.
   Calling the function with \code{plot=FALSE} can be useful if only
   its return value is of interest.}
-\item{bins}{Gets passed on to \code{\link[ggplot2:stat_binhex]{stat_binhex}}.}
-\item{\dots}{Further arguments that get passed on to \code{\link[ggplot2:stat_binhex]{stat_binhex}}.}
+\item{bins}{Gets passed on to \code{\link[ggplot2:geom_hex]{geom_hex}}.}
+\item{\dots}{Further arguments that get passed on to \code{\link[ggplot2:geom_hex]{geom_hex}}.}
 }
 \details{Standard deviation and mean are calculated row-wise from the
   expression matrix (in) \code{x}. The scatterplot of these versus each other
