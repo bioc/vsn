@@ -291,13 +291,13 @@ void setupEverybody(SEXP Sy, SEXP Spar, SEXP Sstrat, SEXP Scalib, vsn_data* px)
     error("Your 'asinh' function does not seem to work right.");
 
   PROTECT(dimy = getAttrib(Sy, R_DimSymbol));
-  if((!isReal(Sy)) | isNull(dimy) | (LENGTH(dimy)!=2))
+  if((!isReal(Sy)) || isNull(dimy) || (LENGTH(dimy)!=2))
     error("Invalid argument 'Sy', must be a real matrix."); 
   if(!isReal(Spar))
     error("Invalid argument 'Spar', must be a real vector.");
   if(!isInteger(Sstrat)) 
     error("Invalid argument 'Sstrat', must be integer.");
-  if(!isInteger(Scalib)| (LENGTH(Scalib)!=1)) 
+  if(!isInteger(Scalib) || (LENGTH(Scalib)!=1)) 
     error("Invalid argument 'Scalib', must be integer of length 1.");
 
   px->npar    = LENGTH(Spar);
