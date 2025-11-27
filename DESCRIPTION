@@ -1,5 +1,5 @@
 Package: vsn
-Version: 3.79.0
+Version: 3.79.1
 Title: Variance stabilization and calibration for microarray data
 Author: Wolfgang Huber, with contributions from Anja von
         Heydebreck. Many comments and suggestions by users are
@@ -41,3 +41,4 @@ Collate: AllClasses.R  AllGenerics.R
 	methods-vsnInput.R methods-vsn.R methods-vsn2.R methods-predict.R
 	RGList_to_NChannelSet.R meanSdPlot-methods.R plotLikelihood.R
 	normalize.AffyBatch.vsn.R sagmbSimulateData.R  zzz.R
+RoxygenNote: 7.3.3
