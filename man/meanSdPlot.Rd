@@ -71,7 +71,10 @@ meanSdPlot(x,
 
   ## The `ggplot` object is returned in list element `gg`, here is an example of how to modify the plot
   library("ggplot2")
-  msd$gg + ggtitle("Hello world") + scale_fill_gradient(low = "yellow", high = "darkred") + scale_y_continuous(limits = c(0, 7))  
+  msd$gg +
+    ggtitle("Hello world") +
+    scale_fill_gradient(low = "yellow", high = "darkred") +
+    scale_y_continuous(limits = c(0, 7))
 
   ## Try this out with not log-transformed data, vsn2-transformed data, the lymphoma data, your data ...
 }
