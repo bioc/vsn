@@ -330,7 +330,7 @@ vsnMatrix = function(x,
     if(nrow(reference)!=nrow(x))
       stop("'nrow(reference)' must be equal to 'nrow(x)'.")
     if(nrow(reference)!=length(reference@mu))
-      stop(sprintf("The slot 'reference@mu' has length %d, but expected is n=%d", nrow(reference)))
+      stop(sprintf("The slot 'reference@mu' has length %1$d, but expected is n=%1$d", nrow(reference)))
   }
 
   if(!(is.list(optimpar)&&all(names(optimpar)%in%optimparNames)&&!any(duplicated(names(optimpar)))))
