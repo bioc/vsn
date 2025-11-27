@@ -1,3 +1,10 @@
+CHANGES IN VERSION 3.79.1
+--------------------------
+
+    o The deprecated `ggplot2::aes_string()` used in `meanSdPlot()` has been replaced with `ggplot2::aes()`.
+    o The error message when `reference@mu` doesn't have the expected length in `vsnMatrix()` no longer says
+    "too few arguments" and now reports the actual and expected lengths.
+
 CHANGES IN VERSION 3.43.10
 ---------------------------
 
