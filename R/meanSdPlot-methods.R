@@ -36,10 +36,10 @@ setMethod("meanSdPlot", signature = "matrix", definition =
       fmt = function() function(x) format(round(x, 0), nsmall = 0L, scientific = FALSE)
 
       res$gg = ggplot(data.frame(px = res$px, py = res$py),
-            aes_string(x = "px", y = "py")) + xlab(xlab) + ylab(ylab) +
+            aes(x = .data[["px"]], y = .data[["py"]])) + xlab(xlab) + ylab(ylab) +
             geom_hex(bins = bins, ...) +
             scale_fill_gradient(name = "count", trans = "log", labels = fmt()) + 
-          geom_line(aes_string(x = "x", y = "y"),
+          geom_line(aes(x = .data[["x"]], y = .data[["y"]]),
                     data = data.frame(x = res[[1]], y = res$sd), color = "red")
               
       if (plot) print(res$gg)
