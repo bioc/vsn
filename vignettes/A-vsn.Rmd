@@ -119,18 +119,19 @@ conditions, or technical factors. These need to be addressed by other, more spec
 
 ### Numerical stability and convergence
 
-VSN does not work for all possible inputs. Failures may be due to a number of problems:
+VSN does not work for all possible inputs. If you encounter an error message like
+"L-BFGS-B needs finite values of 'fn'"^[For technical readers: fitting the VSN model
+involves optimisation of a multivariate, non-quadratic likelihood. For bad or unsuitable data,
+this function may be non-convex, and in particular, it may be flat in some directions
+of parameter space. In such cases, the optimiser can run out into infinity, which
+results in this error message. One could contemplate a version of `vsn2` that avoids this
+by using regularisation. In any case, the current behaviour alerts users to 
+problems rather than simply glossing over.], please check whether one of these 
+problems is present:
 
-- A bug in the code that does the preprocessing of the data that goes in
-- A problem with data quality or experimental design, e.g., incompatible measurements assembled together into one input matrix
-- The noise or variance characteristics of the data are not suitable for the VSN mode.
-
-So if you encounter an error message like "L-BFGS-B needs finite values of 'fn'", please check whether one of the above 
-applies^[More technically: fitting the VSN model involves optimisation of a multivariate, non-quadratic likelihood.
-For bad or unsuitable data, this function may be non-convex, and in particular, it may be flat in some directions of parameter space. In such cases,
-the optimiser may run out into infinity, causing the mentioned error. One could contemplate a version of `vsn2` that avoids this by using regularisation.
-In any case, the current behaviour alerts users to the above problems rather than simply glossing over.].
-
+- A bug in the code that does the preprocessing of the data that go in.
+- A problem with data quality or experimental design, e.g., incompatible measurements assembled together into one input matrix.
+- The noise or variance characteristics of the data are just not suitable for the VSN model.
 
 # Running VSN on data from a single two-colour array
 
