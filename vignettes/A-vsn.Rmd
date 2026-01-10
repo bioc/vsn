@@ -58,9 +58,8 @@ the fitted calibration and transformation parameters, and the method
 `predict` applies the fit to the data.
 The two-step protocol is useful when you want to fit the parameters on a
 subset of the data, e.g. a set of control or spike-in features,
-and then apply the model to the complete set of data 
-(see Section \@ref(sec:spike) for details). Furthermore, it
-allows further inspection of the `fit` object, e.g. for the
+and then apply the model to the complete set of data^[See Section \@ref(sec:spike) for details.].
+Furthermore, it enables further inspection of the `fit` object, e.g., for the
 purpose of quality assessment.
 
 Besides `ExpressionSet`s, there are also `justvsn` 
@@ -71,11 +70,13 @@ in this vignette.
 The so-called glog$_2$ (short for generalised logarithm) 
 is a function that is like the logarithm (base 2) for large values 
 (large compared to the amplitude of the background noise),
-but is less steep for smaller values.  Differences between the transformed
-values are the generalised log-ratios. These are 
-shrinkage estimators of the logarithm of the fold change.
+but is less steep for smaller values. While the $\log_2$ function diverges to
+negative infinity at zero, the glog$_2$ function approximates a straight line of
+finite slope around 0^[See Section \@ref(sec:shrink) for a visualization.].
+Differences between the transformed values are the generalised log-ratios. These 
+are shrinkage estimators of the logarithm of the fold change.
 The usual log-ratio is another example for an estimator^[In statistics,
-the term estimator is used to denote an algorithm
+the term estimator is used to denote any algorithm
 that calculates a value from measured data. 
 This value is intended to correspond to the true value of a parameter of the 
 underlying process that generated the data. Depending on the amount of the 
@@ -106,11 +107,30 @@ Section \@ref(sec:nocalib).]. This can be useful, for example, if the
 calibration has already been done by other means, e.g., quantile
 normalisation.
 
-Note that VSN's variance stabilisation only addresses the
-dependence of the variance on the mean intensity. There may be other
-factors influencing the variance, such as gene-inherent properties or
-changes of the tightness of transcriptional control in different
-conditions.  These need to be addressed by other methods.
+## Limitations
+
+### Other determinants of variance
+
+The VSN transformation only addresses the
+dependence of the variance on the mean intensity. There may be important other
+factors influencing the variance, including gene-inherent properties,
+sample-inherent properties such as different tightness of transcriptional control in different
+conditions, or technical factors. These need to be addressed by other, more specialized models.
+
+### Numerical stability and convergence
+
+VSN does not work for all possible inputs. Failures may be due to a number of problems:
+
+- A bug in the code that does the preprocessing of the data that goes in
+- A problem with data quality or experimental design, e.g., incompatible measurements assembled together into one input matrix
+- The noise or variance characteristics of the data are not suitable for the VSN mode.
+
+So if you encounter an error message like "L-BFGS-B needs finite values of 'fn'", please check whether one of the above 
+applies^[More technically: fitting the VSN model involves optimisation of a multivariate, non-quadratic likelihood.
+For bad or unsuitable data, this function may be non-convex, and in particular, it may be flat in some directions of parameter space. In such cases,
+the optimiser may run out into infinity, causing the mentioned error. One could contemplate a version of `vsn2` that avoids this by using regularisation.
+In any case, the current behaviour alerts users to the above problems rather than simply glossing over.].
+
 
 # Running VSN on data from a single two-colour array
 
@@ -897,7 +917,7 @@ lwd  = 2
 ``` 
 
 ```{r shrink, results = "hide", echo = FALSE, fig.cap = "The shrinkage property of the generalised log-ratio.  Blue diamonds and error bars correspond to mean and standard deviation of the generalised log-ratio $h$, as obtained from VSN, and black dots and error bars to the standard log-ratio $q$ (both base 2).", fig.small = TRUE}
-mai = par("mai"); mai[3]=0; par(mai)
+mai = par("mai"); mai[3]=0; par(mai = mai)
 plot(x2, m, ylim=c(-2, 3.5), type="n", xlab=expression(x[2]), ylab="")
 abline(h=-log2(fc), col="red", lwd=lwd, lty=1)
 abline(h=0, col="black", lwd=1, lty=2)
