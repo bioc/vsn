@@ -115,8 +115,8 @@ void calctrsf(vsn_data *px, double* par, double *hy)
 double loglik(int n, double *par, void *ex)
 {
   double *a, *b;      
-  double aj, bj, mu, z, ll, ssq, sigsq, jac1, jac2, jacobian, scale, residuals;
-  int i, j, ni, nt;
+  double aj, bj, mu, z, ll, ssq, sigsq, jac1, jac2, jacobian, scale, residuals, nt;
+  int i, j, ni;
   int nr, nc;
   vsn_data *px;
 
@@ -135,15 +135,9 @@ double loglik(int n, double *par, void *ex)
   /* 1st sweep through the data: compute Y_ki, h(y_ki), A_ki, B_ki */
   /*---------------------------------------------------------------*/
   jac1 = jac2 = 0.0;
-  nt = 0;
   for(j=0; j < px->nrstrat; j++){
     aj = a[j];
     bj = FUN(b[j]);
-
-    /* Double-check - this expression can be removed in future versions */
-    if(bj<=0)
-      error("Nonpositive factor bj=%g (b[%d]=%g).\n", bj, j, b[j]);
-
     ni = 0;
     for(i = px->strat[j]; i < px->strat[j+1]; i++){
       z = px->y[i];
@@ -159,13 +153,9 @@ double loglik(int n, double *par, void *ex)
       }
     } /* for i */
     jac2 += ni*log(bj);
-    nt += ni;
   } /* for j */
   
   jacobian = jac1*0.5 - jac2;
-
-  if(px->ntot != nt)   /* Double-check - the code with 'nt' can be removed in future versions */
-    error("Internal error in 'loglik'.");
 
   /*---------------------------------------------------------------*/
   /* 2nd sweep through the data: compute r_ki                      */
@@ -203,25 +193,27 @@ double loglik(int n, double *par, void *ex)
     } /* for j */
   } /* for i */
 
+  nt = (double)px->ntot;
   if(px->profiling) {
     /* Negative profile log likelihood */
     /* Calculate sigsq and save for reuse in grad_loglik */
-    sigsq = ssq/(double)nt; 
+    sigsq = ssq/nt; 
     px->sigsq = sigsq;
-    residuals = (double)nt/2.0;
+    residuals = nt/2.0;
   } else {
     /* Negative log likelihood */
     sigsq = px->sigsq;
     residuals = ssq/(2.0*sigsq);
   }
-  scale = (double)nt/2.0 * log(2.0*M_PI*sigsq); 
+  scale = nt/2.0 * log(2.0*M_PI*sigsq); 
   ll = scale + residuals + jacobian;
 
-#ifdef VSN_DEBUG
-  Rprintf("negloglik[%d]=%8g: scale=%8g, res=%8g, jac1=%8g, jac2=%8g, nt=%d, sigsq=%8g, ssq/nt=%8g\n", 
-     px->profiling, ll, scale, residuals, jac1, jac2, nt, px->sigsq, ssq/(double)nt); 
-#endif
-
+  /*
+  if(!R_FINITE(ll))
+    error("negloglik[%d]=%8g: scale=%8g, res=%8g, jac1=%8g, jac2=%8g, ntot=%d,  sigsq=%8g, ssq/nt=%8g\n", 
+	   px->profiling, ll, scale,   residuals, jac1,     jac2,     px->ntot, px->sigsq, ssq/nt); 
+  */
+  
   return(ll);
 }
 
