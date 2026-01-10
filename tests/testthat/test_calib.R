@@ -1,7 +1,8 @@
-test_that("calib='affine' option in 'vsn2' works with 'predict' method for resulting 'vsn' object.", {
+test_that("Make sure that if the calib='affine' option is used in 'vsn2', the 'predict' method works on the resulting 'vsn' object.", {
   ## motivated by https://support.bioconductor.org/p/92235/
-  nr   <- 500
-  nc   <- 10
+  set.seed(0xbadbeef)  
+  nr   <- 512
+  nc   <- 8
   dat  <- exp(matrix(rnorm(nr*nc), nr, nc) + log(seq_len(nr)))
   fit1 <- vsn2(dat)
   fit2 <- vsn2(dat, calib = "none")
