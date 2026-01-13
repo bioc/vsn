@@ -1,10 +1,16 @@
 Package: vsn
-Version: 3.79.4
+Version: 3.79.5
 Title: Variance stabilization and calibration for microarray data
-Author: Wolfgang Huber, with contributions from Anja von
-        Heydebreck. Many comments and suggestions by users are
-        acknowledged, among them Dennis Kostka, David Kreil, Hans-Ulrich
-        Klein, Robert Gentleman, Deepayan Sarkar and Gordon Smyth
+Authors@R: c(
+    person("Wolfgang", "Huber", email="wolfgang.huber@embl.org", role = c("aut","cre")),
+    person("Anja", "von Heydebreck", role = c("aut")),
+    person("Dennis", "Kostka", role = c("ctb")),
+    person("David", "Kreil", role = c("ctb")),
+    person("Hans-Ulrich", "Klein", role = c("ctb")),
+    person("Robert", "Gentleman", role = c("ctb")),
+    person("Deepayan", "Sarkar", role = c("ctb")),
+    person("Gordon", "Smyth", role = c("ctb")),
+    person("Federal Ministry of Research, Technology and Space of Germany, DHGP", role="fnd"))
 Maintainer: Wolfgang Huber <wolfgang.huber@embl.org>
 Depends: R (>= 4.0.0), methods, Biobase
 Imports: affy, limma, lattice, ggplot2
