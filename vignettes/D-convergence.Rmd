@@ -1,6 +1,9 @@
 ---
 title: "Verifying and assessing the performance with simulated data"
-output: rmarkdown::html_vignette:
+package: vsn
+output: 
+  BiocStyle::html_document:
+    toc: true
 vignette: >
   %\VignetteIndexEntry{Verifying and assessing the performance with simulated data}
   %\VignetteEngine{knitr::rmarkdown}
