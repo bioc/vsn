@@ -1,5 +1,5 @@
 Package: vsn
-Version: 3.79.6
+Version: 3.80.0
 Title: Variance stabilization and calibration for microarray data
 Authors@R: c(
     person("Wolfgang", "Huber", email="wolfgang.huber@embl.org", role = c("aut","cre")),
