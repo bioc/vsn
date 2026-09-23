@@ -3,3 +3,6 @@ debian
 ^doc$
 ^Meta$
 ^README\.qmd$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$

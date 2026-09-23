@@ -39,7 +39,7 @@ Reference: [1] Variance stabilization applied to microarray data
         (2003) Vol. 2 No. 1, Article 3;
         http://www.bepress.com/sagmb/vol2/iss1/art3.
 License: Artistic-2.0
-URL: https://github.com/Huber-group-EMBL/vsn
+URL: https://github.com/Huber-group-EMBL/vsn, https://huber-group-embl.github.io/vsn/
 BugReports: https://github.com/Huber-group-EMBL/vsn/issues
 biocViews: Microarray, OneChannel, TwoChannel, Preprocessing
 VignetteBuilder: knitr
