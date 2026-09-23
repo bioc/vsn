@@ -1,0 +1,79 @@
+---
+format:
+  gfm:
+    default-image-extension: ""
+---
+
+<!-- README.md is generated from README.qmd. Please edit that file -->
+
+```{r}
+#| include: false
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# vsn
+
+**V**ariance **s**tabilization and calibration for microarray data.
+
+`vsn` implements a method for normalising single- and multiple-color microarray
+intensities (and, in principle, data from other technologies with a similar
+format). The model incorporates data calibration step (a.k.a. normalization), a
+model for the dependence of the variance on the mean intensity and a variance
+stabilizing data transformation. Differences between transformed intensities
+are analogous to "normalized log-ratios". However, in contrast to the latter, 
+their variance is independent of the mean, and they are usually more sensitive
+and specific in detecting differential transcription.
+
+## Installation
+
+`vsn` is part of Bioconductor:
+
+```{r}
+#| eval: false
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("vsn")
+```
+
+## Usage
+
+```{r}
+#| message: false
+library("vsn")
+```
+
+The simplest way to normalize a dataset is:
+
+```{r}
+data("kidney")          # ExpressionSet of unnormalised data
+xnorm <- justvsn(kidney)
+xnorm
+```
+
+For more control, fit the model and apply it in two steps:
+
+```{r}
+fit <- vsn2(kidney)
+ynorm <- predict(fit, kidney)
+ynorm
+```
+
+Both are equivalent. The two-step form is useful when fitting on a subset
+(e.g. spike-in or control features) and then applying the fit to the full
+data, or when you want to inspect the `fit` object. `justvsn()` and `vsn2()`
+are also available for `AffyBatch` and `RGList` objects.
+
+## References
+
+```{r}
+citation(package = "vsn")
+```
+
+## Feedback
+
+This is an approved de.NBI service. Please help us improve by taking our [short user survey](https://www.surveymonkey.de/r/denbi-service?sc=hd-hub&tool=vsn).
